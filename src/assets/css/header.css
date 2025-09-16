@@ -1,0 +1,156 @@
+.hdr-topbar{
+  position: fi; top: 0; z-index: 100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 92%, transparent),
+    color-mix(in srgb, var(--surface) 70%, transparent)
+  );
+  backdrop-filter: blur(6px);
+  color: var(--text);
+}
+
+.hdr-brand { display:flex; align-items:center; gap:10px; font-weight:700; }
+.hdr-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); display:inline-block; }
+.hdr-logo { letter-spacing:.5px; }
+.hdr-badge { font-size:12px; color:var(--muted); border:1px solid var(--border); padding:2px 6px; border-radius:6px; }
+.hdr-live  { font-size:12px; color:var(--muted); }
+.hdr-right { display:flex; align-items:center; gap:10px; }
+
+/* 공용 버튼 */
+.hdr-chip{
+  font-size:12px; color: var(--chip-text);
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
+  padding: 6px 10px; border-radius: 13px;
+  transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.hdr-chip:hover{
+  background: var(--chip-hover-bg);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--chip-border) 65%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* 테마 토글 – 라이트/다크별 전용 변수 사용 */
+.hdr-mode-toggle{
+  display:inline-flex; align-items:center; gap:8px;
+  background: var(--mode-toggle-bg);
+  border-color: var(--mode-toggle-border);
+  color: var(--mode-toggle-text);
+}
+.hdr-mode-toggle:hover{ background: var(--mode-toggle-hover-bg); }
+
+.hdr-mode-toggle .hdr-ico { line-height:0; display:inline-flex; }
+.hdr-mode-toggle .hdr-ico svg { width:16px; height:16px; }
+.hdr-mode-toggle .hdr-txt { font-weight:600; }
+/* 뒤로가기 버튼을 hdr-chip 계열 톤으로 정리 */
+.hdr-back{
+  display:inline-grid; place-items:center;
+  padding:8px 12px;
+  border-radius:12px;
+  border:1px solid color-mix(in srgb, var(--accent, #22d3ee) 28%, var(--border, rgba(148,163,184,.25)) 72%);
+  background: color-mix(in srgb, var(--accent, #22d3ee) 14%, var(--surface, #0f172a) 86%);
+  color: color-mix(in srgb, #ffffff 85%, var(--text, #e5e7eb) 15%);
+  box-shadow: 0 8px 20px color-mix(in srgb, #000 28%, transparent);
+  transition: background .15s ease, border-color .15s ease, transform .06s ease, box-shadow .15s ease, outline .06s ease;
+}
+.hdr-back:hover{
+  background: color-mix(in srgb, var(--accent, #22d3ee) 22%, var(--surface, #0f172a) 78%);
+  box-shadow: 0 10px 26px color-mix(in srgb, #000 34%, transparent);
+}
+.hdr-back:active{ transform: translateY(1px); }
+
+/* 아이콘-only 변형: 정사각형 버튼 느낌 */
+.hdr-back--icon{ padding:8px; }
+.hdr-back--icon .hdr-ico{ width:18px; height:18px; }
+
+/* 키보드 포커스 표시 */
+.hdr-back:focus-visible{
+  outline: 3px solid color-mix(in srgb, var(--accent, #22d3ee) 45%, transparent);
+  outline-offset: 2px;
+}
+
+/* 브랜드 영역 간격 유지 */
+.hdr-brand{ display:flex; align-items:center; gap:10px; }
+
+/* ──────────────── */
+/* Light mode only  */
+/* ──────────────── */
+html[data-theme="light"] .hdr-topbar{
+  background: color-mix(in srgb, #ffffff 96%, var(--surface, #ffffff) 4%);
+  color: #0f172a; /* 진한 남색 텍스트 */
+  border-bottom: 1px solid #e2e8f0; /* slate-200 */
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+}
+
+/* 브랜드 영역 */
+html[data-theme="light"] .hdr-logo{ color:#0f172a; }
+html[data-theme="light"] .hdr-badge{
+  background: #e0f2fe;           /* sky-100 */
+  color:#075985;                  /* sky-800 */
+  border:1px solid #bae6fd;       /* sky-200 */
+}
+
+/* 실시간 표시 */
+html[data-theme="light"] .hdr-live{
+  color:#0f172a;
+  background: #eff6ff;            /* indigo-50 */
+  border:1px solid #e2e8f0;
+}
+
+/* 공통 칩(토글/버튼) */
+html[data-theme="light"] .hdr-chip{
+  background:#f1f5f9;             /* slate-100 */
+  color:#0f172a;
+  border:1px solid #e2e8f0;
+}
+html[data-theme="light"] .hdr-chip:hover{
+  background:#e2e8f0;             /* slate-200 */
+}
+html[data-theme="light"] .hdr-chip:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(59,130,246,0.35); /* blue-500 ring */
+}
+
+/* 모드 토글 아이콘(해/달) */
+html[data-theme="light"] .hdr-mode-toggle .hdr-ico svg{
+  stroke:currentColor; fill:none;
+}
+
+/* 뒤로가기 버튼(아이콘만) */
+html[data-theme="light"] .hdr-back{
+  background:#ffffff;
+  color:#0f172a;
+  border:1px solid #e2e8f0;
+  box-shadow: 0 6px 12px rgba(2, 6, 23, 0.05);
+}
+html[data-theme="light"] .hdr-back:hover{
+  background:#f8fafc;             /* slate-50 */
+}
+html[data-theme="light"] .hdr-back:active{
+  transform: translateY(0.5px);
+  box-shadow: 0 4px 8px rgba(2, 6, 23, 0.06);
+}
+html[data-theme="light"] .hdr-back:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(59,130,246,0.35);
+}
+
+/* 뒤로가기 비활성(메인에서) */
+html[data-theme="light"] .hdr-back[disabled],
+html[data-theme="light"] .hdr-back[aria-disabled="true"]{
+  background:#f8fafc;
+  color:#94a3b8;                  /* slate-400 */
+  border-color:#e2e8f0;
+  cursor:not-allowed;
+  opacity:.6;
+  box-shadow:none;
+}
+
+/* 장식 점 */
+html[data-theme="light"] .hdr-dot{
+  background:#22d3ee;             /* cyan-400 */
+  box-shadow:0 0 0 6px rgba(34, 211, 238, .12);
+}

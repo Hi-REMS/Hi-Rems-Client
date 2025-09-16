@@ -1,0 +1,1016 @@
+/* 발전량 모니터링 CSS */
+.edb-page{
+  /* local tokens */
+  --p-bg:        var(--bg);
+  --p-panel:     var(--surface);
+  --p-panel-2:   var(--surface-2);
+  --p-text:      var(--text);
+  --p-muted:     var(--muted);
+  --p-line:      var(--border);
+  --p-accent:    var(--accent);
+
+  /* controls */
+  --input-bg:    var(--p-panel-2);
+  --input-fg:    var(--p-text);
+  --placeholder: color-mix(in srgb, var(--p-muted) 86%, var(--p-text) 14%);
+  --chip-bg:     color-mix(in srgb, var(--p-accent) 18%, var(--p-panel) 82%);
+  --chip-fg:     color-mix(in srgb, var(--p-text) 92%, #041225 8%);
+  --chip-ghost:  color-mix(in srgb, var(--p-accent) 14%, transparent);
+  --chip-strong: color-mix(in srgb, var(--p-accent) 28%, var(--p-panel) 72%);
+
+  --scroll-thumb: color-mix(in srgb, var(--p-muted) 30%, transparent);
+
+  /* shadows */
+  --shadow: 0 10px 30px color-mix(in srgb, #000 45%, transparent);
+
+  /* global data typography (조금 축소) */
+  --data-label: 13px;
+  --data:       15px;
+  --data-strong:18px;
+
+  background: var(--p-bg);
+  color: var(--p-text);
+}
+
+/* 1열: 시(HH시) - 가운데, 고정폭 */
+.edb-tbl th:nth-child(1),
+.edb-tbl td:nth-child(1){
+  width: 68px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 2열: 발전량(kWh) - 숫자 오른쪽, 가변폭(남은 폭 전부) */
+.edb-tbl th:nth-child(2),
+.edb-tbl td:nth-child(2){
+  text-align: center;
+  padding-right: 12px;
+}
+
+/* 3열: 날씨/기온 - 왼쪽, 고정폭(내용이 길면 말줄임 처리) */
+.edb-tbl th:nth-child(3),
+.edb-tbl td:nth-child(3){
+  width: 160px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 4열: CO₂저감량(kg) - 숫자 오른쪽, 고정폭 */
+.edb-tbl th:nth-child(4),
+.edb-tbl td:nth-child(4){
+  width: 120px;
+  text-align: center;
+}
+
+
+
+/* 라이트 모드 보정 */
+html[data-theme="light"] .edb-page{
+  --input-bg: color-mix(in srgb, #fff 98%, var(--p-panel) 2%);
+  --input-fg: #0f172a;
+  --placeholder: color-mix(in srgb, #64748b 80%, var(--p-muted) 20%);
+  --chip-bg:     color-mix(in srgb, var(--p-accent) 16%, #fff 84%);
+  --chip-ghost:  color-mix(in srgb, var(--p-accent) 12%, transparent);
+  --scroll-thumb: color-mix(in srgb, var(--p-muted) 25%, transparent);
+}
+
+*{box-sizing:border-box}
+html,body,#app{height:100%}
+body{margin:0;background:var(--p-bg);color:var(--p-text);font-family:'Segoe UI',Inter,Arial,sans-serif}
+
+.edb-page{padding:22px}
+.edb-inner{max-width:1480px;margin:0 auto}
+
+.edb-card{
+  background: linear-gradient(180deg, var(--p-panel), var(--p-panel-2));
+  border:1px solid var(--p-line);
+  border-radius:18px;
+  box-shadow: var(--shadow);
+  padding:16px 18px;
+}
+.edb-card--soft{padding:14px 16px}
+
+.edb-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.edb-tool-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.edb-label{font-size:13px;color:var(--p-muted)}
+
+.edb-input-wrap{position:relative}
+
+.edb-input{
+  width:360px;max-width:68vw;
+  background:var(--input-bg) !important;
+  border:1px solid var(--p-line) !important;
+  color:var(--input-fg) !important;
+  padding:10px 38px 10px 12px;
+  border-radius:12px; outline:none;
+  caret-color: var(--input-fg);
+}
+.edb-input::placeholder{ color:var(--placeholder) !important; opacity:.9; }
+.edb-input::-webkit-input-placeholder{ color:var(--placeholder) !important; opacity:.9; }
+.edb-input::-moz-placeholder{ color:var(--placeholder) !important; opacity:.9; }
+.edb-input:-ms-input-placeholder{ color:var(--placeholder) !important; opacity:.9; }
+.edb-input::-ms-input-placeholder{ color:var(--placeholder) !important; opacity:.9; }
+
+.edb-input-ico{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--p-muted)}
+
+.edb-select{
+  background:var(--input-bg) !important;
+  border:1px solid var(--p-line) !important;
+  color:var(--input-fg) !important;
+  padding:9px 12px;border-radius:12px;
+}
+.edb-select--sm{padding:8px 10px}
+.edb-select--block{width:100%;margin-top:10px}
+
+.edb-btn{
+  border:1px solid var(--p-line);
+  border-radius:12px; padding:10px 14px; cursor:pointer;
+  background: color-mix(in srgb, var(--p-accent) 20%, var(--p-panel) 80%);
+  color: color-mix(in srgb, #fff 85%, var(--p-text) 15%);
+  transition: background-color .15s ease, box-shadow .15s ease, border-color .15s ease, filter .15s ease;
+}
+.edb-btn:hover{
+  background: color-mix(in srgb, var(--p-accent) 28%, var(--p-panel) 72%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-accent) 14%, transparent);
+}
+.edb-btn--ghost{
+  background: transparent; color: var(--p-text); position: relative; left:-5%;
+}
+.edb-btn--primary{
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--p-accent) 85%, #fff 15%), var(--p-accent));
+  border-color: transparent;
+  color: color-mix(in srgb, #041225 85%, var(--p-text) 15%);
+  font-weight:800;
+}
+.edb-btn[disabled]{opacity:.6;cursor:not-allowed}
+
+.edb-spinner,.edb-spinner--lg{
+  width:16px;height:16px;border:2px solid color-mix(in srgb, #fff 25%, transparent);
+  border-top-color:#fff;border-radius:50%;display:inline-block;animation:sp 1s linear infinite
+}
+.edb-spinner--lg{width:20px;height:20px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.edb-stat-row{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(260px, 1fr));
+  gap:16px; margin:6px 0 18px;
+  place-content:center;
+}
+.edb-center{ justify-items:stretch; }
+.edb-stat{
+  display:flex;align-items:center;gap:14px;padding:16px 18px;position:relative;overflow:hidden
+}
+.edb-stat:after{
+  content:"";position:absolute;inset:-1px;border-radius:inherit;
+}
+.edb-stat-ico{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:#05212b}
+.edb-ico-cyan{  background:linear-gradient(180deg,#48e0ff,#22b5ee)}
+.edb-ico-green{ background:linear-gradient(180deg,#9ef8c6,#34d399)}
+.edb-ico-amber{ background:linear-gradient(180deg,#ffd588,#ffb22e)}
+.edb-ico-purple{background:linear-gradient(180deg,#e2c4ff,#c084fc)}
+.edb-stat-title{font-size:12px;color:var(--p-muted)}
+.edb-stat-value b{font-size:22px;margin-right:4px}  /* ↓ 24px → 22px */
+.edb-stat-value span{color:var(--p-muted)}
+.edb-stat-sub{margin-top:4px;font-size:12px}
+.edb-up{color:#52f0ff} .edb-ok{color:#86efac} .edb-warn{color:#fbbf24} .edb-mute{color:#a8b1c2}
+
+.edb-grid.edb-top3{
+  display:grid;
+  grid-template-columns:1.2fr .9fr 1.2fr;
+  gap:16px;
+}
+
+.edb-card-hd{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.edb-card-hd h3{margin:0;font-size:16px}
+
+.edb-chip{
+  font-size:12px; color: var(--chip-fg);
+  background: var(--chip-bg);
+  border-radius:999px; padding:4px 10px;
+  border: 1px solid color-mix(in srgb, var(--p-accent) 28%, var(--p-line) 72%);
+}
+.edb-chip--strong{ background: var(--chip-strong); }
+.edb-chip--ghost{ background: var(--chip-ghost); color: color-mix(in srgb, var(--p-accent) 70%, var(--p-text) 30%); }
+
+.edb-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.edb-dot--amber{background:#fbbf24} .edb-dot--cyan{background:var(--p-accent)}
+
+.edb-summary .edb-sum__title{margin:0 0 8px 0}
+.edb-sum-list{
+  list-style:none;margin:0 0 12px 0;padding:0;
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+.edb-sum-list li{
+  display:grid;grid-template-columns:auto 1fr;align-items:center;
+  background:var(--p-panel-2);
+  border:1px solid var(--p-line);
+  border-radius:12px;padding:10px 12px;gap:10px
+}
+.edb-sum-label{color:var(--p-muted);white-space:nowrap;font-size:var(--data-label)} /* ↓ 14px → 13px */
+.edb-summary .edb-sum-value{ color: var(--p-text) !important; }
+.edb-sum-value{
+  text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+  font-size:var(--data);                    /* ↓ 16px → 15px */
+  display:flex;align-items:baseline;gap:6px;
+}
+.edb-sum-value b{font-size:var(--data-strong)} /* ↓ 20px → 18px */
+.edb-sum-value span{opacity:.9}
+.edb-sum-actions{margin-top:6px}
+
+
+.edb-detail .edb-detail-hd{font-size: 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.edb-table-wrap{max-height:420px;overflow:auto;border:1px solid var(--p-line);border-radius:12px}
+.edb-thin-scroll::-webkit-scrollbar{width:6px}
+.edb-thin-scroll::-webkit-scrollbar-thumb{background: var(--scroll-thumb); border-radius:8px}
+
+.edb-tbl{width:100%;border-collapse:separate;border-spacing:0}
+.edb-tbl thead th{
+  position:sticky;top:0; background:var(--p-panel-2); color:var(--p-muted);
+  font-weight:600; padding:10px 8px; border-bottom:1px solid var(--p-line);
+  font-size:13px; /* 살짝 축소 */
+}
+.edb-tbl tbody td{ color: var(--p-text) !important; font-size:14px; } /* 본문 데이터 폰트 축소 */
+.edb-tbl td{padding:10px 8px;border-bottom:1px solid color-mix(in srgb, var(--p-text) 12%, transparent)}
+.edb-num{text-align:right}
+
+/* =========================
+   SVG CHARTS
+   ========================= */
+.edb-svg-chart{width:100%;height:auto}
+.edb-svg-chart .axis text{font-size:var(--axis-y-font,14px);fill: color-mix(in srgb, var(--p-muted) 92%, #a8b1c2 8%)} /* 기본 살짝 축소 */
+.edb-svg-chart .axis-bottom text{font-size:var(--axis-x-font,15px)}
+.edb-svg-chart .grid line{stroke: color-mix(in srgb, var(--p-text) 15%, transparent)}
+.edb-svg-chart .axis line{stroke: var(--p-line)}
+.edb-svg-chart .bar{shape-rendering:geometricPrecision}
+.edb-svg-chart .axis-title{ fill: var(--p-muted); font-size: 12px; font-weight:600; }
+
+/* =========================
+   BOTTOM CHARTS
+   ========================= */
+.edb-grid.edb-charts2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.edb-range{color:var(--p-muted);font-size:12px;margin:6px 4px 0}
+
+/* =========================
+   EMPTY / LOADING
+   ========================= */
+.edb-empty{display:flex;align-items:center;justify-content:center;min-height:220px;color:var(--p-muted)}
+.edb-loading-overlay{
+  position:fixed;inset:0;background: color-mix(in srgb, var(--p-bg) 65%, transparent);
+  backdrop-filter:blur(2px); display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50
+}
+.edb-spinner-neo{
+  width:44px;height:44px;border:4px solid color-mix(in srgb, #fff 25%, transparent);
+  border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite
+}
+.edb-loading-text{margin-top:12px}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+/* 태블릿 이하에서도 1열 스택 강제 (주간/요약/상세, 월/년) */
+@media (max-width: 900px){
+  .edb-grid.edb-top3,
+  .edb-grid.edb-top3.edb-top3--big-week{
+    grid-template-columns:1fr !important;
+  }
+  .edb-grid.edb-charts2{grid-template-columns:1fr}
+  .edb-sum-list{grid-template-columns:1fr}
+  .edb-toolbar{flex-direction:column; align-items:flex-start; gap:12px}
+  .edb-input{width:100%; max-width:100%}
+}
+
+/* 기존 데스크톱 브레이크포인트 유지 */
+@media (max-width:1280px){
+  .edb-stat-row{grid-template-columns:repeat(2, minmax(260px, 1fr))}
+  .edb-grid.edb-top3{grid-template-columns:1fr}
+  .edb-grid.edb-charts2{grid-template-columns:1fr}
+  .edb-sum-list{grid-template-columns:1fr}
+  .edb-input{width:280px}
+}
+@media (max-width:640px){
+  .edb-stat-row{grid-template-columns:1fr}
+  /* 아주 작은 화면에서는 숫자 더 살짝 축소 */
+  .edb-stat-value b{font-size:20px}
+  .edb-sum-value{font-size:14px}
+  .edb-sum-value b{font-size:17px}
+  .edb-svg-chart .axis text,
+  .edb-svg-chart .axis-bottom text{font-size:12px}
+}
+
+/* ===== 요약(1열 카드형) ===== */
+.edb-summary .edb-sum__title{font-size:18px;margin:0 0 10px 0}
+.edb-summary .edb-one-col{
+  display:grid; grid-template-columns: 1fr; gap: 10px; margin: 0; padding: 0; list-style: none;
+}
+.edb-summary .edb-sum-item{
+  display:flex; align-items:center; gap:14px;
+  background: var(--p-panel-2);
+  border: 1px solid var(--p-line);
+  border-radius: 14px; padding: 12px 14px;
+}
+.edb-summary .edb-sum-main{flex:1; display:flex; align-items:center; justify-content:space-between; gap:10px}
+.edb-summary .edb-sum-label{font-size:var(--data-label); color: var(--p-muted)}
+.edb-summary .edb-sum-value{font-size:var(--data); display:flex; align-items:baseline; gap:6px}
+.edb-summary .edb-sum-value b{font-size:var(--data-strong); letter-spacing:.2px}
+.edb-summary .edb-sum-value span{opacity:.9}
+.edb-mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace}
+
+@media (max-width: 1024px){
+  .edb-summary .edb-sum-item{padding:12px}
+  .edb-summary .edb-sum-value b{font-size:calc(var(--data-strong) - 1px)}
+}
+
+/* =========================
+   TOP3 column width tokens
+   ========================= */
+/* 기존: 고정 수치 → 커스텀 변수로 교체 */
+.edb-grid.edb-top3{
+  grid-template-columns: var(--edb-col1,1.2fr) var(--edb-col2,.9fr) var(--edb-col3,1.2fr);
+}
+
+/* 주간 그래프 칼럼만 더 넓게 */
+.edb-top3--big-week{
+  --edb-col1: 1.7fr;   /* 주간발전량(왼쪽) 더 넓게 */
+  --edb-col2: .85fr;   /* 요약(가운데) 살짝 줄임 */
+  --edb-col3: 1.15fr;  /* 상세(오른쪽) 약간 줄임 */
+}
+@media (min-width: 1440px){
+  /* 주간 그래프가 1~2번 칼럼을 통째로 사용 */
+  .edb-top3--span2 .edb-week{ grid-column: 1 / span 2; }
+
+  /* 요약은 우측 3번 칼럼 1행, 상세는 그 아래 */
+  .edb-top3--span2 .edb-summary{ grid-column: 3; grid-row: 1; }
+  .edb-top3--span2 .edb-detail{  grid-column: 3; grid-row: 2; }
+}
+
+/* 주간 차트만 세로 비율을 높여(=숫자를 줄여) 더 크게 */
+.edb-week .edb-svg-chart{
+  aspect-ratio: 1000 / 420; /* 기본 1000/360 → 세로 약 +17% */
+}
+@media (min-width: 1600px){
+  .edb-week .edb-svg-chart{ aspect-ratio: 1000 / 460; }
+}
+
+/* ──────────────────────────────────────────────
+   주간발전량 카드만 차트를 '더 아래'로 배치 (클래스 정확히)
+   ────────────────────────────────────────────── */
+.edb-week{
+  --week-offset: 16px;
+}
+.edb-week .edb-card-hd{
+  margin-bottom: calc(8px + var(--week-offset));
+}
+
+.edb-week .edb-chart__body{
+  padding-top: var(--week-offset);
+}
+.edb-week .edb-svg-chart{
+  display:block;
+  margin-top: calc(var(--week-offset) * 0.5);
+}
+@media (min-width: 1440px){
+  .edb-week{ --week-offset: 22px; }
+}
+/* === 3열 차트 레이아웃 (주간·월간·연간) === */
+.edb-charts3{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:18px;
+  margin-top:20px;
+}
+
+/* 헤더/본문 높이 균형 */
+.edb-charts3 .edb-card-hd{min-height:44px; display:flex; align-items:center; justify-content:space-between}
+
+/* 태블릿: 2열 */
+@media (max-width:1024px){
+  .edb-charts3{ grid-template-columns:repeat(2, 1fr); }
+}
+
+/* 모바일: 1열 */
+@media (max-width:640px){
+  .edb-charts3{ grid-template-columns:1fr; }
+}
+
+/* 차트 래퍼를 absolute 기준으로 */
+.edb-chart__body{ position: relative; }
+
+/* 막대 위 숫자 라벨 */
+.edb-bar-label {
+  font-size: 22px;
+  fill: var(--p-text, #e5e7eb);
+  paint-order: stroke;
+  stroke: rgba(0,0,0,.35);
+  stroke-width: 3px;
+  pointer-events: none;
+}
+
+/* 툴팁 */
+.edb-tip {
+  position: absolute;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--p-panel, #0f172a) 86%, #000 14%);
+  color: var(--p-text, #e5e7eb);
+  border: 1px solid var(--p-line, rgba(148,163,184,.18));
+  padding: 8px 10px;
+  border-radius: 10px;
+  box-shadow: var(--shadow, 0 10px 30px rgba(2,6,23,.45));
+  min-width: 120px;
+  z-index: 5;
+}
+.edb-tip-title { font-size: 12px; opacity: .85; margin-bottom: 4px; }
+.edb-tip-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+/* === 3열 차트 레이아웃 (주간·월간·연간) === */
+.edb-charts3{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:18px;
+  margin-top:20px;
+}
+
+/* 태블릿 이하: 바로 1열 */
+@media (max-width:1024px){
+  .edb-charts3{ grid-template-columns:1fr; }
+}
+
+/* (선택) 아주 작은 화면에서도 1열 유지 - 중복이지만 안전망 */
+@media (max-width:640px){
+  .edb-charts3{ grid-template-columns:1fr; }
+}
+
+
+/* 모달 버튼이 들어가서 월간 카드 헤더 정렬 보강 */
+.edb-card-actions{ display:flex; align-items:center; gap:8px; }
+
+/* ===== 모달 ===== */
+.edb-modal-backdrop{
+  position: fixed; inset:0; background: rgba(0,0,0,.45);
+  display:flex; align-items:center; justify-content:center;
+  z-index: 1000;
+}
+.edb-modal{
+  width: 360px; max-width: calc(100vw - 32px);
+  background: var(--p-panel);
+  border: 1px solid var(--p-line);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  overflow: hidden;
+}
+.edb-modal-hd{
+  display:flex; align-items:center; gap:10px;
+  padding:14px 16px; border-bottom:1px solid var(--p-line);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--p-panel) 90%, transparent),
+    color-mix(in srgb, var(--p-panel) 70%, transparent));
+}
+.edb-modal-ico{ font-size:18px; }
+.edb-modal-title{ font-weight:700; }
+.edb-modal-x{
+  margin-left:auto; border:0; background:transparent; cursor:pointer;
+  color: var(--p-muted); font-size:16px;
+}
+
+.edb-modal-body{ padding:14px 16px; }
+.edb-modal-desc{ margin:0 0 10px; color: var(--p-muted); font-size:14px; }
+
+.edb-modal-row{
+  display:grid; grid-template-columns: 72px 1fr; gap:10px;
+  align-items:center; margin:10px 0;
+}
+.edb-modal-label{ color: var(--p-muted); font-size:14px; }
+.edb-modal-input{}
+.edb-modal-select{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--p-line);
+  background: var(--input-bg); color: var(--input-fg);
+}
+.edb-modal-tip{
+  margin-top:6px; font-size:13px; color: var(--p-muted);
+}
+
+.edb-modal-ftr{
+  display:flex; justify-content:flex-end; gap:8px;
+  padding:12px 16px; border-top:1px solid var(--p-line);
+}
+
+/* 작은 버튼 */
+.edb-btn--sm{ padding:6px 10px; font-size:13px; }
+
+/* ─────────────────────────────────────────────
+   Light mode: 버튼 톤을 밝게(조회/다운로드)
+   ───────────────────────────────────────────── */
+html[data-theme="light"] .edb-btn {
+  background: color-mix(in srgb, var(--p-accent) 8%, #fff 92%);
+  color: #0f172a;
+  border: 1px solid color-mix(in srgb, var(--p-accent) 16%, #000 6%);
+  box-shadow: none;
+}
+
+html[data-theme="light"] .edb-btn:hover:not([disabled]) {
+  background: color-mix(in srgb, var(--p-accent) 12%, #fff 88%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-accent) 18%, transparent);
+}
+
+/* 주 버튼(조회/다운로드) 파스텔 톤 */
+html[data-theme="light"] .edb-btn--primary {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    color-mix(in srgb, #ffffff 80%, var(--p-accent) 20%) 100%
+  );
+  border-color: color-mix(in srgb, var(--p-accent) 28%, #000 4%);
+  color: #0b1220;
+  font-weight: 700;
+}
+
+html[data-theme="light"] .edb-btn--primary:hover:not([disabled]) {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    color-mix(in srgb, #ffffff 70%, var(--p-accent) 30%) 100%
+  );
+}
+
+/* 고스트 버튼은 테두리만 살짝 강조, 글자색은 연하게 */
+html[data-theme="light"] .edb-btn--ghost {
+  background: transparent;
+  color: color-mix(in srgb, #0f172a 80%, var(--p-muted) 20%);
+  border-color: color-mix(in srgb, #0f172a 10%, var(--p-line) 90%);
+}
+
+html[data-theme="light"] .edb-btn--ghost:hover:not([disabled]) {
+  background: color-mix(in srgb, #0f172a 4%, transparent);
+}
+
+/* 작은 버튼(데이터 다운로드)도 같은 톤 유지 */
+html[data-theme="light"] .edb-btn--primary.edb-btn--sm {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    color-mix(in srgb, #ffffff 82%, var(--p-accent) 18%) 100%
+  );
+}
+
+/* 비활성 상태는 좀 더 옅게 */
+html[data-theme="light"] .edb-btn[disabled] {
+  opacity: .55;
+  filter: saturate(.7);
+  box-shadow: none;
+}
+
+/* =========================
+   DARK MODE 버튼 리프레시
+   ========================= */
+/* 기본 버튼: 유리 느낌 + 선명한 테두리, 그림자 최소화 */
+.edb-btn{
+  font-weight : bolder;
+  background: color-mix(in srgb, var(--p-panel) 80%, #0b1726 20%);
+  color: color-mix(in srgb, #eaf6ff 92%, var(--p-text) 8%);
+  border: 1px solid color-mix(in srgb, var(--p-line) 60%, #0aa9d6 12%);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,.24);
+  backdrop-filter: saturate(1.1) blur(2px);
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .02s ease-in;
+}
+.edb-btn:hover:not([disabled]){
+  background: color-mix(in srgb, var(--p-panel) 70%, #11263a 30%);
+  border-color: color-mix(in srgb, var(--p-line) 40%, var(--p-accent) 30%);
+  box-shadow: 0 6px 18px rgba(0,0,0,.28);
+}
+.edb-btn:active:not([disabled]){ transform: translateY(1px); }
+.edb-btn:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--p-accent) 28%, transparent);
+}
+
+/* 프라이머리(조회/다운로드): 파스텔-사이언 그라디언트, 텍스트는 다크네이비로 고대비 */
+.edb-btn--primary{
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--p-accent) 78%, #c9f2ff 22%) 0%,
+    color-mix(in srgb, var(--p-accent) 46%, #0e2234 54%) 100%
+  );
+  border-color: color-mix(in srgb, var(--p-accent) 55%, #05273a 45%);
+  color: #06121e;                 /* 어두운 텍스트 → 선명/가독 */
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255,255,255,.25);
+}
+.edb-btn--primary:hover:not([disabled]){
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--p-accent) 84%, #dff7ff 16%) 0%,
+    color-mix(in srgb, var(--p-accent) 54%, #10273c 46%) 100%
+  );
+  border-color: color-mix(in srgb, var(--p-accent) 66%, #083148 34%);
+}
+.edb-btn--primary:active:not([disabled]){
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--p-accent) 72%, #b6ecff 28%) 0%,
+    color-mix(in srgb, var(--p-accent) 38%, #0b1d2d 62%) 100%
+  );
+}
+
+/* 작은 프라이머리 버튼(데이터 다운로드)도 동일 톤 */
+.edb-btn--primary.edb-btn--sm{
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--p-accent) 78%, #c9f2ff 22%) 0%,
+    color-mix(in srgb, var(--p-accent) 46%, #0e2234 54%) 100%
+  );
+  color: #06121e;
+}
+
+/* 비활성은 채도 낮추고 그림자 제거 */
+.edb-btn[disabled]{
+  opacity: .55;
+  filter: saturate(.75);
+  box-shadow: none;
+}
+
+/* ─────────────────────────────────────────────
+   LIGHT MODE: 카드 경계/그림자 옅게 + 숫자라벨 선 제거
+   ───────────────────────────────────────────── */
+
+/* 1) 카드/박스 경계 & 그림자 약화 */
+html[data-theme="light"] .edb-page .edb-card,
+html[data-theme="light"] .edb-page .edb-summary .edb-sum-item,
+html[data-theme="light"] .edb-page .edb-sum-list li,
+html[data-theme="light"] .edb-page .edb-table-wrap,
+html[data-theme="light"] .edb-page .edb-tbl thead th,
+html[data-theme="light"] .edb-page .edb-toolbar,
+html[data-theme="light"] .edb-page .edb-modal {
+  border-color: color-mix(in srgb, var(--p-line) 42%, transparent) !important; /* 경계 연해짐 */
+  box-shadow: 0 6px 18px color-mix(in srgb, #000 10%, transparent) !important;  /* 그림자 옅게 */
+}
+
+
+
+/* =========================
+   📱 모바일 보강 (붙여넣기)
+   ========================= */
+
+/* ── 720px↓ : 툴바 세로 스택 + 입력 100% */
+@media (max-width: 720px){
+  .edb-toolbar{
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 12px;
+  }
+  .edb-tool-left{ gap: 8px; }
+  .edb-tool-right{
+    margin-left: auto;                 
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .edb-tool-right .edb-btn--ghost{
+    position: relative;
+    left: 0 !important;
+    margin-right: 0 !important;
+    order: 0;                           
+  }
+  .edb-tool-right .edb-btn--primary{
+    order: 1;                        
+  }
+
+  .edb-input{ width: 100%; max-width: 100%; }
+  .edb-select{ width: 100%; }
+  .edb-btn{ padding: 9px 12px; font-size: 14px; }
+  .edb-input-ico{ right: 8px; }
+}
+
+/* ── 640px↓ : 카드/타이틀/칩 정리, 숫자 자동개행 */
+@media (max-width: 640px){
+  /* TOP stats 1열 + 더 컴팩트 */
+  .edb-stat-row{ grid-template-columns: 1fr; gap: 12px; }
+  .edb-stat{ padding: 12px 14px; }
+  .edb-stat-title{ font-size: 11.5px; }
+  .edb-stat-value b{ font-size: 20px; }
+  .edb-stat-value span{ display: block; margin-top: 2px; } /* 단위 줄바꿈 ↘ 넘침방지 */
+  .edb-stat-sub{ font-size: 11.5px; }
+
+  /* 카드 헤더가 길 때 줄바꿈/말줄임 */
+  .edb-card-hd{
+    gap: 8px;
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .edb-card-hd h3{
+    font-size: 14px;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .edb-card-actions{ width: 100%; justify-content: flex-start; gap: 6px; }
+
+  /* 차트: 축/라벨 조금 축소, 바 라벨도 축소 */
+  .edb-svg-chart .axis text{ font-size: 10px !important; }
+  .edb-bar-label{ font-size: 13px; stroke-width: 2px; }
+  .edb-range{ font-size: 11.5px; }
+
+  /* 요약 카드 간격/글꼴 축소 */
+  .edb-summary .edb-sum-item{ padding: 10px 12px; }
+  .edb-summary .edb-sum-label{ font-size: 12.5px; }
+  .edb-summary .edb-sum-value{ font-size: 14px; }
+  .edb-summary .edb-sum-value b{ font-size: 17px; }
+
+  /* 상세 테이블: 조금 더 촘촘하게 */
+  .edb-tbl thead th,
+  .edb-tbl td{ padding: 8px 8px; }
+  .edb-tbl tbody td{ font-size: 13px; }
+}
+
+/* ── 420px↓ : 모든 요소 한 줄 넘침 금지, 표/칩 폭 조정 */
+@media (max-width: 420px){
+  .edb-page{ padding: 16px; }
+  .edb-card{ padding: 12px 12px; }
+  .edb-card--soft{ padding: 10px 12px; }
+
+  /* 헤더 칩이 길어도 줄바꿈 허용 */
+  .edb-chip{ padding: 3px 8px; font-size: 11.5px; }
+
+  /* 차트 높이 여유 – X축 라벨이 카드 밖으로 튀지 않게 */
+  .edb-week .edb-svg-chart{ aspect-ratio: 1000 / 360; }   /* 기본 420 → 살짝 얕게 */
+  .edb-svg-chart .axis text{ font-size: 11px !important; }
+  .edb-bar-label{ font-size: 12px; }
+
+  /* 요약 라벨/값 말줄임 처리 */
+  .edb-summary .edb-sum-main{ gap: 8px; }
+  .edb-summary .edb-sum-label{
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .edb-summary .edb-sum-value{
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* 상세 테이블 열폭 재배분(가로 스크롤 최소화) */
+  .edb-tbl th:nth-child(1),
+  .edb-tbl td:nth-child(1){ width: 56px; }
+  .edb-tbl th:nth-child(3),
+  .edb-tbl td:nth-child(3){ width: 128px; } /* 날씨/기온 약간 축소 */
+  .edb-tbl th:nth-child(4),
+  .edb-tbl td:nth-child(4){ width: 92px; }  /* CO2 축소 */
+
+  /* 표 감싸는 래퍼에 좌우 여백 약간 */
+  .edb-table-wrap{ margin: 0 -2px; padding: 0 2px; }
+}
+
+/* ── 360px↓ : 초소형 폰 최적화 */
+@media (max-width: 360px){
+  .edb-btn{ padding: 7px 10px; font-size: 13px; }
+  .edb-input{ padding: 8px 36px 8px 10px; font-size: 14px; }
+  .edb-card-hd h3{ font-size: 13px; }
+  .edb-chip{ font-size: 11px; }
+  .edb-week .edb-svg-chart{ aspect-ratio: 1000 / 330; }
+  .edb-svg-chart .axis text{ font-size: 10.5px !important; }
+  .edb-bar-label{ font-size: 11px; }
+
+  /* 테이블 더 타이트하게 */
+  .edb-tbl thead th, .edb-tbl td{ padding: 7px 7px; }
+  .edb-tbl tbody td{ font-size: 12.5px; }
+
+  /* 모달도 폭 맞춤 */
+  .edb-modal{ width: 320px; }
+}
+
+/* =========================
+   📈 모바일 그래프 가독성 (중간 사이즈로)
+   ========================= */
+
+/* 기본 배율은 1 (= 데스크톱 그대로) */
+.edb-page{
+  --chart-font-scale: 1;
+}
+
+/* 640px↓: 살짝만 키우기 */
+@media (max-width: 640px){
+  .edb-page{ --chart-font-scale: 1.1; } /* ← 1.2 → 1.1로 낮춤 */
+
+  /* 축 라벨 */
+  .edb-page .edb-svg-chart .axis text{
+    font-size: calc(var(--axis-y-font, 14px) * var(--chart-font-scale)) !important;
+  }
+  .edb-page .edb-svg-chart .axis-bottom text{
+    font-size: calc(var(--axis-x-font, 15px) * var(--chart-font-scale)) !important;
+  }
+
+  /* 막대 위 숫자 라벨 */
+  .edb-page .edb-bar-label{
+    font-size: clamp(12px, 3.2vw, 14px) !important; /* 이전 22px → 중간값 */
+    stroke-width: 2px;
+  }
+
+  /* X축 라벨 눌림 방지 */
+  .edb-page .edb-week .edb-svg-chart{ aspect-ratio: 1000 / 380; } /* 세로 약간 줄임 */
+}
+
+/* 420px↓: 추가 확대는 최소화 */
+@media (max-width: 420px){
+  .edb-page{ --chart-font-scale: 1.2; } /* 이전 1.35 → 1.2 */
+
+  .edb-page .edb-bar-label{
+    font-size: clamp(12px, 3.5vw, 15px) !important;
+  }
+
+  /* 툴팁은 약간만 확대 */
+  .edb-page .edb-tip{ font-size: 13px; }
+  .edb-page .edb-tip-title{ font-size: 12px; }
+  .edb-page .edb-tip-value{ font-size: 15px; }
+}
+
+/* 2행: 요약 · 날짜별 상세 (같은 줄 + 같은 높이) */
+.edb-grid.edb-bottom2{
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;  /* 좌: 요약 / 우: 상세 */
+  gap: 16px;
+  margin-top: 16px;
+  align-items: stretch;              /* ⬅️ 행 높이에 맞춰 카드 늘리기 */
+}
+
+/* 그리드 아이템(카드)도 행 높이에 맞춰 확장 */
+.edb-grid.edb-bottom2 > .edb-card{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 상세 카드 내부 스크롤 영역이 잘 늘어나도록 */
+.edb-detail .edb-detail-body{ 
+  display: flex; 
+  flex-direction: column; 
+  min-height: 0; 
+}
+.edb-detail .edb-table-wrap{
+  flex: 1 1 auto;     /* 남는 높이 채움 */
+  min-height: 0;
+  max-height: none;   /* 기존 max-height가 있으면 제거/주석 처리 */
+}
+
+/* 반응형: 태블릿↓ 1열 스택 */
+@media (max-width:1280px){
+  .edb-grid.edb-bottom2{ grid-template-columns: 1fr; }
+}
+
+/* 상단 4칸 카드 */
+.edb-metrics{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap:12px;
+  margin-top:12px;
+}
+
+.metric{
+  border-radius:16px;
+  padding:14px 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.06);
+  background: var(--p-panel-2, #f5f7fb);
+}
+.metric__label{ font-size:13px; font-weight:600; opacity:.8; margin-bottom:6px; }
+.metric__value{ font-size:20px; font-weight:800; letter-spacing:.2px; }
+.metric__value span{ font-size:13px; font-weight:600; opacity:.7; margin-left:4px; }
+
+/* 파스텔 톤 (라이트/다크 모두 무난) */
+.metric--blue  { background: color-mix(in srgb, #3b82f6 12%, var(--p-panel, #fff) 88%); color:#1d4ed8; }
+.metric--green { background: color-mix(in srgb, #10b981 12%, var(--p-panel, #fff) 88%); color:#047857; }
+.metric--orange{ background: color-mix(in srgb, #f59e0b 14%, var(--p-panel, #fff) 86%); color:#b45309; }
+.metric--teal  { background: color-mix(in srgb, #14b8a6 12%, var(--p-panel, #fff) 88%); color:#0f766e; }
+
+/* 구분선 */
+.edb-divider{
+  border:0; border-top:1px solid color-mix(in srgb, var(--p-line,#e5e7eb) 80%, transparent);
+  margin:16px 0;
+}
+
+/* 환경 기여도 박스 */
+/* 공통 테이블이 이미 있다면, 요약에만 살짝 컴팩트 옵션을 주자 */
+.edb-table--compact {
+  font-size: 14px;
+}
+.edb-table--compact th, 
+.edb-table--compact td {
+  padding: 10px 12px;
+}
+.edb-table--summary {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--p-line, #2a2f3a);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--p-panel, #0f1420);
+}
+.edb-table--summary thead th {
+  background: color-mix(in srgb, var(--p-panel, #0f1420) 90%, var(--p-accent,#22d3ee) 10%);
+  color: var(--p-text, #eaf0ff);
+  text-align: left;
+  font-weight: 700;
+  border-bottom: 1px solid var(--p-line, #2a2f3a);
+}
+.edb-table--summary tbody tr + tr td {
+  border-top: 1px solid color-mix(in srgb, var(--p-line,#2a2f3a) 80%, transparent);
+}
+.edb-table--summary td,
+.edb-table--summary th { font-variant-numeric: tabular-nums; }
+.edb-table--summary .ar { text-align: right; }
+
+/* 섹션 라벨 행 */
+.edb-table--summary tr.sep td {
+  background: color-mix(in srgb, var(--p-accent,#22d3ee) 12%, var(--p-panel,#0f1420) 88%);
+  color: var(--p-text, #eaf0ff);
+  font-weight: 800;
+  border-top: 1px solid var(--p-line, #2a2f3a);
+}
+
+/* 라이트 테마 대비 보정 */
+html[data-theme="light"] .edb-table--summary {
+  background: var(--p-panel, #fff);
+  border-color: var(--p-line, #e5e7eb);
+}
+html[data-theme="light"] .edb-table--summary thead th {
+  background: color-mix(in srgb, var(--p-panel,#fff) 92%, var(--p-accent,#22d3ee) 8%);
+  color: var(--p-text, #111213);
+  border-bottom-color: var(--p-line, #e5e7eb);
+}
+html[data-theme="light"] .edb-table--summary tbody tr + tr td {
+  border-top-color: color-mix(in srgb, var(--p-line,#e5e7eb) 80%, transparent);
+}
+html[data-theme="light"] .edb-table--summary tr.sep td {
+  background: color-mix(in srgb, var(--p-accent,#22d3ee) 10%, var(--p-panel,#fff) 90%);
+  color: var(--p-text, #111213);
+}
+
+/* 모바일에서 가독성 */
+@media (max-width: 560px){
+  .edb-table--compact { font-size: 13px; }
+  .edb-table--compact th, 
+  .edb-table--compact td { padding: 8px 10px; }
+}
+
+/* 반복 섹션 헤더(환경 기여도) 스타일 */
+.edb-table--summary .subhead th{
+  background: color-mix(in srgb, var(--accent, #0ea5e9) 10%, #fff 90%);
+  color: #0b1220;
+  font-weight: 700;
+  text-align: left;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(0,0,0,.06);
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+/* 숫자 열 정렬 유지 */
+.edb-table--summary .subhead th.ar{ text-align: right; }
+
+/* 다크 모드 대비 */
+html[data-theme="dark"] .edb-table--summary .subhead th{
+  background: color-mix(in srgb, var(--accent, #22d3ee) 12%, #0b1220 88%);
+  color: #e5f7ff;
+  border-top-color: rgba(255,255,255,.06);
+  border-bottom-color: rgba(255,255,255,.08);
+}
+
+
+
+/* KPI 테이블(요약) 컬럼 정렬/폭 - 상세 테이블과 동일 톤 */
+.edb-tbl.edb-tbl--kpi thead th:first-child,
+.edb-tbl.edb-tbl--kpi tbody td:first-child{
+  text-align: center;
+  white-space: nowrap;
+}
+.edb-tbl.edb-tbl--kpi thead th:nth-child(2),
+.edb-tbl.edb-tbl--kpi tbody td:nth-child(2){
+    text-align:center;
+  white-space: nowrap;
+}
+.edb-tbl.edb-tbl--kpi thead th:nth-child(3),
+.edb-tbl.edb-tbl--kpi tbody td:nth-child(3){
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* (선택) 데스크톱에서 2열로 보고 싶다면 */
+@media (min-width: 1200px){
+  .edb-sum-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+.edb-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px 24px;
+}
+.edb-stat-row--triple {
+  grid-template-columns: repeat(3, minmax(0,1fr));
+}
+.edb-stat-sub.edb-muted { color: rgba(255,255,255,.5); }
+
+/* ✅ y축 라벨이 뷰박스 바깥으로 나가도 보이도록 */
+.edb-svg-chart { overflow: visible; }

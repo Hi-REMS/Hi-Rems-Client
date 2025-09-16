@@ -1,0 +1,423 @@
+/* 상세 모니터링 화면 CSS */
+.ts-page{
+  --page-bg: var(--bg);
+  --card: var(--surface);
+  --card-2: var(--surface-2);
+  --card-3: color-mix(in srgb, var(--surface-2) 88%, var(--bg) 12%);
+
+  --border-1: var(--border);
+  --text-1: var(--text);
+  --muted-1: var(--muted);
+  --accent-1: var(--accent);
+
+  --input-bg: var(--card-2);
+  --input-text: var(--text-1);
+  --btn-bg: color-mix(in srgb, var(--accent-1) 38%, var(--card-2) 62%);
+  --btn-text: color-mix(in srgb, #ffffff 92%, var(--text-1) 8%);
+  --btn-hover-bg: color-mix(in srgb, var(--accent-1) 48%, var(--card-2) 52%);
+
+  --chart-line: color-mix(in srgb, var(--accent-1) 85%, var(--text-1) 15%);
+  --chart-line-2: color-mix(in srgb, var(--accent-1) 65%, var(--text-1) 35%);
+  --chart-dot-stroke: color-mix(in srgb, var(--bg) 85%, #000 15%);
+  --chart-grid: color-mix(in srgb, var(--text-1) 10%, transparent);
+  --chart-axis: var(--border-1);
+  --tooltip-bg: color-mix(in srgb, var(--surface) 96%, transparent);
+  --tooltip-stroke: var(--border-1);
+
+  background: var(--page-bg); color: var(--text-1);
+  min-height: 100vh; padding: 18px 22px 28px;
+  position: relative;
+  --ghost-fg: #0b1220; /* 라이트 모드  */
+}
+html[data-theme="dark"] .ts-page{
+  --ghost-fg: #eaf6ff; /* 다크 모드 */
+}
+
+/* 툴바 */
+.toolbar{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; background:var(--card); border:1px solid var(--border-1);
+  border-radius:14px; padding:10px 12px; margin-bottom:16px;
+}
+.tool-left{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; min-width:0; }
+.lbl{ color:var(--muted-1); font-size:12px; }
+
+/* 인풋/셀렉트/체크 */
+.input{
+  background:var(--input-bg); color:var(--input-text);
+  border:1px solid var(--border-1); border-radius:10px;
+  padding:8px 10px; min-width:260px; outline:none;
+}
+.sel{ min-width:150px; }
+.chk{ color:var(--muted-1); font-size:12px; display:flex; align-items:center; gap:6px; }
+
+/* 버튼 (공통) */
+.btn{
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border:1px solid color-mix(in srgb, var(--accent-1) 30%, var(--border-1) 70%);
+  border-radius:10px; padding:10px 16px; font-weight:700; cursor:pointer;
+  transition: background-color .15s ease, filter .15s ease, box-shadow .15s ease, border-color .15s ease;
+  height: 40px; line-height: 1;
+  white-space: nowrap;
+}
+.btn:hover{
+  background: var(--btn-hover-bg);
+  box-shadow: none; /* ← shadow 제거 */
+}
+
+/* 오른쪽 버튼 그룹 */
+.tool-right{
+  display:flex;
+  flex-direction: row;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap: nowrap;
+  min-width: max-content;
+}
+
+/* 프라이머리 */
+.ts-page .btn.primary{
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent-1) 62%, #0f2332 38%) 0%,
+    color-mix(in srgb, var(--accent-1) 38%, #081521 62%) 100%);
+  color:#eaf6ff; border:1px solid color-mix(in srgb, var(--accent-1) 52%, #05273a 48%);
+  font-weight:800;
+}
+.ts-page .btn.primary:hover{
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent-1) 68%, #11283a 32%) 0%,
+    color-mix(in srgb, var(--accent-1) 44%, #0a1a29 56%) 100%);
+}
+
+/* 초기화(ghost) 버튼 */
+.ts-page .btn.ghost{
+  background: transparent !important;
+  color: var(--ghost-fg) !important;
+  -webkit-text-fill-color: var(--ghost-fg) !important;
+  border: 1px solid color-mix(in srgb, var(--border-1) 65%, var(--text-1) 35%);
+  box-shadow: none;
+}
+.ts-page .btn.ghost:hover{
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  border-color: color-mix(in srgb, var(--border-1) 55%, var(--text-1) 45%);
+  box-shadow: none; /* ← shadow 제거 */
+}
+.ts-page .btn.ghost:disabled{ opacity:.55; cursor:not-allowed; box-shadow:none; }
+
+/* 데스크톱 기본: ghost를 그룹의 왼쪽 끝으로 밀기 (필요 시 해제 가능) */
+.tool-right .btn.ghost{ margin-right: auto; }
+
+/* 그리드 & 카드 */
+.row{ display:grid; grid-template-columns: repeat(12,minmax(0,1fr)); gap:16px; margin-top:16px; }
+.col-9{ grid-column: span 9; } .col-3{ grid-column: span 3; } .col-6{ grid-column: span 6; }
+
+.card{
+  background: var(--card);
+  border:1px solid var(--border-1); border-radius:14px;
+  box-shadow: none; /* ← shadow 제거 */
+  overflow:hidden;
+}
+.card-hd{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 14px; border-bottom:1px solid var(--border-1);
+}
+.card-hd h3{
+  margin:0; font-size:14px; letter-spacing:.2px;
+  max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.empty{ padding:16px; color:var(--muted-1); }
+
+.kpi-row{ display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:16px; }
+.kpi{
+  background:
+    radial-gradient(400px 200px at 0% 0%, color-mix(in srgb, var(--accent-1) 6%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--card-2), color-mix(in srgb, var(--card) 90%, transparent));
+  border:1px solid var(--border-1); border-radius:14px; padding:14px;
+  box-shadow: none; /* ← shadow 제거 */
+  min-width:0;
+}
+.kpi-hd{ display:flex; justify-content:space-between; align-items:center; color:var(--muted-1); font-size:12px; }
+.kpi-title{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%; }
+.kpi-main{ display:flex; align-items:baseline; gap:6px; flex-wrap: wrap; }
+.kpi-value{ font-size:22px; font-weight:800; line-height:1; min-width:0; }
+.kpi-unit{ font-size:12px; color:var(--muted-1); white-space:nowrap; }
+@media (max-width: 480px){
+  .kpi-value{ font-size: clamp(18px, 6.2vw, 22px); }
+  .kpi-main .kpi-unit{ flex-basis:100%; margin-left:0; margin-top:2px; }
+}
+.kpi-sub{ color:var(--muted-1); font-size:12px; margin-top:4px; }
+.kpi-ico{ opacity:.45 }
+
+/* 차트 (막대 그래프)*/
+.chart-placeholder{ padding:10px 12px 12px; }
+.svg-chart{ width:100%; height:360px; }
+
+.svg-chart .grid line{ stroke: var(--chart-grid); shape-rendering: crispEdges; }
+.svg-chart .axis line{ stroke: var(--chart-axis); shape-rendering: crispEdges; }
+.svg-chart .axis text{ fill: var(--muted-1); font-size: 11px; }
+.svg-chart .axis-title{ fill: var(--muted-1); font-size: 11px; font-weight: 600; }
+
+.svg-chart .bar{ transition: y .15s ease, height .15s ease; }
+.svg-chart .bar:hover{ opacity: .95; }
+
+.svg-chart .line{ stroke: var(--chart-line); stroke-width:3; fill:none; opacity:.75; }
+.svg-chart .hover-line{ stroke: var(--chart-line-2); stroke-width:1.5; stroke-dasharray:3 4; opacity:.9; }
+.svg-chart .dot{ fill: var(--chart-line); stroke: var(--chart-dot-stroke); stroke-width:1 }
+.svg-chart .hit{ fill:transparent; cursor:crosshair; }
+
+.svg-chart .tt{ fill: var(--tooltip-bg); stroke: var(--tooltip-stroke); }
+.svg-chart .tt-text{ fill: var(--text-1); font-size: 12px; }
+
+.gauges{ padding:10px 14px 16px; display:grid; gap:14px; }
+.gauge{ display:flex; align-items:center; gap:12px; }
+.g-meta .g-title{ color:var(--muted-1); font-size:12px; }
+.g-meta .g-val{ font-weight:800; margin-top:2px; }
+
+.ring{
+  width:72px; height:72px; border-radius:999px; position:relative;
+  background: conic-gradient(var(--accent-1) 0deg, var(--accent-1) 0deg, color-mix(in srgb, #fff 8%, transparent) 0 360deg);
+}
+.ring::before{
+  content:''; position:absolute; inset:8px; border-radius:999px;
+  background: var(--card);
+  border:1px solid var(--border-1);
+}
+
+.kv{ list-style:none; margin:0; padding:10px 14px 14px; display:grid; gap:10px; }
+.kv li{ display:flex; align-items:center; justify-content:space-between; font-size:13px; color:var(--muted-1); gap:8px; }
+.kv span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.kv strong{ color:var(--text-1); }
+
+.table-wrap { overflow:auto; }
+.tbl { width:100%; border-collapse: separate; border-spacing:0; }
+.tbl thead th {
+  text-align:left; font-weight:600; font-size:13px; padding:10px 12px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  white-space:nowrap;
+}
+.tbl tbody td {
+  font-size:13px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.05);
+  white-space:nowrap;
+}
+.tbl.compact tbody tr:hover { background: rgba(255,255,255,.03); }
+.num { text-align:right; font-variant-numeric: tabular-nums; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.thin-scroll { scrollbar-width: thin; }
+
+@media (max-width: 1280px){
+  .kpi-row{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .col-9{ grid-column: span 12; } .col-3{ grid-column: span 12; } .col-6{ grid-column: span 12; }
+  .input{ min-width:200px; }
+}
+
+/* 모바일 추가 CSS  */
+@media (max-width: 680px){
+  .toolbar{
+    flex-direction: column;    /* 검색영역은 세로 스택 */
+    align-items: stretch;
+    gap:10px; padding:10px;
+  }
+  .tool-left{ width:100%; gap:8px; }
+
+  /* ▶ 버튼 그룹은 항상 가로 정렬 & 우측 정렬 */
+  .tool-right{
+    width:100%;
+    display:flex;
+    flex-direction: row !important;
+    justify-content:flex-end;
+    align-items:center;
+    gap:8px;
+    flex-wrap: nowrap;
+    align-self: flex-end;
+  }
+
+  /* 순서 고정(초기화 → 조회) 및 마진 리셋 */
+  .tool-right .btn.ghost{ margin-right:0 !important; order:0; }
+  .tool-right .btn.primary{ order:1; }
+
+  .input{ width:100%; min-width:0; }
+  .sel{ min-width:0; }
+  .btn{ padding:9px 12px; }
+  .chk{ line-height:1.3; }
+}
+
+@media (max-width: 560px){
+  .kpi-row{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .card-hd{ padding:10px 12px; }
+  .card-hd h3{ font-size:13px; }
+  .chart-placeholder{ padding:8px 10px 10px; }
+  .svg-chart{ height:300px; }
+  .svg-chart .axis text{ font-size:10px; }
+  .bar-labels .bar-label{ font-size:11px; stroke-width:2px; }
+  .kv li{ font-size:12px; }
+  .tbl thead th, .tbl tbody td{ padding:8px 10px; font-size:12px; }
+  .tbl td{ position:static !important; left:auto !important; }
+}
+@media (max-width: 420px){
+  .kpi-row{ grid-template-columns:1fr; gap:12px; }
+  .toolbar{ gap:8px; }
+  .lbl{ font-size:11px; }
+  .input{ padding:8px 10px; font-size:14px; }
+  .btn{ padding:8px 10px; font-size:14px; }
+  .card-hd h3{ font-size:12.5px; }
+  .kpi-value{ font-size: clamp(17px, 7vw, 20px); }
+  .kpi-sub{ font-size:11px; }
+  .svg-chart{ height:260px; }
+  .svg-chart .axis text{ font-size:9.5px; }
+  .legend{ font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tbl thead th, .tbl tbody td{ padding:7px 9px; font-size:11.5px; }
+  .table-wrap{ margin:0 -2px; padding:0 2px; }
+}
+@media (max-width: 360px){
+  .ts-page{ padding:14px 14px 22px; }
+  .toolbar{ padding:8px; }
+  .btn{ padding:7px 9px; font-size:13px; }
+  .input{ padding:7px 9px; font-size:13px; }
+  .card-hd h3{ font-size:12px; }
+  .svg-chart{ height:230px; }
+  .bar-labels .bar-label{ font-size:10.5px; }
+  .kv li{ font-size:11.5px; }
+}
+
+.loading-overlay{
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:14px;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+}
+.spinner-neo{
+  width:56px; height:56px; border-radius:50%;
+  background: conic-gradient(from 0turn, var(--accent-1), color-mix(in srgb, var(--accent-1) 85%, #5eead4 15%), var(--accent-1)) border-box;
+  -webkit-mask:
+    radial-gradient(farthest-side, transparent 64%, #000 65%) content-box,
+    linear-gradient(#000,#000) padding-box;
+          mask:
+    radial-gradient(farthest-side, transparent 64%, #000 65%) content-box,
+    linear-gradient(#000,#000) padding-box;
+  padding:4px; animation: spin 1s linear infinite;
+  box-shadow: none; /* ← shadow 제거 */
+}
+.loading-text{ color:color-mix(in srgb, var(--text-1) 82%, #cfe7ff 18%); font-weight:700; letter-spacing:.02em; opacity:.9; }
+.btn-spinner{
+  width:18px; height:18px; border-radius:50%;
+  background: conic-gradient(from 0turn, rgba(255,255,255,.0) 0 25%, rgba(255,255,255,.95) 0 100%);
+  -webkit-mask: radial-gradient(closest-side, transparent 55%, #000 56%);
+          mask: radial-gradient(closest-side, transparent 55%, #000 56%);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === LIGHT-ONLY === */
+html[data-theme="light"] .ts-page .card{ box-shadow: none; } /* ← shadow 제거 */
+html[data-theme="light"] .ts-page .stats{ border-bottom:1px dashed color-mix(in srgb, var(--text) 4%, transparent); }
+html[data-theme="light"] .ts-page .bar-labels .bar-label{
+  stroke:none; paint-order:normal; text-shadow:none; font-weight:800; font-size:14px; fill:#0b1220;
+}
+html[data-theme="light"] .ts-page .card,
+html[data-theme="light"] .ts-page .kpi,
+html[data-theme="light"] .ts-page .toolbar {
+  border:1px solid color-mix(in srgb, var(--border-1) 40%, transparent);
+  box-shadow:none; /* ← shadow 제거 */
+}
+html[data-theme="light"] .ts-page .btn.primary{
+  background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, #ffffff 80%, var(--accent-1) 20%) 100%);
+  border-color: color-mix(in srgb, var(--accent-1) 28%, #000 4%); color:#0b1220;
+}
+html[data-theme="light"] .ts-page .btn.primary:hover{
+  background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, #ffffff 70%, var(--accent-1) 30%) 100%);
+}
+
+.legend .linekey{
+  display:inline-block; width:12px; height:4px; border-radius:2px;
+  background: var(--chart-line); margin-right:6px; transform:translateY(-2px);
+}
+
+.bar-labels .bar-label{
+  font-size:12px; fill: var(--text-1);
+  paint-order: stroke; stroke: var(--chart-dot-stroke); stroke-width:3px;
+  pointer-events:none;
+}
+
+/* =========================
+   FLAT OVERRIDES (no shadows / no gradients)
+   붙여넣기 위치: analysis-timeseries.css 맨 아래
+   ========================= */
+
+/* 카드/툴바: 그림자 제거, 단색 배경 */
+.ts-page .card,
+.ts-page .toolbar {
+  background: var(--card) !important;
+  border: 1px solid var(--border-1) !important;
+  box-shadow: none !important;
+}
+
+/* KPI 타일: 그라디언트/광원 제거, 단색 배경 */
+.ts-page .kpi {
+  background: var(--card-2) !important; /* 필요하면 var(--card) 로 바꿔도 OK */
+  border: 1px solid var(--border-1) !important;
+  box-shadow: none !important;
+}
+
+/* KPI 헤더 점  ⋯  같은 아이콘은 유지, 효과만 제거 */
+.ts-page .kpi-ico { opacity: .45; filter: none !important; }
+
+/* 차트 막대 그룹에 들어간 SVG dropShadow 제거 */
+.svg-chart g[filter],
+.svg-chart .bar {
+  filter: none !important;
+}
+
+/* 범례/칩 등도 플랫하게 */
+.ts-page .chip {
+  background: color-mix(in srgb, var(--accent-1) 0%, transparent) !important;
+  color: var(--accent-1) !important;
+  border: 1px solid color-mix(in srgb, var(--border-1) 70%, var(--accent-1) 30%) !important;
+  box-shadow: none !important;
+}
+
+/* 버튼: 기본톤 + 호버 그림자 제거 (원하면 유지 가능) */
+.ts-page .btn {
+  box-shadow: none !important;
+}
+.ts-page .btn:hover {
+  box-shadow: none !important;
+}
+
+/* 라이트 전용 섹션에서 다시 생기는 그림자도 무효화 */
+html[data-theme="light"] .ts-page .card,
+html[data-theme="light"] .ts-page .kpi,
+html[data-theme="light"] .ts-page .toolbar {
+  box-shadow: none !important;
+  border: 1px solid color-mix(in srgb, var(--border-1) 40%, transparent) !important;
+  background: var(--card) !important;
+}
+
+/* KPI 내부 미세 음영 제거를 확실히 */
+.ts-page .kpi *,
+.ts-page .card *,
+.ts-page .toolbar * {
+  text-shadow: none !important;
+  filter: none;
+}
+
+/* (선택) 바 라벨 가독성: 외곽선만 유지하고 쉐도우 제거 */
+.ts-page .bar-labels .bar-label {
+  text-shadow: none !important;
+  stroke: var(--chart-dot-stroke);
+  stroke-width: 3px;
+}
+
+.facility-img {
+  margin-bottom: 55px;        /* ✅ 이미지와 리스트 사이 여백 */
+}
+
+.facility-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}

@@ -21,3 +21,25 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+# 기본 환경 파일도 제외 (민감정보 보호)
+.env      
+
+
+# 빌드 산출물
+/dist/
+/coverage/
+
+# OS/에디터 잡파일
+.DS_Store
+Thumbs.db
+
+# 로그/캐시
+*.log
+
+#정적 파일
+/css/
+/js/
+/img/
+/index.html
+
