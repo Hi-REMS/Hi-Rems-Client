@@ -426,7 +426,8 @@ export default {
     xTicks () {
       const out = []; const n = this.series.length;
       if (!n) return out;
-      const every = 24 > 12 ? 2 : 1; // 2시간 간격 라벨
+      // 라벨이 12개를 넘으면 2칸 간격, 아니면 1칸 간격
+      const every = n > 12 ? 2 : 1;
       for (let i = 0; i < n; i += every) {
         const x = this.pad.l + i * this.stepW + this.stepW / 2;
         const label = `${this.series[i].hour}시`;
