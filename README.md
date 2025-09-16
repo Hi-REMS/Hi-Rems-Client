@@ -1,3 +1,5 @@
+[![CI](https://github.com/Hi-REMS/Hi-REMS-CLIENT/actions/workflows/frontend-ci.yml/badge.svg?branch=main)](https://github.com/Hi-REMS/Hi-REMS-CLIENT/actions/workflows/frontend-ci.yml)
+
 # frontend
 
 ## Project setup
