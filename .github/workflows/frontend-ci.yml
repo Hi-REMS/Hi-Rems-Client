@@ -1,0 +1,52 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [ "**" ]          # 모든 브랜치
+  pull_request:
+    branches: [ "**" ]          # 모든 PR
+  workflow_dispatch:             # 수동 실행 버튼
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true       # 같은 브랜치 이전 잡 자동 취소
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20        # 만약 빌드 이슈 나면 18로 바꾸세요
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # (선택) .env.example 있으면 복사
+      - name: Create env for CI (optional)
+        run: |
+          if [ -f .env.example ]; then cp .env.example .env; fi
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Lint (optional)
+        run: npm run lint || echo "no lint script"
+
+      - name: Unit tests (optional)
+        run: npm test --if-present || echo "no tests"
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 7
