@@ -1,4 +1,4 @@
-name: CodeQL (JS/TS + Vue)
+name: CodeQL (JS/TS + Vue with debug)
 
 on:
   push:
@@ -21,21 +21,131 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Debug: show workspace & repo info
+        run: |
+          echo "===== GITHUB_WORKSPACE ====="
+          echo "$GITHUB_WORKSPACE"
+          echo "===== pwd ====="
+          pwd
+          echo "===== top-level files ====="
+          ls -la
+          echo "===== git branch & HEAD ====="
+          git rev-parse --abbrev-ref HEAD || true
+          git rev-parse HEAD || true
+          echo "===== End debug ====="
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      # frontend가 루트가 아닌 경우 working-directory: frontend 로 설정
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
+      - name: Create debug log (inspect frontend/package.json etc.)
+        run: |
+          set -x
+          echo "===== DEBUG START =====" > debug.log
+          echo "PWD: $(pwd)" >> debug.log
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE" >> debug.log
+          echo "------ root ls ------" >> debug.log
+          ls -la >> debug.log 2>&1 || true
+          echo "------ check frontend dir ------" >> debug.log
+          if [ -d frontend ]; then
+            echo "frontend exists" >> debug.log
+            echo "------ frontend ls ------" >> debug.log
+            ls -la frontend >> debug.log 2>&1 || true
+            if [ -f frontend/package.json ]; then
+              echo "------ frontend/package.json ------" >> debug.log
+              cat frontend/package.json >> debug.log 2>&1 || true
+            fi
+          else
+            echo "frontend does NOT exist" >> debug.log
+          fi
+          if [ -f package.json ]; then
+            echo "------ root package.json ------" >> debug.log
+            cat package.json >> debug.log 2>&1 || true
+          fi
+          node -v 2>> debug.log || echo "node not present" >> debug.log
+          npm -v 2>> debug.log || echo "npm not present" >> debug.log
+          echo "===== DEBUG END =====" >> debug.log
+        shell: bash
 
-      - name: Build frontend (so .vue -> JS)
-        working-directory: frontend
-        # build 스크립트가 없으면 실패하므로 --if-present 로 안전하게 처리
-        run: npm run build --if-present
+      - name: Upload debug.log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-debug-log
+          path: debug.log
+          retention-days: 7
+
+      - name: Install dependencies (root or frontend) - verbose
+        run: |
+          set -x
+          # prefer frontend/package.json if frontend exists
+          if [ -d frontend ] && [ -f frontend/package.json ]; then
+            echo "Installing in frontend/"
+            cd frontend
+            npm ci 2>&1 | tee npm-ci.log || true
+            mv npm-ci.log $GITHUB_WORKSPACE/frontend-npm-ci.log || true
+            cd $GITHUB_WORKSPACE
+          elif [ -f package.json ]; then
+            echo "Installing in repo root"
+            npm ci 2>&1 | tee npm-ci-root.log || true
+            mv npm-ci-root.log $GITHUB_WORKSPACE/npm-ci-root.log || true
+          else
+            echo "No package.json found in root or frontend - skipping install"
+          fi
+          set +x
+        shell: bash
+
+      - name: Upload npm install logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-install-logs
+          path: |
+            frontend-npm-ci.log
+            npm-ci-root.log
+            frontend/frontend-npm-ci.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Build (root or frontend) - verbose
+        run: |
+          set -x
+          if [ -d frontend ] && [ -f frontend/package.json ]; then
+            echo "Building in frontend/"
+            cd frontend
+            npm run build --if-present 2>&1 | tee npm-build.log || true
+            mv npm-build.log $GITHUB_WORKSPACE/frontend-npm-build.log || true
+            cd $GITHUB_WORKSPACE
+          elif [ -f package.json ]; then
+            echo "Building in repo root"
+            npm run build --if-present 2>&1 | tee npm-build-root.log || true
+            mv npm-build-root.log $GITHUB_WORKSPACE/npm-build-root.log || true
+          else
+            echo "No build script found - skipping build"
+          fi
+          set +x
+        shell: bash
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-build-logs
+          path: |
+            frontend-npm-build.log
+            npm-build-root.log
+            frontend/frontend-npm-build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: List dist output (for debugging)
+        run: |
+          echo "=== dist at repo root ==="
+          if [ -d dist ]; then ls -la dist || true; else echo "no root dist"; fi
+          echo "=== dist under frontend ==="
+          if [ -d frontend/dist ]; then ls -la frontend/dist || true; else echo "no frontend/dist"; fi
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -47,3 +157,8 @@ jobs:
 
       - name: Run CodeQL analysis
         uses: github/codeql-action/analyze@v3
+        env:
+          # optional: 더 자세한 추출 로그를 보고 싶다면
+          # CODEQL_EXTRACTOR_DEBUG: "true"
+          # CODEQL_HOME: /opt/hostedtoolcache/codeql
+          >
