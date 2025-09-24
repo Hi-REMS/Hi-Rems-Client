@@ -146,6 +146,7 @@ jobs:
           if [ -d dist ]; then ls -la dist || true; else echo "no root dist"; fi
           echo "=== dist under frontend ==="
           if [ -d frontend/dist ]; then ls -la frontend/dist || true; else echo "no frontend/dist"; fi
+        shell: bash
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -157,8 +158,7 @@ jobs:
 
       - name: Run CodeQL analysis
         uses: github/codeql-action/analyze@v3
-        env:
-          # optional: 더 자세한 추출 로그를 보고 싶다면
-          # CODEQL_EXTRACTOR_DEBUG: "true"
-          # CODEQL_HOME: /opt/hostedtoolcache/codeql
-          >
+        # (선택) 더 자세한 extractor 로그가 필요하면 아래 주석을 해제하고 사용하세요
+        # env:
+        #   CODEQL_EXTRACTOR_DEBUG: "true"
+        #   CODEQL_HOME: /opt/hostedtoolcache/codeql
