@@ -1,6 +1,6 @@
 /* vue.config.js */
 module.exports = {
-  publicPath: '/hirems/frontend/',   // ← ★ 배포 경로 추가
+  publicPath: '/hirems/',   // ← ★ 배포 경로 추가
 
   productionSourceMap: false,
   parallel: false,
