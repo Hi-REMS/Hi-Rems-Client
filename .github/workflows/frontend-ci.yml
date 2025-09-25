@@ -1,4 +1,4 @@
-name: Frontend CI
+name: Frontend CI (lint / test / build)
 
 on:
   push:
@@ -12,82 +12,48 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-test:
+  lint:
+    name: Lint (frontend)
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'   # package-lock 위치가 바뀔 수 있으므로 cache-dependency-path는 지정하지 않음
+          cache: 'npm'
 
-      - name: Show workspace (quick debug)
+      - name: Install deps (frontend or root) for lint
         run: |
-          echo "PWD: $(pwd)"
-          echo "----- root ls -----"
-          ls -la
-          if [ -d frontend ]; then
-            echo "----- frontend ls -----"
-            ls -la frontend || true
-          else
-            echo "frontend directory not present"
-          fi
-
-      - name: Install deps (root or frontend) - verbose
-        run: |
-          set -eo pipefail
+          set -e
           if [ -d frontend ] && [ -f frontend/package.json ]; then
-            echo "::group::Installing in frontend/"
             cd frontend
             npm ci 2>&1 | tee npm-ci-frontend.log || true
             mv npm-ci-frontend.log "$GITHUB_WORKSPACE/frontend-npm-ci.log" || true
-            cd $GITHUB_WORKSPACE
-            echo "::endgroup::"
           elif [ -f package.json ]; then
-            echo "::group::Installing in repo root"
             npm ci 2>&1 | tee npm-ci-root.log || true
             mv npm-ci-root.log "$GITHUB_WORKSPACE/npm-ci-root.log" || true
-            echo "::endgroup::"
           else
-            echo "No package.json found in root or frontend - skipping npm ci"
+            echo "No package.json found - skipping npm ci"
           fi
         shell: bash
 
-      - name: Upload npm install logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-install-logs
-          path: |
-            frontend-npm-ci.log
-            npm-ci-root.log
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Lint (root or frontend) - capture logs (non-blocking)
+      - name: Run lint and collect log (non-blocking)
         run: |
-          set -eo pipefail
+          set -e
           if [ -d frontend ] && [ -f frontend/package.json ]; then
-            echo "::group::Lint (frontend)"
             cd frontend
             npm run lint 2>&1 | tee npm-lint-frontend.log || true
             mv npm-lint-frontend.log "$GITHUB_WORKSPACE/frontend-npm-lint.log" || true
-            cd $GITHUB_WORKSPACE
-            echo "::endgroup::"
           elif [ -f package.json ]; then
-            echo "::group::Lint (root)"
             npm run lint 2>&1 | tee npm-lint-root.log || true
             mv npm-lint-root.log "$GITHUB_WORKSPACE/npm-lint-root.log" || true
-            echo "::endgroup::"
           else
             echo "no lint script"
           fi
         shell: bash
-        continue-on-error: false
 
       - name: Upload lint logs
         if: always()
@@ -100,21 +66,44 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Unit tests (root or frontend) - optional
+  test:
+    name: Tests (frontend)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install deps (frontend or root) for tests
         run: |
-          set -eo pipefail
+          set -e
           if [ -d frontend ] && [ -f frontend/package.json ]; then
-            echo "::group::Run tests (frontend)"
+            cd frontend
+            npm ci 2>&1 | tee npm-ci-frontend.log || true
+            mv npm-ci-frontend.log "$GITHUB_WORKSPACE/frontend-npm-ci.log" || true
+          elif [ -f package.json ]; then
+            npm ci 2>&1 | tee npm-ci-root.log || true
+            mv npm-ci-root.log "$GITHUB_WORKSPACE/npm-ci-root.log" || true
+          else
+            echo "No package.json found - skipping npm ci"
+          fi
+        shell: bash
+
+      - name: Run tests and collect log (optional)
+        run: |
+          set -e
+          if [ -d frontend ] && [ -f frontend/package.json ]; then
             cd frontend
             npm test --if-present 2>&1 | tee npm-test-frontend.log || true
             mv npm-test-frontend.log "$GITHUB_WORKSPACE/frontend-npm-test.log" || true
-            cd $GITHUB_WORKSPACE
-            echo "::endgroup::"
           elif [ -f package.json ]; then
-            echo "::group::Run tests (root)"
             npm test --if-present 2>&1 | tee npm-test-root.log || true
             mv npm-test-root.log "$GITHUB_WORKSPACE/npm-test-root.log" || true
-            echo "::endgroup::"
           else
             echo "no tests"
           fi
@@ -131,21 +120,46 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  build:
+    name: Build (frontend)
+    runs-on: ubuntu-latest
+    # build은 lint와 test가 끝난 뒤 실행(병렬로 돌리고 싶으면 needs를 제거)
+    needs: [lint, test]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install deps (frontend or root) for build
+        run: |
+          set -e
+          if [ -d frontend ] && [ -f frontend/package.json ]; then
+            cd frontend
+            npm ci 2>&1 | tee npm-ci-frontend.log || true
+            mv npm-ci-frontend.log "$GITHUB_WORKSPACE/frontend-npm-ci.log" || true
+          elif [ -f package.json ]; then
+            npm ci 2>&1 | tee npm-ci-root.log || true
+            mv npm-ci-root.log "$GITHUB_WORKSPACE/npm-ci-root.log" || true
+          else
+            echo "No package.json found - skipping npm ci"
+          fi
+        shell: bash
+
       - name: Build (root or frontend) - verbose
         run: |
-          set -eo pipefail
+          set -e
           if [ -d frontend ] && [ -f frontend/package.json ]; then
-            echo "::group::Building in frontend/"
             cd frontend
             npm run build --if-present 2>&1 | tee npm-build-frontend.log || true
             mv npm-build-frontend.log "$GITHUB_WORKSPACE/frontend-npm-build.log" || true
-            cd $GITHUB_WORKSPACE
-            echo "::endgroup::"
           elif [ -f package.json ]; then
-            echo "::group::Building in repo root"
             npm run build --if-present 2>&1 | tee npm-build-root.log || true
             mv npm-build-root.log "$GITHUB_WORKSPACE/npm-build-root.log" || true
-            echo "::endgroup::"
           else
             echo "No build script found - skipping build"
           fi
@@ -155,20 +169,12 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: npm-build-logs
+          name: build-logs
           path: |
             frontend-npm-build.log
             npm-build-root.log
           if-no-files-found: ignore
           retention-days: 7
-
-      - name: List potential dist output (for debugging)
-        run: |
-          echo "=== dist at repo root ==="
-          if [ -d dist ]; then ls -la dist || true; else echo "no root dist"; fi
-          echo "=== dist under frontend ==="
-          if [ -d frontend/dist ]; then ls -la frontend/dist || true; else echo "no frontend/dist"; fi
-        shell: bash
 
       - name: Upload dist artifact (frontend/dist if present, otherwise root/dist)
         uses: actions/upload-artifact@v4
