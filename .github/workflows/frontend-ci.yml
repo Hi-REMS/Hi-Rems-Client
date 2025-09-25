@@ -27,10 +27,9 @@ jobs:
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20        # 필요시 18로 변경 가능
+          node-version: 20
           cache: npm
-          # frontend가 루트가 아닌 경우 package-lock 위치를 frontend 쪽으로 지정
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       # (선택) .env.example 있으면 복사
       - name: Create env for CI (optional)
@@ -51,6 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-npm-ci-log
+          # 파일은 workspace root로 옮겼으므로 상대 경로(루트 기준)
           path: frontend-npm-ci.log
           if-no-files-found: ignore
           retention-days: 7
@@ -59,7 +59,7 @@ jobs:
         run: |
           set -e
           echo "::group::Lint (frontend)"
-          # run lint and capture output; do not fail the job here so we can inspect logs first
+          # lint 결과를 캡처하되 실패해도 job을 바로 멈추지 않음(로그 확인 후 판단)
           npm run lint 2>&1 | tee npm-lint-frontend.log || true
           mv npm-lint-frontend.log "$GITHUB_WORKSPACE/frontend-npm-lint.log" || true
           echo "::endgroup::"
@@ -109,9 +109,7 @@ jobs:
 
       - name: List dist output (for debugging)
         run: |
-          echo "=== listing frontend/dist ==="
-          if [ -d dist ]; then ls -la dist || true; else echo "no dist in current working directory"; fi
-          echo "=== listing frontend/dist from workspace ==="
+          echo "=== listing frontend/dist (from workspace) ==="
           if [ -d frontend/dist ]; then ls -la frontend/dist || true; else echo "no frontend/dist"; fi
 
       - name: Upload dist artifact
