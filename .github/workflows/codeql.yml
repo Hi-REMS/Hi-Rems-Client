@@ -70,6 +70,37 @@ jobs:
             npm-ci-root.log
           if-no-files-found: ignore
           retention-days: 7
+          
+      - name: Lint (frontend or root)
+        run: |
+          set -eo pipefail
+          if [ -d frontend ] && [ -f frontend/package.json ]; then
+            echo "::group::Linting in frontend/"
+            cd frontend
+            npm run lint 2>&1 | tee npm-lint-frontend.log || true
+            mv npm-lint-frontend.log $GITHUB_WORKSPACE/frontend-npm-lint.log || true
+            cd $GITHUB_WORKSPACE
+            echo "::endgroup::"
+          elif [ -f package.json ]; then
+            echo "::group::Linting in repo root"
+            npm run lint 2>&1 | tee npm-lint-root.log || true
+            mv npm-lint-root.log $GITHUB_WORKSPACE/npm-lint-root.log || true
+            echo "::endgroup::"
+          else
+            echo "No package.json found in root or frontend - skipping lint"
+          fi
+        shell: bash
+
+      - name: Upload lint logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-lint-logs
+          path: |
+            frontend-npm-lint.log
+            npm-lint-root.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Build (root or frontend) - verbose
         run: |

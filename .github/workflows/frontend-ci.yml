@@ -15,6 +15,11 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
 
+    # 모든 run: 명령은 frontend 디렉터리에서 실행됩니다.
+    defaults:
+      run:
+        working-directory: frontend
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,31 +27,97 @@ jobs:
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: 20        # 만약 빌드 이슈 나면 18로 바꾸세요
+          node-version: 20        # 필요시 18로 변경 가능
           cache: npm
-          cache-dependency-path: package-lock.json
+          # frontend가 루트가 아닌 경우 package-lock 위치를 frontend 쪽으로 지정
+          cache-dependency-path: frontend/package-lock.json
 
       # (선택) .env.example 있으면 복사
       - name: Create env for CI (optional)
         run: |
           if [ -f .env.example ]; then cp .env.example .env; fi
 
-      - name: Install deps
-        run: npm ci
+      - name: Install deps (frontend)
+        run: |
+          set -e
+          echo "::group::npm ci (frontend)"
+          npm ci 2>&1 | tee npm-ci-frontend.log || true
+          # move log to workspace root for artifact upload
+          mv npm-ci-frontend.log "$GITHUB_WORKSPACE/frontend-npm-ci.log" || true
+          echo "::endgroup::"
 
-      - name: Lint (optional)
-        run: npm run lint || echo "no lint script"
+      - name: Upload npm install log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-npm-ci-log
+          path: frontend-npm-ci.log
+          if-no-files-found: ignore
+          retention-days: 7
 
-      - name: Unit tests (optional)
-        run: npm test --if-present || echo "no tests"
+      - name: Lint (frontend) - capture logs (non-blocking)
+        run: |
+          set -e
+          echo "::group::Lint (frontend)"
+          # run lint and capture output; do not fail the job here so we can inspect logs first
+          npm run lint 2>&1 | tee npm-lint-frontend.log || true
+          mv npm-lint-frontend.log "$GITHUB_WORKSPACE/frontend-npm-lint.log" || true
+          echo "::endgroup::"
 
-      - name: Build
-        run: npm run build
+      - name: Upload lint logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-lint-log
+          path: frontend-npm-lint.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Unit tests (frontend, optional)
+        run: |
+          set -e
+          echo "::group::Unit tests"
+          npm test --if-present 2>&1 | tee npm-test-frontend.log || true
+          mv npm-test-frontend.log "$GITHUB_WORKSPACE/frontend-npm-test.log" || true
+          echo "::endgroup::"
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-log
+          path: frontend-npm-test.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Build (frontend)
+        run: |
+          set -e
+          echo "::group::Build frontend"
+          npm run build 2>&1 | tee npm-build-frontend.log || true
+          mv npm-build-frontend.log "$GITHUB_WORKSPACE/frontend-npm-build.log" || true
+          echo "::endgroup::"
+
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build-log
+          path: frontend-npm-build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: List dist output (for debugging)
+        run: |
+          echo "=== listing frontend/dist ==="
+          if [ -d dist ]; then ls -la dist || true; else echo "no dist in current working directory"; fi
+          echo "=== listing frontend/dist from workspace ==="
+          if [ -d frontend/dist ]; then ls -la frontend/dist || true; else echo "no frontend/dist"; fi
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ github.sha }}
-          path: dist
+          path: frontend/dist
           if-no-files-found: error
           retention-days: 7
