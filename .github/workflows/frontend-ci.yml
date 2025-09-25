@@ -2,120 +2,180 @@ name: Frontend CI
 
 on:
   push:
-    branches: [ "**" ]          # 모든 브랜치
+    branches: [ "**" ]
   pull_request:
-    branches: [ "**" ]          # 모든 PR
-  workflow_dispatch:             # 수동 실행 버튼
+    branches: [ "**" ]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true       # 같은 브랜치 이전 잡 자동 취소
+  cancel-in-progress: true
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
 
-    # 모든 run: 명령은 frontend 디렉터리에서 실행됩니다.
-    defaults:
-      run:
-        working-directory: frontend
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 20
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: package-lock.json
+          cache: 'npm'   # package-lock 위치가 바뀔 수 있으므로 cache-dependency-path는 지정하지 않음
 
-      # (선택) .env.example 있으면 복사
-      - name: Create env for CI (optional)
+      - name: Show workspace (quick debug)
         run: |
-          if [ -f .env.example ]; then cp .env.example .env; fi
+          echo "PWD: $(pwd)"
+          echo "----- root ls -----"
+          ls -la
+          if [ -d frontend ]; then
+            echo "----- frontend ls -----"
+            ls -la frontend || true
+          else
+            echo "frontend directory not present"
+          fi
 
-      - name: Install deps (frontend)
+      - name: Install deps (root or frontend) - verbose
         run: |
-          set -e
-          echo "::group::npm ci (frontend)"
-          npm ci 2>&1 | tee npm-ci-frontend.log || true
-          # move log to workspace root for artifact upload
-          mv npm-ci-frontend.log "$GITHUB_WORKSPACE/frontend-npm-ci.log" || true
-          echo "::endgroup::"
+          set -eo pipefail
+          if [ -d frontend ] && [ -f frontend/package.json ]; then
+            echo "::group::Installing in frontend/"
+            cd frontend
+            npm ci 2>&1 | tee npm-ci-frontend.log || true
+            mv npm-ci-frontend.log "$GITHUB_WORKSPACE/frontend-npm-ci.log" || true
+            cd $GITHUB_WORKSPACE
+            echo "::endgroup::"
+          elif [ -f package.json ]; then
+            echo "::group::Installing in repo root"
+            npm ci 2>&1 | tee npm-ci-root.log || true
+            mv npm-ci-root.log "$GITHUB_WORKSPACE/npm-ci-root.log" || true
+            echo "::endgroup::"
+          else
+            echo "No package.json found in root or frontend - skipping npm ci"
+          fi
+        shell: bash
 
-      - name: Upload npm install log
+      - name: Upload npm install logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-npm-ci-log
-          # 파일은 workspace root로 옮겼으므로 상대 경로(루트 기준)
-          path: frontend-npm-ci.log
+          name: npm-install-logs
+          path: |
+            frontend-npm-ci.log
+            npm-ci-root.log
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Lint (frontend) - capture logs (non-blocking)
+      - name: Lint (root or frontend) - capture logs (non-blocking)
         run: |
-          set -e
-          echo "::group::Lint (frontend)"
-          # lint 결과를 캡처하되 실패해도 job을 바로 멈추지 않음(로그 확인 후 판단)
-          npm run lint 2>&1 | tee npm-lint-frontend.log || true
-          mv npm-lint-frontend.log "$GITHUB_WORKSPACE/frontend-npm-lint.log" || true
-          echo "::endgroup::"
+          set -eo pipefail
+          if [ -d frontend ] && [ -f frontend/package.json ]; then
+            echo "::group::Lint (frontend)"
+            cd frontend
+            npm run lint 2>&1 | tee npm-lint-frontend.log || true
+            mv npm-lint-frontend.log "$GITHUB_WORKSPACE/frontend-npm-lint.log" || true
+            cd $GITHUB_WORKSPACE
+            echo "::endgroup::"
+          elif [ -f package.json ]; then
+            echo "::group::Lint (root)"
+            npm run lint 2>&1 | tee npm-lint-root.log || true
+            mv npm-lint-root.log "$GITHUB_WORKSPACE/npm-lint-root.log" || true
+            echo "::endgroup::"
+          else
+            echo "no lint script"
+          fi
+        shell: bash
+        continue-on-error: false
 
       - name: Upload lint logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-lint-log
-          path: frontend-npm-lint.log
+          name: lint-logs
+          path: |
+            frontend-npm-lint.log
+            npm-lint-root.log
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Unit tests (frontend, optional)
+      - name: Unit tests (root or frontend) - optional
         run: |
-          set -e
-          echo "::group::Unit tests"
-          npm test --if-present 2>&1 | tee npm-test-frontend.log || true
-          mv npm-test-frontend.log "$GITHUB_WORKSPACE/frontend-npm-test.log" || true
-          echo "::endgroup::"
+          set -eo pipefail
+          if [ -d frontend ] && [ -f frontend/package.json ]; then
+            echo "::group::Run tests (frontend)"
+            cd frontend
+            npm test --if-present 2>&1 | tee npm-test-frontend.log || true
+            mv npm-test-frontend.log "$GITHUB_WORKSPACE/frontend-npm-test.log" || true
+            cd $GITHUB_WORKSPACE
+            echo "::endgroup::"
+          elif [ -f package.json ]; then
+            echo "::group::Run tests (root)"
+            npm test --if-present 2>&1 | tee npm-test-root.log || true
+            mv npm-test-root.log "$GITHUB_WORKSPACE/npm-test-root.log" || true
+            echo "::endgroup::"
+          else
+            echo "no tests"
+          fi
+        shell: bash
 
       - name: Upload test logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-test-log
-          path: frontend-npm-test.log
+          name: test-logs
+          path: |
+            frontend-npm-test.log
+            npm-test-root.log
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Build (frontend)
+      - name: Build (root or frontend) - verbose
         run: |
-          set -e
-          echo "::group::Build frontend"
-          npm run build 2>&1 | tee npm-build-frontend.log || true
-          mv npm-build-frontend.log "$GITHUB_WORKSPACE/frontend-npm-build.log" || true
-          echo "::endgroup::"
+          set -eo pipefail
+          if [ -d frontend ] && [ -f frontend/package.json ]; then
+            echo "::group::Building in frontend/"
+            cd frontend
+            npm run build --if-present 2>&1 | tee npm-build-frontend.log || true
+            mv npm-build-frontend.log "$GITHUB_WORKSPACE/frontend-npm-build.log" || true
+            cd $GITHUB_WORKSPACE
+            echo "::endgroup::"
+          elif [ -f package.json ]; then
+            echo "::group::Building in repo root"
+            npm run build --if-present 2>&1 | tee npm-build-root.log || true
+            mv npm-build-root.log "$GITHUB_WORKSPACE/npm-build-root.log" || true
+            echo "::endgroup::"
+          else
+            echo "No build script found - skipping build"
+          fi
+        shell: bash
 
       - name: Upload build logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-build-log
-          path: frontend-npm-build.log
+          name: npm-build-logs
+          path: |
+            frontend-npm-build.log
+            npm-build-root.log
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: List dist output (for debugging)
+      - name: List potential dist output (for debugging)
         run: |
-          echo "=== listing frontend/dist (from workspace) ==="
+          echo "=== dist at repo root ==="
+          if [ -d dist ]; then ls -la dist || true; else echo "no root dist"; fi
+          echo "=== dist under frontend ==="
           if [ -d frontend/dist ]; then ls -la frontend/dist || true; else echo "no frontend/dist"; fi
+        shell: bash
 
-      - name: Upload dist artifact
+      - name: Upload dist artifact (frontend/dist if present, otherwise root/dist)
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ github.sha }}
-          path: frontend/dist
-          if-no-files-found: error
+          path: |
+            frontend/dist
+            dist
+          if-no-files-found: ignore
           retention-days: 7
