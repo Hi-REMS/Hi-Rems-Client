@@ -421,3 +421,62 @@ html[data-theme="light"] .ts-page .toolbar {
   object-position: center;
   display: block;
 }
+
+/* 설비정보 이미지 스타일 */
+.facility-wrap { padding: 10px 14px 16px; display: grid; gap: 12px; }
+.facility-img img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--border-1);
+}
+
+/* 카드 헤더 레이아웃 / 우측 액션 */
+.card-hd{ display:flex; align-items:center; justify-content:space-between; }
+.card-actions{ display:flex; gap:8px; align-items:center; }
+
+/* 멀티 선택 칩 */
+.chip{
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  font-size:12px
+}
+
+/* 운전이력: 행 인터랙션 */
+.row-click{
+  cursor:pointer;
+  transition: background-color .15s ease;
+}
+.row-click:hover{
+  background: rgba(255,255,255,.05);
+}
+
+/* 작은 버튼 */
+.btn.sm{ padding:6px 10px; font-size:12px; }
+
+/* ===== 모달 ===== */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  display:flex; align-items:center; justify-content:center;
+  z-index:1000;
+}
+.modal{
+  width:min(1200px, 92vw);
+  background:var(--card, #0f1824);
+  border:1px solid var(--border-1,#283247);
+  border-radius:12px; overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,0,0,.4);
+}
+.modal-hd{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; border-bottom:1px solid var(--border-1,#283247);
+}
+.modal-title{ font-weight:700; }
+.modal-x{ background:none; border:0; color:inherit; cursor:pointer; font-size:18px; }
+.modal-body{ padding:12px 14px; }
+.modal-ftr{ padding:12px 14px; border-top:1px solid var(--border-1,#283247); display:flex; justify-content:flex-end; gap:8px; }

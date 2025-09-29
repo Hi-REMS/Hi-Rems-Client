@@ -206,7 +206,6 @@
         <div class="card-hd">
           <h3>운전이력</h3>
           <div class="card-actions">
-            <button class="btn ghost sm" @click="showAllModal = true" :disabled="!driverRows.length">전체 데이터</button>
           </div>
         </div>
 
@@ -328,61 +327,6 @@
       </article>
     </section>
 
-    <!-- ===== 전체 데이터 모달 ===== -->
-    <div v-if="showAllModal" class="modal-backdrop" @click.self="showAllModal=false">
-      <div class="modal">
-        <header class="modal-hd">
-          <div class="modal-title">운전이력 전체 데이터</div>
-          <button class="modal-x" @click="showAllModal=false" aria-label="닫기">✕</button>
-        </header>
-        <div class="modal-body">
-          <div class="table-wrap thin-scroll" style="max-height:60vh">
-            <table class="tbl compact">
-              <thead>
-                <tr>
-                  <th>NO</th>
-                  <th>RTU IMEI</th>
-                  <th>멀티 ID</th>
-                  <th>수집일시</th>
-                  <th>상태</th>
-                  <th>PV전압(V)</th>
-                  <th>PV전류(A)</th>
-                  <th>PV출력(W)</th>
-                  <th>계통전압(V)</th>
-                  <th>계통전류(A)</th>
-                  <th>현재출력(W)</th>
-                  <th>역률(%)</th>
-                  <th>주파수(Hz)</th>
-                  <th>누적발전량(kWh)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(r,i) in driverRows" :key="'all'+i">
-                  <td class="mono">{{ i+1 }}</td>
-                  <td class="mono">{{ r.imei }}</td>
-                  <td class="mono">{{ r.multiId || '—' }}</td>
-                  <td class="mono">{{ r.collectedAt || '—' }}</td>
-                  <td>{{ r.status || '정상' }}</td>
-                  <td class="num">{{ fmt(r.pvV, 0) }}</td>
-                  <td class="num">{{ fmt(r.pvA, 1) }}</td>
-                  <td class="num">{{ fmt(r.pvW, 0) }}</td>
-                  <td class="num">{{ fmt(r.gridV, 0) }}</td>
-                  <td class="num">{{ fmt(r.gridA, 1) }}</td>
-                  <td class="num">{{ fmt(r.nowW, 0) }}</td>
-                  <td class="num">{{ fmt(r.pf, 1) }}</td>
-                  <td class="num">{{ fmt(r.freq, 1) }}</td>
-                  <td class="num">{{ fmt(r.totalKwh, 2) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <footer class="modal-ftr">
-          <button class="btn ghost" @click="showAllModal=false">닫기</button>
-        </footer>
-      </div>
-    </div>
-
     <!-- 로딩 오버레이 -->
     <div v-if="loading" class="loading-overlay" role="status" aria-live="polite">
       <div class="spinner-neo"></div>
@@ -411,7 +355,6 @@ export default {
       selectedMulti: null,     // 선택된 멀티 (null = 합산)
 
       driverUnits: [],
-      showAllModal: false,     // 전체 데이터 모달
 
       kpis: [
         { key: 'now',     title: '현재 출력',            unit: 'kWh'  },
@@ -1042,64 +985,3 @@ export default {
   }
 }
 </script>
-
-<style>
-/* 설비정보 이미지 스타일 */
-.facility-wrap { padding: 10px 14px 16px; display: grid; gap: 12px; }
-.facility-img img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 1px solid var(--border-1);
-}
-
-/* 카드 헤더 레이아웃 / 우측 액션 */
-.card-hd{ display:flex; align-items:center; justify-content:space-between; }
-.card-actions{ display:flex; gap:8px; align-items:center; }
-
-/* 멀티 선택 칩 */
-.chip{
-  display:inline-flex;
-  gap:8px;
-  align-items:center;
-  padding:4px 10px;
-  border-radius:999px;
-  background:rgba(255,255,255,.06);
-  font-size:12px
-}
-
-/* 운전이력: 행 인터랙션 */
-.row-click{
-  cursor:pointer;
-  transition: background-color .15s ease;
-}
-.row-click:hover{
-  background: rgba(255,255,255,.05);
-}
-
-/* 작은 버튼 */
-.btn.sm{ padding:6px 10px; font-size:12px; }
-
-/* ===== 모달 ===== */
-.modal-backdrop{
-  position:fixed; inset:0; background:rgba(0,0,0,.5);
-  display:flex; align-items:center; justify-content:center;
-  z-index:1000;
-}
-.modal{
-  width:min(1200px, 92vw);
-  background:var(--card, #0f1824);
-  border:1px solid var(--border-1,#283247);
-  border-radius:12px; overflow:hidden;
-  box-shadow:0 10px 40px rgba(0,0,0,.4);
-}
-.modal-hd{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 16px; border-bottom:1px solid var(--border-1,#283247);
-}
-.modal-title{ font-weight:700; }
-.modal-x{ background:none; border:0; color:inherit; cursor:pointer; font-size:18px; }
-.modal-body{ padding:12px 14px; }
-.modal-ftr{ padding:12px 14px; border-top:1px solid var(--border-1,#283247); display:flex; justify-content:flex-end; gap:8px; }
-</style>
