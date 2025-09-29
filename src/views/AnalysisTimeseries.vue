@@ -58,7 +58,21 @@
       <article class="card col-9">
         <div class="card-hd">
           <h3>시간대별 그래프</h3>
-          <!-- 시간대별 API는 멀티 개별 필터가 없으니 안내 칩은 숨김 -->
+
+          <!-- 우측 액션: 선택 멀티 배지 + 전체보기 버튼 -->
+          <div class="card-actions">
+            <div v-if="selectedMulti" class="chip">
+              {{ multiLabel(selectedMulti) }} 보기
+            </div>
+            <button
+              class="btn ghost sm"
+              :disabled="!selectedMulti"
+              @click="clearMulti"
+              title="전체 합산 그래프로 돌아가기"
+            >
+              전체보기
+            </button>
+          </div>
         </div>
 
         <!-- 조회 후 -->
@@ -144,7 +158,8 @@
             </svg>
 
             <div class="legend">
-              <span class="dot"></span> 합산 발전량(kWh)
+              <span class="dot"></span>
+              {{ selectedMulti ? '선택 설비 발전량(kWh)' : '합산 발전량(kWh)' }}
               <span class="sep">•</span>
               <span class="linekey"></span> 꼭짓점 연결선
             </div>
@@ -188,7 +203,12 @@
     <section class="row">
       <!-- 운전이력 -->
       <article class="card col-9">
-        <div class="card-hd"><h3>운전이력</h3></div>
+        <div class="card-hd">
+          <h3>운전이력</h3>
+          <div class="card-actions">
+            <button class="btn ghost sm" @click="showAllModal = true" :disabled="!driverRows.length">전체 데이터</button>
+          </div>
+        </div>
 
         <div class="table-wrap thin-scroll">
           <table class="tbl compact">
@@ -253,7 +273,6 @@
             </tbody>
           </table>
         </div>
-
       </article>
 
       <!-- ▼ 효율지표 -->
@@ -309,6 +328,61 @@
       </article>
     </section>
 
+    <!-- ===== 전체 데이터 모달 ===== -->
+    <div v-if="showAllModal" class="modal-backdrop" @click.self="showAllModal=false">
+      <div class="modal">
+        <header class="modal-hd">
+          <div class="modal-title">운전이력 전체 데이터</div>
+          <button class="modal-x" @click="showAllModal=false" aria-label="닫기">✕</button>
+        </header>
+        <div class="modal-body">
+          <div class="table-wrap thin-scroll" style="max-height:60vh">
+            <table class="tbl compact">
+              <thead>
+                <tr>
+                  <th>NO</th>
+                  <th>RTU IMEI</th>
+                  <th>멀티 ID</th>
+                  <th>수집일시</th>
+                  <th>상태</th>
+                  <th>PV전압(V)</th>
+                  <th>PV전류(A)</th>
+                  <th>PV출력(W)</th>
+                  <th>계통전압(V)</th>
+                  <th>계통전류(A)</th>
+                  <th>현재출력(W)</th>
+                  <th>역률(%)</th>
+                  <th>주파수(Hz)</th>
+                  <th>누적발전량(kWh)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(r,i) in driverRows" :key="'all'+i">
+                  <td class="mono">{{ i+1 }}</td>
+                  <td class="mono">{{ r.imei }}</td>
+                  <td class="mono">{{ r.multiId || '—' }}</td>
+                  <td class="mono">{{ r.collectedAt || '—' }}</td>
+                  <td>{{ r.status || '정상' }}</td>
+                  <td class="num">{{ fmt(r.pvV, 0) }}</td>
+                  <td class="num">{{ fmt(r.pvA, 1) }}</td>
+                  <td class="num">{{ fmt(r.pvW, 0) }}</td>
+                  <td class="num">{{ fmt(r.gridV, 0) }}</td>
+                  <td class="num">{{ fmt(r.gridA, 1) }}</td>
+                  <td class="num">{{ fmt(r.nowW, 0) }}</td>
+                  <td class="num">{{ fmt(r.pf, 1) }}</td>
+                  <td class="num">{{ fmt(r.freq, 1) }}</td>
+                  <td class="num">{{ fmt(r.totalKwh, 2) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <footer class="modal-ftr">
+          <button class="btn ghost" @click="showAllModal=false">닫기</button>
+        </footer>
+      </div>
+    </div>
+
     <!-- 로딩 오버레이 -->
     <div v-if="loading" class="loading-overlay" role="status" aria-live="polite">
       <div class="spinner-neo"></div>
@@ -334,9 +408,10 @@ export default {
       onlyOk: true,
       lastRouterErr: '',
       imeiUse: '',
-      selectedMulti: null,
+      selectedMulti: null,     // 선택된 멀티 (null = 합산)
 
       driverUnits: [],
+      showAllModal: false,     // 전체 데이터 모달
 
       kpis: [
         { key: 'now',     title: '현재 출력',            unit: 'kWh'  },
@@ -351,7 +426,7 @@ export default {
         co2_ton: null, last_month_avg_kw: null,
         inverter_efficiency_pct: null, _updatedAt: null
       },
-      // 시간대별 kWh 원본(백엔드 응답)
+      // 시간대별 kWh (그래프 소스)
       hourly: [],
 
       mets: {
@@ -380,13 +455,8 @@ export default {
       envHumidityPct: null,
       envWindMs: null,
 
-      // 유지보수 더미 데이터 상태
-      maintenance: {
-        lastInspection: null,
-        asNotes: null,
-      },
-
-      // 설비정보 더미 데이터 상태 (이미지 필드 추가)
+      // 더미
+      maintenance: { lastInspection: null, asNotes: null },
       facilityInfo: {
         moduleCapacity: null,
         installDate: null,
@@ -401,32 +471,27 @@ export default {
   computed: {
     inner () { return { w: this.vb.w - this.pad.l - this.pad.r, h: this.vb.h - this.pad.t - this.pad.b }; },
 
-    // 시간대별 시리즈 (24개, null은 0으로 그리되 라벨은 숨김)
+    // 시간대별 시리즈
     series () {
       if (!Array.isArray(this.hourly) || !this.hourly.length) return [];
       return this.hourly.map(h => {
         const rawNull = (h.kwh == null || Number.isNaN(Number(h.kwh)));
         const kw = rawNull ? 0 : Number(h.kwh);
-        // ts는 "HH시" 라벨 용도만 필요 → 실제 픽셀 계산은 인덱스로
         return { hour: String(h.hour).padStart(2,'0'), kw, rawNull };
       });
     },
 
-    // y축 최대치
     maxKw () {
       const vals = this.series.map(p => p.kw || 0);
       return Math.max(...vals, 0.01);
     },
 
-    // step 너비 (24등분)
     stepW () { return this.series.length ? this.inner.w / this.series.length : 0; },
-
     barW () { return Math.max(10, this.stepW * 0.6); },
 
     xTicks () {
       const out = []; const n = this.series.length;
       if (!n) return out;
-      // 라벨이 12개를 넘으면 2칸 간격, 아니면 1칸 간격
       const every = n > 12 ? 2 : 1;
       for (let i = 0; i < n; i += every) {
         const x = this.pad.l + i * this.stepW + this.stepW / 2;
@@ -554,12 +619,11 @@ export default {
     }
   },
   methods: {
-
     formatKwh1(v) {
-  if (v == null || Number.isNaN(Number(v))) return '—';
-  if (Number(v) === 0) return '0';
-  return Number(v).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-},
+      if (v == null || Number.isNaN(Number(v))) return '—';
+      if (Number(v) === 0) return '0';
+      return Number(v).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    },
     abortAll() {
       for (const k of Object.keys(this.controllers)) {
         try { this.controllers[k]?.abort(); } catch (e) { void 0; }
@@ -605,10 +669,7 @@ export default {
       this.envHumidityPct = null;
       this.envWindMs = null;
 
-      // 유지보수 더미 초기화
       this.maintenance = { lastInspection: null, asNotes: null };
-
-      // 설비정보 더미 초기화 (이미지 포함)
       this.facilityInfo = {
         moduleCapacity: null,
         installDate: null,
@@ -675,7 +736,6 @@ export default {
 
       this.clearForLoading();
 
-      // 조회 직후 더미 데이터 주입
       this.maintenance  = this.genDummyMaintenance(imei);
       this.facilityInfo = this.genDummyFacility();
 
@@ -712,7 +772,6 @@ export default {
       if (reqId && reqId !== this.currentReqId) return;
       const j = await r.json();
       const k = j.kpis || {};
-      // today_kwh는 loadHourly에서 시간합계로 갱신 예정 (우선 백엔드 값 반영)
       this.kpi = {
         now_kw: k.now_kw ?? null,
         today_kwh: k.today_kwh ?? null,
@@ -737,27 +796,52 @@ export default {
       this.latestCollectedAt = row?.time || row?.createdAt || row?.ts || null;
     },
 
-    // 시간대별 발전량 (kWh)
+    // 시간대별 발전량 (kWh) — 선택 멀티면 series(detail=hourly), 아니면 기존 hourly
     async loadHourly (reqId) {
-      const params = new URLSearchParams({ rtuImei: this.imeiUse, energy: this.energyField || '01' });
+      const hasMulti = !!this.selectedMulti;
+
+      if (!hasMulti) {
+        const params = new URLSearchParams({ rtuImei: this.imeiUse, energy: this.energyField || '01' });
+        if (this.typeField) params.set('type', this.typeField);
+        const url = `/api/energy/electric/hourly?${params.toString()}`;
+
+        const r = await fetch(url, { signal: this.newController('hourly') });
+        if (!r.ok) return;
+        if (reqId && reqId !== this.currentReqId) return;
+        const j = await r.json();
+        const hours = Array.isArray(j?.hours) ? j.hours : [];
+        this.hourly = hours
+          .map(h => ({ hour: String(h.hour).padStart(2,'0'), kwh: (h.kwh==null?null:Number(h.kwh)) }))
+          .sort((a,b) => a.hour.localeCompare(b.hour));
+
+        const sum = this.hourly.reduce((s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s), 0);
+        this.kpi.today_kwh = Number.isFinite(sum) ? Math.round(sum*1000)/1000 : null;
+        return;
+      }
+
+      // 멀티 선택 시: series(detail=hourly) 사용
+      const params = new URLSearchParams({
+        rtuImei: this.imeiUse,
+        range: 'weekly',
+        detail: 'hourly',
+        energy: this.energyField || '01',
+        multi: this.selectedMulti
+      });
       if (this.typeField) params.set('type', this.typeField);
-      // date는 생략 → 백엔드가 "오늘(KST)"로 처리
-      const url = `/api/energy/electric/hourly?${params.toString()}`;
+      const url = `/api/energy/electric/series?${params.toString()}`;
 
       const r = await fetch(url, { signal: this.newController('hourly') });
       if (!r.ok) return;
       if (reqId && reqId !== this.currentReqId) return;
       const j = await r.json();
-      const hours = Array.isArray(j?.hours) ? j.hours : [];
-      // 정렬 보장 (00~23)
-      this.hourly = hours
-        .map(h => ({ hour: String(h.hour).padStart(2,'0'), kwh: (h.kwh==null?null:Number(h.kwh)) }))
+
+      const rows = j?.detail_hourly?.rows || [];
+      this.hourly = rows
+        .map(h => ({ hour: String(h.hour).slice(0,2), kwh: (h.kwh==null?null:Number(h.kwh)) }))
         .sort((a,b) => a.hour.localeCompare(b.hour));
 
-      // 금일 발전량(kWh) — 시간별 합계로 갱신
       const sum = this.hourly.reduce((s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s), 0);
-      const today = Number.isFinite(sum) ? Math.round(sum*1000)/1000 : null;
-      this.kpi.today_kwh = today;
+      this.kpi.today_kwh = Number.isFinite(sum) ? Math.round(sum*1000)/1000 : null;
     },
 
     async loadDriverUnits (reqId) {
@@ -811,9 +895,15 @@ export default {
       }
     },
 
-    onSelectUnit () {
-      // NOTE: 시간대별 API에는 멀티 필터가 없어 차트에는 미반영 (운전이력 행 클릭 시 동작만 유지)
-      return;
+    // === 멀티 선택/해제 ===
+    onSelectUnit (multiHex) {
+      this.selectedMulti = (this.selectedMulti === multiHex) ? null : multiHex;
+      this.loadHourly(this.currentReqId).catch(()=>{});
+    },
+    clearMulti(){
+      if (!this.selectedMulti) return;
+      this.selectedMulti = null;
+      this.loadHourly(this.currentReqId).catch(()=>{});
     },
 
     number (v, digits = 0) {
@@ -877,7 +967,6 @@ export default {
       return null;
     },
 
-    // ===== 날씨 유틸 =====
     getNum(row, keys){
       for (const k of keys){
         const n = Number(row?.[k]);
@@ -886,7 +975,7 @@ export default {
       return null;
     },
     condFrom(row){
-      const pty = this.getNum(row, ['PTY','pty']); // 강수형태
+      const pty = this.getNum(row, ['PTY','pty']);
       const sky = this.getNum(row, ['SKY','sky','SKY_CODE']);
       if (pty!=null && pty!==0){
         const map = {1:'비',2:'비/눈',3:'눈',5:'빗방울',6:'비/눈날림',7:'눈날림'};
@@ -899,7 +988,6 @@ export default {
       return row?.weather || row?.condition || null;
     },
 
-    // ===== 유지보수 더미 생성기 =====
     genDummyMaintenance(imei) {
       const seed = (imei || 'NA').split('')
         .reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 0);
@@ -929,14 +1017,13 @@ export default {
       return { lastInspection, asNotes };
     },
 
-    // ===== 설비정보 더미 생성기 (이미지 포함) =====
     genDummyFacility() {
       return {
         moduleCapacity: '3kW',
         installDate: '2024-05-23',
         monitorStart: '2024-12-31',
         projectName: '2024 양산시 융복합지원사업',
-        contractor: '(주)선한이엔지',
+        contractor: '(주)선한이엔지',  // 오타 수정
         asContact: '1800-5133',
         image: facilitySample,
       };
@@ -966,4 +1053,53 @@ export default {
   border-radius: 12px;
   border: 1px solid var(--border-1);
 }
+
+/* 카드 헤더 레이아웃 / 우측 액션 */
+.card-hd{ display:flex; align-items:center; justify-content:space-between; }
+.card-actions{ display:flex; gap:8px; align-items:center; }
+
+/* 멀티 선택 칩 */
+.chip{
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+  padding:4px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  font-size:12px
+}
+
+/* 운전이력: 행 인터랙션 */
+.row-click{
+  cursor:pointer;
+  transition: background-color .15s ease;
+}
+.row-click:hover{
+  background: rgba(255,255,255,.05);
+}
+
+/* 작은 버튼 */
+.btn.sm{ padding:6px 10px; font-size:12px; }
+
+/* ===== 모달 ===== */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  display:flex; align-items:center; justify-content:center;
+  z-index:1000;
+}
+.modal{
+  width:min(1200px, 92vw);
+  background:var(--card, #0f1824);
+  border:1px solid var(--border-1,#283247);
+  border-radius:12px; overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,0,0,.4);
+}
+.modal-hd{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; border-bottom:1px solid var(--border-1,#283247);
+}
+.modal-title{ font-weight:700; }
+.modal-x{ background:none; border:0; color:inherit; cursor:pointer; font-size:18px; }
+.modal-body{ padding:12px 14px; }
+.modal-ftr{ padding:12px 14px; border-top:1px solid var(--border-1,#283247); display:flex; justify-content:flex-end; gap:8px; }
 </style>
