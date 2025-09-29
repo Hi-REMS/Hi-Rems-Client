@@ -341,15 +341,13 @@
 
       <!-- 2행: 요약 · 날짜별 상세 -->
       <section class="edb-grid edb-bottom2">
-        <!-- 요약 정보 (테이블 버전) -->
-        <!-- 요약 정보 (테이블 → 날짜별 상세와 동일 패턴) -->
+        <!-- 요약 -->
         <section class="edb-card edb-summary">
           <div class="edb-sum-hd">
             <h4 class="edb-sum__title">요약 정보</h4>
           </div>
 
           <div class="edb-sum-grid">
-            <!-- 발전량 -->
             <article class="edb-sum-block">
               <div class="edb-detail-hd"><h3 class="edb-detail__title">발전량</h3></div>
               <div class="edb-table-wrap edb-thin-scroll">
@@ -461,14 +459,16 @@
                     <th>CO₂저감량(kg)</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr v-for="(r, i) in detailRows" :key="'hr'+i">
-                    <td>{{ r.hour.replace(':00','시') }}</td>
-                    <td class="edb-num">{{ fmt(r.kwh, 2) }}</td>
-                    <td class="edb-num">{{ r.weather || '—' }}</td>
-                    <td class="edb-num">{{ r.co2_kg==null ? '—' : fmt(r.co2_kg, 2) }}</td>
-                  </tr>
-                </tbody>
+<tbody>
+  <!-- 기존: v-for="(r, i) in detailRows" -->
+  <tr v-for="(r, i) in detailRowsVisible" :key="'hr'+i">
+    <td>{{ r.hour.replace(':00','시') }}</td>
+    <td class="edb-num">{{ fmt(r.kwh, 1) }}</td>
+    <td class="edb-num">{{ r.weather || '—' }}</td>
+    <td class="edb-num">{{ r.co2_kg==null ? '—' : fmt(r.co2_kg, 2) }}</td>
+  </tr>
+</tbody>
+
               </table>
             </div>
           </div>
@@ -591,6 +591,17 @@ export default {
     }
   },
   computed: {
+      detailRowsVisible(){
+    const rows = Array.isArray(this.detailRows) ? this.detailRows : [];
+    // 뒤에서부터 kwh가 있는 마지막 행 찾기
+    let last = -1;
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const v = rows[i]?.kwh;
+      if (v != null && Number.isFinite(Number(v))) { last = i; break; }
+    }
+    // 한 건도 없으면 기존 rows 그대로(날씨만 보여줄 때 대비)
+    return last >= 0 ? rows.slice(0, last + 1) : rows;
+  },
     trendDay(){
       const base = this.summary.today_kwh || 0;
       return Math.min(99, Math.max(0, Math.round(base * 1.2)));
@@ -705,7 +716,7 @@ export default {
       return { kwh: round2(kwh), co2: this.co2(kwh), trees: this.treesFromKwh(kwh) };
     },
     kpiYear(){
-      const kwh = this.yearSeries.reduce((s,r)=>s+(r.y||0),0); // YTD 합
+      const kwh = this.yearSeries.reduce((s,r)=>s+(r.y||0),0);
       return { kwh: round2(kwh), co2: this.co2(kwh), trees: this.treesFromKwh(kwh) };
     },
 
@@ -846,6 +857,21 @@ export default {
       return r.json()
     },
 
+    // ▼ AnalysisTimeseries.vue와 동일한 소스에서 ‘오늘 시간대별’ 로딩
+    async fetchHourlyLikeAT(){
+      const imei=this.imeiField?.trim()
+      if(!imei) return []
+      const params=new URLSearchParams({ rtuImei: imei, energy: this.energyField || '01' })
+      if (this.typeField) params.set('type', this.typeField)
+      const r = await fetch(`/api/energy/electric/hourly?${params.toString()}`)
+      if(!r.ok) return []
+      const j = await r.json()
+      const hours = Array.isArray(j?.hours) ? j.hours : []
+      return hours
+        .map(h => ({ hour: String(h.hour).padStart(2,'0'), kwh: (h.kwh==null?null:Number(h.kwh)) }))
+        .sort((a,b) => a.hour.localeCompare(b.hour))
+    },
+
     async fetchWeatherHourlyByImei(){
       const imei = this.imeiField?.trim()
       if(!imei) return { base_date:null, base_time:null, hourly: [] }
@@ -896,48 +922,43 @@ export default {
       }})
 
       try{
-        // 1) 주간(+시간대 상세)
-        const weekly=await this.fetchRange('weekly',true)
+        // 1) 주간(차트용) + 2) 오늘 시간대별(표/일간 KPI용)
+        const [weekly, hourly] = await Promise.all([
+          this.fetchRange('weekly', false),
+          this.fetchHourlyLikeAT()
+        ])
+
+        // 주간 차트
         this.bars=(weekly.series||[]).map(s=>({x:s.bucket,y:s.kwh}))
         this.totalKwh=round2(weekly.summary?.total_kwh ?? this.bars.reduce((a,c)=>a+(c.y||0),0))
         this.weekRangeUtc=weekly.range_utc||null
 
-        if(weekly.detail_hourly?.rows){
-          this.detailDay=weekly.detail_hourly.day||''
-          this.detailRows=weekly.detail_hourly.rows.map(r=>({
-            hour:r.hour, kwh:r.kwh ?? null, co2_kg:r.co2_kg ?? null, weather:'—'
-          }))
+        // 시간대별 상세정보: AnalysisTimeseries와 동일 소스 사용
+        const kstToday = new Date().toLocaleDateString('sv-SE', { timeZone:'Asia/Seoul' }).replace(/\./g,'-')
+        this.detailDay = kstToday
+        this.detailRows = (hourly||[]).map(h => ({
+          hour: `${h.hour}:00`,
+          kwh: (h.kwh==null ? null : round2(h.kwh)),
+          co2_kg: (h.kwh==null ? null : round2(this.co2(h.kwh))),
+          weather: '—'
+        }))
+        // 금일 합계
+        const todaySum = (hourly||[]).reduce((s,x)=> (Number.isFinite(x.kwh) ? s + x.kwh : s), 0)
+        this.summary.today_kwh = round2(todaySum)
+        this.avgEff=13.9
 
-          // 그래프(weekly.series)의 오늘 버킷을 우선 사용
-          const todayBucket = (weekly.series || []).find(s => s.bucket === this.detailDay)
-          const hourlySum = this.detailRows.reduce((a,c)=>a+(c.kwh||0),0)
-
-          this.summary.today_kwh = round2( (todayBucket?.kwh) ?? hourlySum )
-          this.avgEff=13.9
-        } else {
-          this.avgEff=13.9
-        }
-
-        // 2) 시간대별 날씨 병합
+        // 3) 시간대별 날씨 병합
         const wx = await this.fetchWeatherHourlyByImei()
         if (wx.hourly.length){
           const wmap = new Map(wx.hourly.map(h => [ this.toHH(h.hour), h ]))
-          if (this.detailRows.length){
-            this.detailRows = this.detailRows.map(r => {
-              const key = this.toHH(r.hour)
-              const w = key ? wmap.get(key) : null
-              return w ? { ...r, weather: this.makeWeatherLabel(w) } : r
-            })
-          } else {
-            this.detailDay = this.detailDay || new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Seoul'}).replace(/\./g,'-')
-            this.detailRows = wx.hourly.map(w => ({
-              hour: `${this.toHH(w.hour)}:00`,
-              kwh: null, co2_kg: null, weather: this.makeWeatherLabel(w)
-            }))
-          }
+          this.detailRows = this.detailRows.map(r => {
+            const key = this.toHH(r.hour)
+            const w = key ? wmap.get(key) : null
+            return w ? { ...r, weather: this.makeWeatherLabel(w) } : r
+          })
         }
 
-        // 3) 월간(일별) / 연간(YTD)
+        // 4) 월간(일별) / 연간(YTD)
         const now=new Date(); const y=now.getFullYear(); const m=String(now.getMonth()+1).padStart(2,'0'); const ym=`${y}-${m}`
         const [monthly,yearly]=await Promise.all([ this.fetchRange('monthly'), this.fetchRange('yearly') ])
 
@@ -945,17 +966,16 @@ export default {
         this.monthRangeUtc=monthly.range_utc||null
         const monthAgg = this.aggregateWeeksFromDaily(monthly.series || [])
         this.monthSeries = monthAgg.series
-        // 월 합(표의 MTD 참고용)
         this.summary.month_kwh = round2((monthly.series||[])
           .filter(r => String(r.bucket||'').startsWith(ym))
           .reduce((s,r)=>s+(r.kwh||0),0))
 
-        // 연간: 백엔드가 YTD로 내려주는 월 버킷을 정규화
+        // 연간: 월 보정
         this.yearSeries = this.ensureYearMonths(yearly.series || [], y)
         this.yearRangeUtc=yearly.range_utc||null
         this.summary.year_kwh = round2(this.yearSeries.reduce((s,r)=>s+(r.y||0),0))
 
-        // KPI 캐시(표 하단에서 재사용)
+        // KPI 캐시
         this.kpis.totalKwh  = this.summary.year_kwh
         this.kpis.totalCo2  = this.co2(this.kpis.totalKwh)
         this.kpis.totalTrees= this.treesFromKwh(this.kpis.totalKwh)
@@ -971,7 +991,6 @@ export default {
         this.hasSearched = true
         this.$nextTick(this.updateAxisFonts)
 
-        // 집계 순서 가드(개발 확인용)
         this.assertAggregateOrder()
       } catch(e){
         this.errorMsg=e?.message||'오류가 발생했습니다.'
@@ -1045,7 +1064,7 @@ export default {
         const qs = new URLSearchParams({ imei, year: String(this.dlYear), month: String(this.dlMonth) })
         if (this.multiField) qs.set('multi', this.multiField) // ★ 멀티 전달
         const url = `/api/export/month-csv?${qs.toString()}`
-        const res = await fetch(url)
+        const res = await res.fetch(url)
         if(!res.ok){
           let msg = `다운로드 실패 (HTTP ${res.status})`
           try {
