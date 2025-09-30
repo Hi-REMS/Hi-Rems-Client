@@ -591,17 +591,25 @@ export default {
     }
   },
   computed: {
-      detailRowsVisible(){
-    const rows = Array.isArray(this.detailRows) ? this.detailRows : [];
-    // 뒤에서부터 kwh가 있는 마지막 행 찾기
-    let last = -1;
-    for (let i = rows.length - 1; i >= 0; i--) {
-      const v = rows[i]?.kwh;
-      if (v != null && Number.isFinite(Number(v))) { last = i; break; }
-    }
-    // 한 건도 없으면 기존 rows 그대로(날씨만 보여줄 때 대비)
-    return last >= 0 ? rows.slice(0, last + 1) : rows;
-  },
+detailRowsVisible() {
+  const rows = Array.isArray(this.detailRows) ? this.detailRows : [];
+
+  // 06시~18시 범위만 남기기
+  const inWindow = rows.filter(r => {
+    const hh = this.toHH(r.hour);           // "08:00" → "08"
+    if (hh == null) return false;
+    const n = Number(hh);
+    return n >= 6 && n <= 18;
+  });
+
+  // 뒤에서부터 kWh가 있는 마지막 행까지만 표시 (기존 로직 유지)
+  let last = -1;
+  for (let i = inWindow.length - 1; i >= 0; i--) {
+    const v = inWindow[i]?.kwh;
+    if (v != null && Number.isFinite(Number(v))) { last = i; break; }
+  }
+  return last >= 0 ? inWindow.slice(0, last + 1) : inWindow;
+},
     trendDay(){
       const base = this.summary.today_kwh || 0;
       return Math.min(99, Math.max(0, Math.round(base * 1.2)));
