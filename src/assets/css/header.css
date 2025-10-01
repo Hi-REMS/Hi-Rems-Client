@@ -154,3 +154,63 @@ html[data-theme="light"] .hdr-dot{
   background:#22d3ee;             /* cyan-400 */
   box-shadow:0 0 0 6px rgba(34, 211, 238, .12);
 }
+
+/* 공통 칩 버튼 (있다면 유지, 없다면 추가) */
+.hdr-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--line, #e5e7eb);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--muted, #6b7280);
+  box-shadow: 0 2px 10px rgba(2, 8, 23, 0.06);
+  transition: all .18s ease;
+  backdrop-filter: saturate(120%) blur(6px);
+}
+
+.hdr-chip .hdr-ico {
+  line-height: 0;
+  display: inline-flex;
+}
+
+/* 아이콘 크기 통일 */
+.hdr-chip .hdr-ico svg {
+  width: 18px; height: 18px;
+}
+
+/* 로그아웃 칩: 기본은 투명, 테두리 없음 */
+.hdr-chip.hdr-logout {
+  background: transparent !important;  /* ✅ 무조건 투명 */
+  border: none !important;             /* ✅ 테두리 제거 */
+  color: var(--muted, #6b7280);        /* 기본 글자색 */
+  box-shadow: none !important;
+}
+
+.hdr-chip.hdr-logout:hover {
+  background: #fee2e2;              /* 아주 연한 레드 */
+  color: #dc2626;                   /* 강조 레드 */
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.18);
+  transform: translateY(-1px);
+}
+
+.hdr-chip.hdr-logout:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 다크모드 대응 */
+:root[data-theme="dark"] .hdr-chip.hdr-logout {
+  background: transparent !important;
+  border: none !important;
+  color: #cbd5e1;   /* 밝은 회색 */
+  box-shadow: none !important;
+}
+
+:root[data-theme="dark"] .hdr-chip.hdr-logout:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+}

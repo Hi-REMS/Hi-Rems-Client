@@ -1,35 +1,46 @@
 <template>
   <header class="hdr-topbar">
     <div class="hdr-brand">
-      <!-- 뒤로가기(메인으로) -->
-
       <span class="hdr-dot"></span>
       <span class="hdr-logo">Hi-REMS</span>
       <span class="hdr-badge">v1.0</span>
     </div>
 
     <div class="hdr-right">
-<!-- 로고 왼쪽이나 오른쪽 원하는 위치에 배치 -->
+      <!-- 뒤로가기: 로그인/회원가입 화면에서는 숨김 -->
+      <button
+        v-if="!isAuthPage"
+        class="hdr-chip hdr-back"
+        type="button"
+        :disabled="isHome"
+        :aria-label="isHome ? '메인 화면' : '이전 화면으로 이동'"
+        @click="goBack"
+      >
+        <span class="hdr-ico" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5"/>
+            <path d="M12 19l-7-7 7-7"/>
+          </svg>
+        </span>
+      </button>
+
+<!-- 로그아웃: 보호 라우트에서만 표시 -->
 <button
-  class="hdr-chip hdr-back"
+  v-if="requiresAuthRoute"
+  class="hdr-chip hdr-logout"
   type="button"
-  :disabled="isHome"
-  :aria-label="isHome ? '메인 화면' : '이전 화면으로 이동'"
-  @click="goBack"
+  aria-label="로그아웃"
+  @click="logout"
 >
-  <span class="hdr-ico" aria-hidden="true">
-    <!-- 아이콘: 화살표(arrow-left) -->
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round">
-      <path d="M19 12H5"/>
-      <path d="M12 19l-7-7 7-7"/>
-    </svg>
-  </span>
+로그아웃
 </button>
 
 
-      <!-- 테마 토글 -->
+
+      <!-- 테마 토글: 로그인 화면에서도 노출하고 싶으면 그대로 두고,
+           숨기고 싶으면 v-if="!isAuthPage" 를 추가하세요 -->
       <button
         class="hdr-chip hdr-mode-toggle"
         type="button"
@@ -37,7 +48,6 @@
         @click="toggleTheme"
       >
         <span class="hdr-ico" aria-hidden="true">
-          <!-- 다크면 해(sun), 라이트면 달(moon) -->
           <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round">
@@ -57,6 +67,7 @@
 </template>
 
 <script>
+import { api } from '@/api'
 import '@/assets/css/header.css'
 
 export default {
@@ -65,59 +76,58 @@ export default {
     return { isDark: false }
   },
   mounted () {
-    const saved = localStorage.getItem('theme') // 'dark' | 'light' | null
+    const saved = localStorage.getItem('theme')
     const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
     const initial = saved || (prefersDark ? 'dark' : 'light')
     this.applyTheme(initial)
   },
-methods: {
-  applyTheme (mode) {
-    document.documentElement.setAttribute('data-theme', mode)
-    localStorage.setItem('theme', mode)
-    this.isDark = (mode === 'dark')
-  },
-  toggleTheme () {
-    this.applyTheme(this.isDark ? 'light' : 'dark')
-  },
-  // 개발용 경고 헬퍼(프로덕션에서도 문제 없음)
-  devWarn (msg, err) {
-    if (typeof console !== 'undefined' && console.warn) {
-      console.warn(msg, err)
+  computed: {
+    // 현재 라우트가 보호 라우트인지(meta.requiresAuth 사용)
+    requiresAuthRoute () {
+      return this.$route?.matched?.some(r => r.meta && r.meta.requiresAuth) || false
+    },
+    // 로그인/회원가입 화면 여부
+    isAuthPage () {
+      const p = this.$route?.path || ''
+      return p === '/login' || p === '/register'
+    },
+    // 홈 화면 여부
+    isHome () {
+      return this.$route && (this.$route.path === '/home')
     }
   },
-  goBack () {
-    // 홈이면 아무 것도 안 함
-    if (this.isHome) return;
-
-    // 라우터가 있으면 먼저 시도
-    if (this.$router && typeof this.$router.back === 'function') {
-      try {
-        this.$router.back();
-        return;
-      } catch (e) {
-        this.devWarn('[AppHeader] router.back 실패', e);
+  methods: {
+    applyTheme (mode) {
+      document.documentElement.setAttribute('data-theme', mode)
+      localStorage.setItem('theme', mode)
+      this.isDark = (mode === 'dark')
+    },
+    toggleTheme () {
+      this.applyTheme(this.isDark ? 'light' : 'dark')
+    },
+    devWarn (msg, err) {
+      if (typeof console !== 'undefined' && console.warn) console.warn(msg, err)
+    },
+    goBack () {
+      if (this.isHome) return
+      if (this.$router && typeof this.$router.back === 'function') {
+        try { this.$router.back(); return } catch (e) { this.devWarn('[AppHeader] router.back 실패', e) }
+      }
+      if (window.history.length > 1) { window.history.go(-1); return }
+      if (this.$router) {
+        try { this.$router.push({ name: 'home' }).catch(() => this.$router.push('/')); return }
+        catch (e) { this.devWarn('[AppHeader] router.push 폴백 실패', e) }
+      }
+      window.location.href = '/'
+    },
+    async logout () {
+      try { await api.post('/auth/logout') }
+      catch (e) { this.devWarn('[AppHeader] logout 실패', e) }
+      finally {
+        if (this.$router) this.$router.replace('/login')
+        else window.location.href = '/#/login'
       }
     }
-
-    // 브라우저 히스토리 시도
-    if (window.history.length > 1) {
-      window.history.go(-1);
-      return;
-    }
-
-    // 마지막 폴백: 홈으로 이동
-    if (this.$router) {
-      try {
-        this.$router.push({ name: 'home' })
-          .catch(() => this.$router.push('/'));
-        return;
-      } catch (e) {
-        this.devWarn('[AppHeader] router.push 폴백 실패', e);
-      }
-    }
-    window.location.href = '/';
   }
-}
-
 }
 </script>

@@ -135,30 +135,52 @@ export default {
     checkCaps(e) {
       this.capsOn = e.getModifierState && e.getModifierState('CapsLock')
     },
-    async login() {
-      if (this.loading) return
-      try {
-        this.loading = true
-        this.error = ''
+async login() {
+  if (this.loading) return
+  try {
+    this.loading = true
+    this.error = ''
 
-        // 로그인 요청
-        await api.post('/auth/login', {
-          username: this.username,
-          password: this.password
-        })
+    // 로그인 요청 (쿠키 세팅)
+    await api.post('/auth/login', {
+      username: this.username,
+      password: this.password
+    })
 
-        // 계정별 라우팅 분기
-        if (this.username === 'admin') {
-          this.$router.replace('/home')
-        } else {
-          this.$router.replace('/analysis/timeseries')
-        }
-      } catch (err) {
-        this.error = err?.response?.data?.message || '로그인 실패'
-      } finally {
-        this.loading = false
-      }
+    // redirect 쿼리 처리: 한 번만 decode + 유효성 검증
+    const raw = this.$route.query.redirect
+    let to = ''
+    try {
+      to = raw ? decodeURIComponent(String(raw)) : ''
+    } catch {
+      to = ''
     }
+
+    // 로그인/회원가입 페이지로 보내는 redirect는 막음
+    if (to && (to.startsWith('/login') || to.startsWith('/register'))) {
+      to = ''
+    }
+
+    if (to) {
+      this.$router.replace(to)
+      return
+    }
+
+    // redirect가 없으면 서버 기준 사용자로 기본 분기
+    try {
+      const { data } = await api.get('/auth/me')  // { user: { id, username } }
+      const isAdmin = data?.user?.username === 'admin'
+      this.$router.replace(isAdmin ? '/home' : '/analysis/timeseries')
+    } catch {
+      // /auth/me 실패 시 안전 경로
+      this.$router.replace('/analysis/timeseries')
+    }
+  } catch (err) {
+    this.error = err?.response?.data?.message || '로그인 실패'
+  } finally {
+    this.loading = false
+  }
+}
   }
 }
 </script>
