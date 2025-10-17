@@ -20,7 +20,7 @@
 
         <main class="auth-card" role="main" aria-labelledby="loginTitle">
           <header class="cardc-hd">
-            <h2 id="loginTitle">로그인</h2>
+            <h2 id="loginTitle" style="color:#2d2d2d;">로그인</h2>
             <p class="sub">계정으로 대시보드에 접속하세요.</p>
           </header>
 

@@ -20,7 +20,7 @@
 
         <main class="auth-card" role="main" aria-labelledby="regTitle">
           <header class="cardc-hd">
-            <h2 id="regTitle">회원가입</h2>
+            <h2 id="regTitle" style="color:#2d2d2d;">회원가입</h2>
             <p class="sub">새 계정을 만들어 대시보드를 이용해 보세요.</p>
           </header>
 
