@@ -23,7 +23,7 @@
 
       <!-- 전국 전기에너지 -->
       <article class="rems-card rems-col-4">
-        <div class="rems-card-hd"><h3>전국 전기에너지</h3></div>
+        <div class="rems-card-hd"><h3>전국 태양광 에너지</h3></div>
         <div class="rems-stat-tiles">
           <div class="rems-tile">
             <div class="rems-t-caption">금일 발전량</div>
@@ -66,7 +66,7 @@
 
       <!-- 전국 열에너지 -->
       <article class="rems-card rems-col-4">
-        <div class="rems-card-hd"><h3>전국 열에너지</h3></div>
+        <div class="rems-card-hd"><h3>전국 비태양광 에너지</h3></div>
         <div class="rems-stat-tiles">
           <div class="rems-tile">
             <div class="rems-t-caption">금일 사용량</div>
