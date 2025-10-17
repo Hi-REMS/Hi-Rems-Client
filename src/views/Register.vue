@@ -1,101 +1,109 @@
 <template>
-  <div class="register-page rp-shell">
-    <!-- Hero -->
-    <section class="rp-hero">
-      <div class="rp-hero-inner">
-        <div class="rp-badge">Hi-REMS · v1.0</div>
-        <h1 class="rp-title">회원가입</h1>
-        <p class="rp-sub">
-          태양광 · 지열 · 태양열 설비의 발전량을 모니터링하려면 먼저 계정을 생성하세요.
-        </p>
-      </div>
-    </section>
+  <div
+    class="auth"
+    :style="{ '--auth-bg': `url(${require('@/assets/auth.jpg')})` }"
+  >
+    <div class="auth-inner">
+      <!-- 좌측은 비어두고, 배경(지구본)은 ::before 로 전체 표시 -->
+      <div class="art-pad" aria-hidden="true"></div>
 
-    <!-- 카드 -->
-    <main class="rp-card">
-      <header class="rp-card-head">
-        <h2>회원가입</h2>
-        <p class="rp-muted">새 계정을 만들어 대시보드를 이용해 보세요</p>
-      </header>
-
-      <form class="rp-form" @submit.prevent="onSubmit">
-        <!-- 아이디 -->
-        <div class="rp-field">
-          <label for="username">아이디</label>
-          <div class="rp-control">
-            <span class="rp-icon" aria-hidden="true">👤</span>
-            <input
-              id="username"
-              v-model.trim="username"
-              type="text"
-              autocomplete="username"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- 비밀번호 -->
-        <div class="rp-field">
-          <label for="password">비밀번호</label>
-          <div class="rp-control">
-            <span class="rp-icon" aria-hidden="true">🔒</span>
-            <input
-              id="password"
-              :type="showPassword ? 'text' : 'password'"
-              v-model="password"
-              autocomplete="new-password"
-              required
-              @keyup="checkCaps"
-            />
-            <button type="button" class="rp-ghost" @click="showPassword = !showPassword">
-              {{ showPassword ? '숨김' : '표시' }}
-            </button>
-          </div>
-
-          <!-- 실시간 유효성 검사 메시지 -->
-          <ul v-if="passwordErrors.length" class="pw-errors">
-            <li v-for="(err, i) in passwordErrors" :key="i">{{ err }}</li>
-          </ul>
-
-          <p v-if="capsOn" class="rp-assist rp-warn">Caps Lock이 켜져 있습니다</p>
-
-          <div class="rp-strength">
-            <div class="rp-bar" :style="{ width: strengthPercent + '%' }"></div>
-          </div>
-          <small class="rp-muted">8자 이상, 대·소문자/숫자/특수문자를 포함해야 합니다.</small>
-        </div>
-
-        <!-- 비밀번호 확인 -->
-        <div class="rp-field">
-          <label for="confirm">비밀번호 확인</label>
-          <div class="rp-control" :class="{ error: confirmTouched && !confirmValid }">
-            <span class="rp-icon" aria-hidden="true">✅</span>
-            <input
-              id="confirm"
-              :type="showPassword ? 'text' : 'password'"
-              v-model="confirm"
-              autocomplete="new-password"
-              required
-              @blur="confirmTouched = true"
-            />
-          </div>
-          <p v-if="confirmTouched && !confirmValid" class="pw-error-text">
-            비밀번호가 일치하지 않습니다.
+      <!-- RIGHT: 타이틀 + 회원가입 카드 -->
+      <section class="auth-panel">
+        <header class="platform-head" aria-labelledby="heroMain">
+          <h1 id="heroMain" class="hero-title">
+            지속가능한 에너지<br />모니터링 플랫폼
+          </h1>
+          <p class="hero-sub">
+            태양광·지열·태양열 설비의 발전량과 상태를 한 곳에서 관리하세요.
           </p>
-        </div>
+        </header>
 
-        <!-- 버튼 -->
-        <button class="rp-primary" :aria-disabled="loading || !canSubmit">
-          <span v-if="!loading">회원가입</span>
-          <span v-else class="rp-spinner" aria-hidden="true"></span>
-        </button>
+        <main class="auth-card" role="main" aria-labelledby="regTitle">
+          <header class="cardc-hd">
+            <h2 id="regTitle">회원가입</h2>
+            <p class="sub">새 계정을 만들어 대시보드를 이용해 보세요.</p>
+          </header>
 
-        <p class="rp-foot">
-          이미 계정이 있으신가요?
-          <router-link to="/login">로그인</router-link>
-        </p>
-      </form>
-    </main>
+          <form class="cardc-form" @submit.prevent="onSubmit" novalidate>
+            <div class="field">
+              <label for="username">아이디</label>
+              <div class="pill" :class="{ error: usernameTouched && !username }">
+                <input
+                  id="username"
+                  v-model.trim="username"
+                  type="text"
+                  autocomplete="username"
+                  placeholder="admin@company"
+                  required
+                  @blur="usernameTouched = true"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="password">비밀번호</label>
+              <div class="pill" :class="{ error: passwordTouched && !passwordValid }">
+                <input
+                  id="password"
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="password"
+                  autocomplete="new-password"
+                  placeholder="********"
+                  required
+                  @keyup="checkCaps"
+                  @blur="passwordTouched = true"
+                />
+                <button type="button" class="pill-action" @click="showPassword = !showPassword">
+                  {{ showPassword ? '숨김' : '표시' }}
+                </button>
+              </div>
+
+              <div class="pw-strength slim" aria-hidden="true">
+                <div class="bar" :style="{ width: strengthPercent + '%' }"></div>
+              </div>
+              <ul v-if="passwordTouched && passwordErrors.length" class="pw-errors compact">
+                <li v-for="(err, i) in passwordErrors" :key="i">{{ err }}</li>
+              </ul>
+            </div>
+
+            <div class="field">
+              <label for="confirm">비밀번호 확인</label>
+              <div class="pill" :class="{ error: confirmTouched && !confirmValid }">
+                <input
+                  id="confirm"
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="confirm"
+                  autocomplete="new-password"
+                  placeholder="비밀번호 재입력"
+                  required
+                  @blur="confirmTouched = true"
+                />
+              </div>
+              <p v-if="confirmTouched && !confirmValid" class="pw-error-text">
+                비밀번호가 일치하지 않습니다.
+              </p>
+            </div>
+
+            <div class="row-between">
+              <label class="check">
+                <input type="checkbox" disabled />
+                <span>로그인 상태 유지</span>
+              </label>
+              <router-link class="link" to="/forgot" @click.prevent>비밀번호 찾기</router-link>
+            </div>
+
+            <button class="btn-teal" :disabled="loading || !canSubmit">
+              <span v-if="!loading">회원가입</span>
+              <span v-else class="spinner" aria-hidden="true"></span>
+            </button>
+
+            <p class="foot mt8">
+              이미 계정이 있으신가요? <router-link to="/login">로그인</router-link>
+            </p>
+          </form>
+        </main>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -107,14 +115,10 @@ export default {
   name: 'Register',
   data() {
     return {
-      username: '',
-      password: '',
-      confirm: '',
-      showPassword: false,
-      capsOn: false,
-      confirmTouched: false,
-      loading: false,
-      passwordErrors: []
+      username: '', usernameTouched: false,
+      password: '', passwordTouched: false,
+      confirm: '', confirmTouched: false,
+      showPassword: false, capsOn: false, loading: false,
     }
   },
   computed: {
@@ -126,76 +130,36 @@ export default {
       if (/[^A-Za-z0-9]/.test(this.password)) s += 25
       return s
     },
-    confirmValid() {
-      return this.password && this.confirm && this.password === this.confirm
+    passwordErrors() {
+      const e = []
+      const pw = this.password
+      if (!pw || pw.length < 8) e.push('8자 이상이어야 합니다.')
+      if (!/[A-Z]/.test(pw)) e.push('대문자(A-Z)를 포함하세요.')
+      if (!/[a-z]/.test(pw)) e.push('소문자(a-z)를 포함하세요.')
+      if (!/[0-9]/.test(pw)) e.push('숫자(0-9)를 포함하세요.')
+      if (!/[^A-Za-z0-9]/.test(pw)) e.push('특수문자를 포함하세요.')
+      if (/\s/.test(pw)) e.push('공백 문자는 사용할 수 없습니다.')
+      if (this.username && pw.toLowerCase().includes(this.username.toLowerCase()))
+        e.push('비밀번호에 아이디를 포함할 수 없습니다.')
+      return e
     },
-    passwordValid() {
-      return this.validatePassword(this.password, this.username).valid
-    },
-    canSubmit() {
-      return (
-        this.username &&
-        this.password &&
-        this.confirmValid &&
-        this.passwordValid
-      )
-    }
+    passwordValid() { return this.passwordErrors.length === 0 },
+    confirmValid() { return !!this.password && this.password === this.confirm },
+    canSubmit() { return this.username && this.passwordValid && this.confirmValid }
   },
   methods: {
-    checkCaps(e) {
-      this.capsOn = e.getModifierState && e.getModifierState('CapsLock')
-    },
-
-    validatePassword(pw, username = '') {
-      const errors = []
-      if (!pw || pw.length < 8) errors.push('8자 이상이어야 합니다')
-      if (!/[A-Z]/.test(pw)) errors.push('대문자(A-Z)를 최소 1자 포함해야 합니다')
-      if (!/[a-z]/.test(pw)) errors.push('소문자(a-z)를 최소 1자 포함해야 합니다')
-      if (!/[0-9]/.test(pw)) errors.push('숫자(0-9)를 최소 1자 포함해야 합니다')
-      if (!/[^A-Za-z0-9]/.test(pw)) errors.push('특수문자를 최소 1자 포함해야 합니다')
-      if (/\s/.test(pw)) errors.push('공백 문자는 사용할 수 없습니다')
-      if (username && pw.toLowerCase().includes(username.toLowerCase())) {
-        errors.push('비밀번호에 아이디를 포함할 수 없습니다')
-      }
-      return { valid: errors.length === 0, errors }
-    },
-
-    extractErrorMessage(err) {
-      const res = err?.response?.data
-      if (res) {
-        if (typeof res === 'string') return res
-        if (res.message) return String(res.message)
-        if (res.error) return String(res.error)
-      }
-      if (err?.message) return err.message
-      return '알 수 없는 오류가 발생했습니다.'
-    },
-
+    checkCaps(e) { this.capsOn = e.getModifierState && e.getModifierState('CapsLock') },
     async onSubmit() {
-      if (this.loading) return
-      const { valid, errors } = this.validatePassword(this.password, this.username)
-      this.passwordErrors = errors
-
-      if (!valid) return
-      if (!this.confirmValid) {
-        this.confirmTouched = true
-        return
-      }
-
+      if (this.loading || !this.canSubmit) return
       try {
         this.loading = true
-        await api.post('/auth/register', {
-          username: this.username,
-          password: this.password
-        })
+        await api.post('/auth/register', { username: this.username, password: this.password })
         alert('회원가입에 성공하셨습니다!')
         this.$router.replace('/login')
       } catch (err) {
-        const msg = this.extractErrorMessage(err)
+        const msg = err?.response?.data?.message || err?.message || '등록 실패'
         alert(`회원가입 실패: ${msg}`)
-      } finally {
-        this.loading = false
-      }
+      } finally { this.loading = false }
     }
   }
 }

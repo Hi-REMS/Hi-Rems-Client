@@ -15,9 +15,9 @@ const router = new Router({
   mode: 'hash',                     // 새로고침 404 방지
   base: '/hirems/frontend/',        // hash 모드에선 영향 적지만 유지해도 OK
   routes: [
-    { path: '/', redirect: '/login' },
+    { path: '/', redirect: '/login',meta: { hideHeader: true }},
     { path: '/login', component: Login },
-    { path: '/register', component: Register },
+    { path: '/register', component: Register, meta: { hideHeader: true }},
     // ✅ 보호 라우트들에 requiresAuth
     { path: '/home', component: Home, meta: { requiresAuth: true } },
     { path: '/analysis/timeseries', component: AnalysisTimeseries, meta: { requiresAuth: true } },

@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <!-- meta.showHeader가 false가 아니면 헤더 표시 (기본값: 표시) -->
-    <AppHeader v-if="showHeader" />
+      <Header v-if="!$route.meta.hideHeader" />
 
     <router-view />
   </div>

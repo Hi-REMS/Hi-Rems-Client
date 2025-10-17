@@ -1,282 +1,167 @@
-/* ========= 레이아웃 ========= */
-.login-page.lp-shell {
-  min-height: calc(100vh - 64px);
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 32px;
-  background: var(--bg);
-  padding: 40px 24px;
+/* =========================================================================
+   Hi-REMS Login · Modern Minimal / login.css
+   - Register와 동일한 토큰/톤
+   - 배경 더 진하게 (opacity 0.45) + 베일은 살짝만
+   ========================================================================== */
+
+/* ========== 토큰 ========== */
+:root{
+  --bg:#f6f7f9; --text:#0f172a; --muted:#606a75; --border:#e6e8ec;
+  --card-bg:rgba(255,255,255,.82); --card-blur:14px;
+  --pill-bg:#f2f4f7; --pill-text:#0f172a; --pill-border:#e6e8ec;
+  --brand:#10b981; --brand-600:#059669; --brand-700:#047857;
+  --danger:#ef4444; --warning:#f59e0b; --ok:#22c55e; --focus:#4f46e5;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow-md:0 12px 32px rgba(15,23,42,.12);
+  --radius-lg:16px; --radius-md:12px; --radius-sm:10px;
+  --font:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,
+         Apple SD Gothic Neo,"맑은 고딕","Malgun Gothic","Helvetica Neue",
+         Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
 }
-@media (max-width: 1024px) {
-  .login-page.lp-shell {
-    grid-template-columns: 1fr;
-    padding: 24px 16px;
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b0f16; --text:#e6eaf2; --muted:#9aa3af; --border:#202633;
+    --card-bg:rgba(20,26,36,.66); --card-blur:18px;
+    --pill-bg:#121821; --pill-text:#e6eaf2; --pill-border:#1e2633;
+    --brand:#14b8a6; --brand-600:#0ea5a0; --brand-700:#0b8f8a;
+    --danger:#f87171; --warning:#fbbf24; --ok:#34d399; --focus:#818cf8;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.22);
+    --shadow-md:0 12px 32px rgba(0,0,0,.35);
   }
 }
 
-/* ========= Hero ========= */
-.login-page .lp-hero {
-  position: relative;
-  border-radius: 20px;
-  overflow: hidden;
+/* ========== 배경/쉘 ========== */
+.lp-shell{
+  position:relative; min-height:100dvh; overflow:hidden;
+  color:var(--text); font-family:var(--font);
+  background: radial-gradient(1200px 1200px at 60% -10%, rgba(16,185,129,.12), transparent 60%),
+              linear-gradient(180deg, var(--bg), var(--bg));
+}
+
+/* 배경 이미지 (컴포넌트 인라인에서 --lp-bg 주입) */
+.lp-shell::before{
+  content:""; position:fixed; inset:-4rem;
+  background-image: var(--lp-bg);
+  background-size:cover; background-position:50% 50%;
+  filter:saturate(1.05) contrast(1.05) brightness(1);
+  transform:scale(1.05); z-index:0; opacity:.45; /* ✅ 더 진하게 */
+}
+.lp-shell::after{
+  content:""; position:fixed; inset:0; z-index:1;
   background:
-    radial-gradient(1200px 600px at 0% -10%, rgba(14,165,233,.25), transparent 60%),
-    radial-gradient(1000px 700px at 100% 10%, rgba(245,158,11,.18), transparent 60%),
-    linear-gradient(135deg, rgba(59,130,246,.12), rgba(14,165,233,.08));
-  border: 1px solid var(--border);
-}
-.login-page .lp-hero-inner {
-  height: 100%;
-  padding: 40px;
-  color: var(--text);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.login-page .lp-badge {
-  display: inline-block;
-  font-size: 12px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(2,132,199,.12);
-  color: var(--primary-2);
-  font-weight: 600;
-}
-.login-page .lp-title {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -.02em;
-  margin: 4px 0;
-}
-.login-page .lp-sub { color: var(--muted); line-height: 1.6 }
-.login-page .lp-illustration { position: relative; margin-top: auto; min-height: 220px }
-.login-page .lp-sun {
-  position: absolute; top: 8%; right: 8%;
-  width: 96px; height: 96px;
-  filter: drop-shadow(0 6px 14px rgba(251,191,36,.25));
-}
-.login-page .lp-panel {
-  position: absolute; left: 10%; bottom: 24%;
-  width: 320px; height: auto;
-  filter: drop-shadow(0 8px 20px rgba(37,99,235,.25));
-}
-.login-page .lp-wave { position: absolute; bottom: 0; left: 0; width: 100%; height: 120px }
-.login-page .lp-wave path { fill: rgba(16,185,129,.18) }
-
-/* ========= 카드 ========= */
-.login-page .lp-card {
-  align-self: center;
-  background: var(--card);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: var(--shadow);
-  max-width: 460px;
-  width: 100%;
-  margin: 0 auto;
-}
-.login-page .lp-card-head h2 {
-  font-size: 22px;
-  margin: 0;
-  font-weight: 800;
-  letter-spacing: -.01em;
-}
-.login-page .lp-muted { color: var(--muted) }
-
-/* ========= 폼 ========= */
-.login-page .lp-form { margin-top: 18px; display: grid; gap: 14px }
-.login-page .lp-field label {
-  display: block;
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-.login-page .lp-control {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 12px;
-  transition: box-shadow .2s, border-color .2s, background .2s;
-}
-.login-page .lp-control:focus-within {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px var(--ring);
-}
-.login-page .lp-control input { all: unset; color: var(--text); flex: 1; line-height: 1.2 }
-.login-page .lp-icon { opacity: .75 }
-
-/* ========= 버튼 ========= */
-.login-page .lp-primary {
-  width: 100%;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  padding: 12px 14px;
-  font-weight: 700;
-  color: #fff;
-  background: linear-gradient(90deg, var(--primary), var(--primary-2));
-  box-shadow: inset 0 -1px 0 rgba(255,255,255,.12);
-  cursor: pointer;
-  transition: transform .04s ease, filter .2s ease, background .2s ease, border-color .2s ease;
-}
-.login-page .lp-primary:hover {
-  filter: brightness(1.06);
-}
-.login-page .lp-primary:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 4px var(--ring);
-}
-.login-page .lp-primary:active {
-  transform: translateY(1px);
+    radial-gradient(800px 800px at 15% 20%, rgba(0,0,0,.15), transparent 60%),
+    linear-gradient(180deg, rgba(9,14,20,.12), rgba(9,14,20,.16)); /* 살짝만 */
 }
 
-/* 비활성화 상태 제거 → 항상 동일한 버튼 색상 유지 */
+/* ========== 레이아웃 ========== */
+.login-page{ position:relative; z-index:2; }
+.lp-hero{ padding:clamp(20px,6vw,56px) clamp(20px,4vw,36px) 0; }
+.lp-hero-inner{ max-width:1280px; margin:0 auto; }
+.lp-title{ font-size:clamp(26px,3.2vw,38px); line-height:1.15; letter-spacing:-.02em; font-weight:800; }
+.lp-sub{ margin-top:8px; color:var(--muted); font-size:clamp(13px,1.2vw,15.5px); line-height:1.6; }
 
-/* ========= 보조 버튼 ========= */
-.login-page .lp-ghost {
-  margin-left: auto;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: transparent;
-  color: var(--muted);
-  padding: 6px 10px;
-  cursor: pointer;
-}
+/* 배지는 제거(혹시 마크업 남아있으면 숨김) */
+.lp-badge{ display:none !important; }
 
-/* ========= 메시지 ========= */
-.login-page .lp-assist { font-size: 12px; margin-top: 6px }
-.login-page .lp-warn { color: var(--accent) }
+/* 일러스트(선택) */
+.lp-illustration{ position:relative; height:120px; margin-top:12px; }
+.lp-sun{ position:absolute; left:0; top:0; width:64px; height:64px; opacity:.9; }
+.lp-panel{ position:absolute; left:76px; top:18px; width:200px; height:auto; opacity:.9; filter:drop-shadow(0 4px 12px rgba(0,0,0,.18)); }
+.lp-wave{ position:absolute; left:0; right:0; bottom:-8px; width:100%; height:80px; fill:rgba(20,26,36,.08); }
 
-.login-page .lp-alert {
-  margin-top: 8px;
-  padding: 10px 12px;
-  background: rgba(239,68,68,.08);
-  border: 1px solid rgba(239,68,68,.25);
-  color: var(--danger);
-  border-radius: 10px;
-  font-size: 14px;
+/* 카드(글라스) */
+.lp-card{
+  margin: clamp(16px,3.6vw,32px) auto clamp(28px,6vw,56px);
+  width:min(520px,92vw);
+  border-radius:var(--radius-lg);
+  background:var(--card-bg);
+  backdrop-filter: blur(var(--card-blur));
+  border:1px solid color-mix(in oklab, var(--border) 70%, transparent);
+  box-shadow:var(--shadow-md);
+  padding: clamp(18px,2.2vw,26px);
 }
-.login-page .lp-foot { margin-top: 8px; color: var(--muted) }
-.login-page .lp-card-foot { margin-top: 16px }
+.lp-card-head h2{ font-size:20px; font-weight:800; letter-spacing:-.01em; }
+.lp-muted{ color:var(--muted); font-size:13.5px; }
 
-/* ========= 로딩 스피너 ========= */
-.login-page .lp-spinner {
-  width: 18px; height: 18px; border-radius: 999px;
-  border: 2px solid rgba(255,255,255,.45);
-  border-top-color: #fff;
-  display: inline-block;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg) } }
+/* 폼 */
+.lp-form{ display:grid; gap:16px; margin-top:10px; }
+.lp-field{ display:grid; gap:8px; }
+.lp-field label{ font-size:13px; font-weight:700; color:var(--muted); }
 
-/* ========= 다크 모드 ========= */
-@media (prefers-color-scheme: dark) {
-  .login-page .lp-card {
-    background: #111827 !important;
-    color: #f3f4f6 !important;
-    border-color: #1f2937 !important;
-    box-shadow: 0 20px 40px rgba(0,0,0,.6) !important;
-  }
-  .login-page .lp-card h2,
-  .login-page .lp-card p,
-  .login-page .lp-card label,
-  .login-page .lp-card small,
-  .login-page .lp-card .lp-muted,
-  .login-page .lp-card .lp-foot,
-  .login-page .lp-card input {
-    color: #f3f4f6 !important;
-  }
-  .login-page .lp-card input::placeholder { color: #9ca3af !important }
+/* 컨트롤(필) */
+.lp-control{
+  display:flex; align-items:center; gap:8px;
+  border-radius:999px; border:1px solid var(--pill-border);
+  background:var(--pill-bg); padding:10px 12px;
+  transition:border-color 170ms ease, box-shadow 170ms ease, background-color 170ms ease;
+}
+.lp-control:focus-within{
+  border-color: color-mix(in oklab, var(--focus) 70%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 16%, transparent);
+}
+.lp-icon{ font-size:14px; opacity:.85; }
+.lp-control input{
+  flex:1 1 auto; min-width:0; border:0; outline:0; background:transparent;
+  color:var(--pill-text); font-size:15px; line-height:1.4; padding:2px;
+}
+.lp-control input::placeholder{ color: color-mix(in oklab, var(--muted) 70%, transparent); }
 
-  .login-page .lp-card .lp-control {
-    background: #1f2937 !important;
-    border-color: #374151 !important;
-  }
-  .login-page .lp-card .lp-control:focus-within {
-    border-color: #60a5fa !important;
-    box-shadow: 0 0 0 3px rgba(96,165,250,.4) !important;
-  }
+/* 비번 보기 토글 */
+.lp-ghost{
+  border:0; background:transparent; color:var(--brand);
+  font-weight:700; font-size:13px; padding:6px 8px; border-radius:8px; cursor:pointer;
+  transition:transform 150ms ease, background-color 150ms ease;
+}
+.lp-ghost:hover{ background: color-mix(in oklab, var(--brand) 12%, transparent); transform: translateY(-1px); }
+.lp-ghost:active{ transform: translateY(0); }
 
-  .login-page .lp-card .lp-alert {
-    background: rgba(239,68,68,.1) !important;
-    border-color: rgba(239,68,68,.35) !important;
-    color: #f87171 !important;
-  }
-  .login-page .lp-card .lp-ghost {
-    border-color: #374151 !important;
-    color: #d1d5db !important;
-  }
-}
+/* 도움 텍스트 */
+.lp-assist{ margin-top:6px; font-size:12.5px; }
+.lp-warn{ color:var(--warning); }
 
-/* ========= 모바일 ========= */
-@media (max-width: 640px) {
-  .login-page .lp-hero { display: none }
-  .login-page .lp-card { max-width: 520px; padding: 22px }
+/* 버튼 */
+.lp-primary{
+  display:inline-flex; align-items:center; justify-content:center; gap:10px;
+  width:100%; border:0; border-radius:12px; padding:12px 16px;
+  background:var(--brand); color:#fff; font-weight:800; font-size:15px; letter-spacing:.02em; cursor:pointer;
+  box-shadow:0 10px 20px color-mix(in oklab, var(--brand) 30%, transparent);
+  transition:transform 160ms ease, filter 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
 }
+.lp-primary:hover{ transform:translateY(-1px); background:var(--brand-600); box-shadow:0 14px 28px color-mix(in oklab, var(--brand) 34%, transparent); }
+.lp-primary:active{ transform:translateY(0); background:var(--brand-700); }
+.lp-primary:disabled{ opacity:.65; cursor:not-allowed; filter:grayscale(.15); transform:none; box-shadow:none; }
 
-/* ========= 링크 ========= */
-.login-page .lp-foot a {
-  font-weight: 600;
-  color: var(--primary);
-  transition: color .2s ease, opacity .2s ease, box-shadow .2s ease;
-  outline: none;
+/* 스피너 */
+.lp-spinner{
+  --s:18px; width:var(--s); height:var(--s); border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.45); border-top-color:#fff;
+  animation: lp-spin .8s linear infinite;
 }
-.login-page .lp-foot a:hover { opacity: .85 }
-.login-page .lp-foot a:focus-visible {
-  box-shadow: 0 0 0 3px var(--ring);
-  border-radius: 6px;
-}
-@media (prefers-color-scheme: dark) {
-  .login-page .lp-card .lp-foot a { color: #bfdbfe }
-  .login-page .lp-card .lp-foot a:hover { color: #e0f2fe; opacity: 1 }
-}
+@keyframes lp-spin{ to{ transform:rotate(360deg); } }
 
-/* ===== 버튼: 회색 그라디언트로 완전 고정 ===== */
-.login-page .lp-card .lp-primary,
-.register-page .rp-card .rp-primary {
-  -webkit-appearance: none; appearance: none;
-  width: 100%;
-  border-radius: 12px;
-  padding: 12px 14px;
-  font-weight: 700;
-  color: #fff !important;
-  border: 1px solid #cfd8e3 !important;       
-  background: linear-gradient(90deg, #e4ebf3, #8ea2b8) !important; 
-  box-shadow: inset 0 -1px 0 rgba(255,255,255,.12) !important;
-  cursor: pointer;
-  transition: transform .04s ease, filter .2s ease !important;
+/* 에러/풋터 */
+.lp-alert{
+  margin-top:6px; font-size:13px; color:var(--danger);
+  background: color-mix(in oklab, var(--danger) 12%, transparent);
+  border:1px solid color-mix(in oklab, var(--danger) 40%, transparent);
+  padding:10px 12px; border-radius:12px;
 }
-.login-page .lp-card .lp-primary:hover,
-.register-page .rp-card .rp-primary:hover {
-  filter: brightness(1.04) !important;
-}
-.login-page .lp-card .lp-primary:active,
-.register-page .rp-card .rp-primary:active {
-  transform: translateY(1px) !important;
-}
-/* 비활성도 같은 색 유지 (반투명 X) */
-.login-page .lp-card .lp-primary:disabled,
-.register-page .rp-card .rp-primary:disabled {
-  opacity: 1 !important;
-  cursor: not-allowed;
-  border-color: #cfd8e3 !important;
-  background: linear-gradient(90deg, #e4ebf3, #8ea2b8) !important;
+.lp-foot{ color:var(--muted); font-size:13px; text-align:center; }
+.lp-foot a{ color:var(--brand); font-weight:800; text-decoration:none; }
+.lp-foot a:hover{ text-decoration:underline; }
+.lp-card-foot{ margin-top:6px; text-align:center; }
+
+/* 포커스 접근성 */
+:where(button,[role="button"],a,input){ outline:none; }
+:where(button,[role="button"],a,input):focus-visible{
+  box-shadow:0 0 0 4px color-mix(in oklab, var(--focus) 20%, transparent),
+             0 0 0 1.5px color-mix(in oklab, var(--focus) 70%, transparent);
+  border-radius:10px;
 }
 
-/* 다크 모드용 살짝 진한 회색 그라디언트 */
-@media (prefers-color-scheme: dark) {
-  .login-page .lp-card .lp-primary,
-  .register-page .rp-card .rp-primary {
-    border-color: #4b5563 !important;
-    background: linear-gradient(90deg, #3a4654, #5a6b80) !important;
-  }
-  .login-page .lp-card .lp-primary:disabled,
-  .register-page .rp-card .rp-primary:disabled {
-    border-color: #4b5563 !important;
-    background: linear-gradient(90deg, #3a4654, #5a6b80) !important;
-  }
+/* 반응형 */
+@media (max-width:1024px){
+  .lp-illustration{ display:none; }
+  .lp-card{ margin-top: clamp(20px, 8vw, 40px); }
 }
-
+@media (prefers-reduced-motion:reduce){ *{ animation:none !important; transition:none !important; } }

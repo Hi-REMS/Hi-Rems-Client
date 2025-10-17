@@ -1,123 +1,91 @@
 <template>
-  <div class="login-page lp-shell">
-    <!-- Hero -->
-    <section class="lp-hero">
-      <div class="lp-hero-inner">
-        <div class="lp-badge">Hi-REMS · v1.0</div>
-        <h1 class="lp-title">로그인</h1>
-        <p class="lp-sub">
-          태양광 · 지열 · 태양열 설비의 발전량과 상태를 한 곳에서 확인하세요.
-        </p>
+  <div
+    class="auth"
+    :style="{ '--auth-bg': `url(${require('@/assets/auth.jpg')})` }"
+  >
+    <div class="auth-inner">
+      <!-- LEFT: 배경 일러스트 -->
+      <div class="art-pad" aria-hidden="true"></div>
 
-        <div class="lp-illustration" aria-hidden="true">
-          <!-- 태양 -->
-          <svg class="lp-sun" viewBox="0 0 100 100">
-            <defs>
-              <radialGradient id="lp-g-sun" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#FFD56A"/>
-                <stop offset="100%" stop-color="#FFA422"/>
-              </radialGradient>
-            </defs>
-            <circle cx="50" cy="50" r="26" fill="url(#lp-g-sun)"/>
-          </svg>
+      <!-- RIGHT: 로그인 카드 -->
+      <section class="auth-panel">
+        <header class="platform-head" aria-labelledby="heroMain">
+          <h1 id="heroMain" class="hero-title">
+            지속가능한 에너지 <br>모니터링 플랫폼
+          </h1>
+          <p class="hero-sub">
+            태양광·지열·태양열 설비의 발전량과 상태를 한 곳에서 확인하세요.
+          </p>
+        </header>
 
-          <!-- 패널 -->
-          <svg class="lp-panel" viewBox="0 0 200 120">
-            <defs>
-              <linearGradient id="lp-g-panel" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0%" stop-color="#3B82F6"/>
-                <stop offset="100%" stop-color="#0EA5E9"/>
-              </linearGradient>
-            </defs>
-            <rect x="10" y="30" width="180" height="70" rx="8" fill="url(#lp-g-panel)"/>
-            <g opacity=".25" stroke="#fff">
-              <line x1="40" y1="30" x2="40" y2="100"/>
-              <line x1="80" y1="30" x2="80" y2="100"/>
-              <line x1="120" y1="30" x2="120" y2="100"/>
-              <line x1="160" y1="30" x2="160" y2="100"/>
-            </g>
-          </svg>
+        <main class="auth-card" role="main" aria-labelledby="loginTitle">
+          <header class="cardc-hd">
+            <h2 id="loginTitle">로그인</h2>
+            <p class="sub">계정으로 대시보드에 접속하세요.</p>
+          </header>
 
-          <!-- 지열 파형 -->
-          <svg class="lp-wave" viewBox="0 0 600 120" preserveAspectRatio="none">
-            <path d="M0,60 C120,20 240,100 360,60 C480,20 540,90 600,60 L600,120 L0,120 Z" />
-          </svg>
-        </div>
-      </div>
-    </section>
+          <form class="cardc-form" @submit.prevent="login">
+            <div class="field">
+              <label for="username">아이디</label>
+              <div class="pill">
+                <input
+                  id="username"
+                  v-model.trim="username"
+                  type="text"
+                  autocomplete="username"
+                  placeholder="admin@company"
+                  required
+                />
+              </div>
+            </div>
 
-    <!-- 로그인 카드 -->
-    <main class="lp-card">
-      <header class="lp-card-head">
-        <h2>로그인</h2>
-        <p class="lp-muted">계정으로 대시보드에 접속하세요</p>
-      </header>
+            <div class="field">
+              <label for="password">비밀번호</label>
+              <div class="pill">
+                <input
+                  id="password"
+                  :type="showPassword ? 'text' : 'password'"
+                  v-model="password"
+                  autocomplete="current-password"
+                  placeholder="********"
+                  required
+                  @keyup="checkCaps"
+                />
+                <button type="button" class="pill-action" @click="showPassword = !showPassword">
+                  {{ showPassword ? '숨김' : '표시' }}
+                </button>
+              </div>
+              <p v-if="capsOn" class="pw-error-text">Caps Lock이 켜져 있습니다.</p>
+            </div>
 
-      <form class="lp-form" @submit.prevent="login">
-        <div class="lp-field">
-          <label for="username">아이디</label>
-          <div class="lp-control">
-            <span class="lp-icon" aria-hidden="true">👤</span>
-            <input
-              id="username"
-              v-model.trim="username"
-              type="text"
-              autocomplete="username"
-              required
-            />
-          </div>
-        </div>
+            <div class="row-between">
+              <label class="check">
+                <input type="checkbox" disabled />
+                <span>로그인 상태 유지</span>
+              </label>
+              <router-link class="link" to="/forgot" @click.prevent>비밀번호 찾기</router-link>
+            </div>
 
-        <div class="lp-field">
-          <label for="password">비밀번호</label>
-          <div class="lp-control">
-            <span class="lp-icon" aria-hidden="true">🔒</span>
-            <input
-              id="password"
-              ref="pwd"
-              :type="showPassword ? 'text' : 'password'"
-              v-model="password"
-              autocomplete="current-password"
-              required
-              @keyup="checkCaps($event)"
-            />
-            <button
-              type="button"
-              class="lp-ghost"
-              @click="showPassword = !showPassword"
-              :aria-pressed="showPassword"
-              :aria-label="showPassword ? '비밀번호 숨기기' : '비밀번호 보기'"
-            >
-              {{ showPassword ? '숨김' : '표시' }}
+            <button class="btn-teal" :disabled="loading">
+              <span v-if="!loading">로그인</span>
+              <span v-else class="spinner" aria-hidden="true"></span>
             </button>
-          </div>
-          <p v-if="capsOn" class="lp-assist lp-warn">Caps Lock이 켜져 있습니다</p>
-        </div>
 
-        <!-- 항상 동일 스타일의 버튼 -->
-        <button class="lp-primary" type="submit">
-          <span v-if="!loading">로그인</span>
-          <span v-else class="lp-spinner" aria-hidden="true"></span>
-        </button>
+            <p class="foot mt8">
+              아직 계정이 없으신가요? <router-link to="/register">회원가입</router-link>
+            </p>
 
-        <p v-if="error" class="lp-alert">{{ error }}</p>
-
-        <p class="lp-foot">
-          아직 계정이 없으신가요?
-          <router-link to="/register">회원가입</router-link>
-        </p>
-      </form>
-
-      <footer class="lp-card-foot">
-        <small class="lp-muted">더 좋은 서비스 제공을 위해 노력하겠습니다.</small>
-      </footer>
-    </main>
+            <p v-if="error" class="pw-error-text mt8">{{ error }}</p>
+          </form>
+        </main>
+      </section>
+    </div>
   </div>
 </template>
 
 <script>
 import { api } from '@/api'
-import '@/assets/css/login.css'
+import '@/assets/css/register.css' // ✅ 회원가입과 동일 스타일
 
 export default {
   name: 'Login',
@@ -135,52 +103,41 @@ export default {
     checkCaps(e) {
       this.capsOn = e.getModifierState && e.getModifierState('CapsLock')
     },
-async login() {
-  if (this.loading) return
-  try {
-    this.loading = true
-    this.error = ''
+    async login() {
+      if (this.loading) return
+      try {
+        this.loading = true
+        this.error = ''
 
-    // 로그인 요청 (쿠키 세팅)
-    await api.post('/auth/login', {
-      username: this.username,
-      password: this.password
-    })
+        await api.post('/auth/login', {
+          username: this.username,
+          password: this.password
+        })
 
-    // redirect 쿼리 처리: 한 번만 decode + 유효성 검증
-    const raw = this.$route.query.redirect
-    let to = ''
-    try {
-      to = raw ? decodeURIComponent(String(raw)) : ''
-    } catch {
-      to = ''
+        const raw = this.$route.query.redirect
+        let to = ''
+        try {
+          to = raw ? decodeURIComponent(String(raw)) : ''
+        } catch {
+          to = ''
+        }
+
+        if (to && (to.startsWith('/login') || to.startsWith('/register'))) to = ''
+
+        if (to) {
+          this.$router.replace(to)
+          return
+        }
+
+        const { data } = await api.get('/auth/me')
+        const isAdmin = data?.user?.username === 'admin'
+        this.$router.replace(isAdmin ? '/home' : '/analysis/timeseries')
+      } catch (err) {
+        this.error = err?.response?.data?.message || '로그인 실패'
+      } finally {
+        this.loading = false
+      }
     }
-
-    // 로그인/회원가입 페이지로 보내는 redirect는 막음
-    if (to && (to.startsWith('/login') || to.startsWith('/register'))) {
-      to = ''
-    }
-
-    if (to) {
-      this.$router.replace(to)
-      return
-    }
-
-    // redirect가 없으면 서버 기준 사용자로 기본 분기
-    try {
-      const { data } = await api.get('/auth/me')  // { user: { id, username } }
-      const isAdmin = data?.user?.username === 'admin'
-      this.$router.replace(isAdmin ? '/home' : '/analysis/timeseries')
-    } catch {
-      // /auth/me 실패 시 안전 경로
-      this.$router.replace('/analysis/timeseries')
-    }
-  } catch (err) {
-    this.error = err?.response?.data?.message || '로그인 실패'
-  } finally {
-    this.loading = false
-  }
-}
   }
 }
 </script>
