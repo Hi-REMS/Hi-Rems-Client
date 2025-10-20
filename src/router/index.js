@@ -8,6 +8,8 @@ import EnergyDashboard from '@/views/EnergyDashboard.vue'
 import AnalysisTimeseries from '@/views/AnalysisTimeseries.vue'
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
+import FindPassword from '@/views/FindPassword.vue'
+import ResetPassword from '@/views/ResetPassword.vue'
 
 Vue.use(Router)
 
@@ -16,14 +18,16 @@ const router = new Router({
   base: '/hirems/frontend/',        // hash 모드에선 영향 적지만 유지해도 OK
   routes: [
     { path: '/', redirect: '/login',meta: { hideHeader: true }},
-    { path: '/login', component: Login, meta: { hideHeader: true }  },
+    { path: '/login', component: Login, meta: { hideHeader: true }},
     { path: '/register', component: Register, meta: { hideHeader: true }},
     // ✅ 보호 라우트들에 requiresAuth
     { path: '/home', component: Home, meta: { requiresAuth: true, hideHeader : false } },
     { path: '/analysis/timeseries', component: AnalysisTimeseries, meta: { requiresAuth: true, hideHeader : false} },
     { path: '/energy', name: 'EnergyDashboard', component: EnergyDashboard, meta: { requiresAuth: true, hideHeader : false} },
+    { path: '*', redirect: '/' },
+    { path: '/findpassword', name: 'FindPassword', component: FindPassword, meta: {hideHeader : true} },
+    { path: '/reset', component: ResetPassword },
 
-    { path: '*', redirect: '/' }
   ],
 
   // 라우트 변경 시 스크롤 처리

@@ -1,55 +1,44 @@
-<!-- src/views/Register.vue -->
+<!-- src/views/ResetPassword.vue -->
 <template>
   <div
     class="auth"
     :style="{ '--auth-bg': `url(${require('@/assets/auth.jpg')})` }"
   >
     <div class="auth-inner">
-      <!-- 좌측은 비어두고, 배경(지구본)은 ::before 로 전체 표시 -->
       <div class="art-pad" aria-hidden="true"></div>
 
-      <!-- RIGHT: 타이틀 + 회원가입 카드 -->
       <section class="auth-panel">
         <header class="platform-head" aria-labelledby="heroMain">
           <h1 id="heroMain" class="hero-title">
-            지속가능한 에너지<br />모니터링 플랫폼
+            지속가능한 에너지 <br />모니터링 플랫폼
           </h1>
           <p class="hero-sub">
-            태양광·지열·태양열 설비의 발전량과 상태를 한 곳에서 관리하세요.
+            새 비밀번호를 설정하고 대시보드에 다시 접속하세요.
           </p>
         </header>
 
-        <main class="auth-card" role="main" aria-labelledby="regTitle">
+        <main class="auth-card" role="main" aria-labelledby="resetTitle">
           <header class="cardc-hd">
-            <h2 id="regTitle" style="color:#2d2d2d;">회원가입</h2>
-            <p class="sub">새 계정을 만들어 대시보드를 이용해 보세요.</p>
+            <h2 id="resetTitle" style="color:#2d2d2d;">비밀번호 재설정</h2>
+            <p class="sub" v-if="!tokenMissing">
+              새 비밀번호를 입력해 주세요.
+            </p>
+            <p class="sub" v-else>
+              유효한 재설정 링크가 없습니다. 다시 요청해 주세요.
+            </p>
           </header>
 
-          <form class="cardc-form" @submit.prevent="onSubmit" novalidate>
-            <!-- 아이디(이메일) -->
-            <div class="field">
-              <label for="username">아이디(이메일)</label>
-              <div class="pill" :class="{ error: usernameTouched && !usernameValid }">
-                <input
-                  id="username"
-                  v-model.trim="username"
-                  type="email"
-                  inputmode="email"
-                  autocomplete="username"
-                  placeholder="admin@company.com"
-                  required
-                  @blur="usernameTouched = true"
-                  @keydown.space.prevent
-                />
-              </div>
-              <ul v-if="usernameTouched && usernameErrors.length" class="pw-errors compact">
-                <li v-for="(err, i) in usernameErrors" :key="i">{{ err }}</li>
-              </ul>
-            </div>
+          <!-- 토큰 없음 -->
+          <section v-if="tokenMissing" class="cardc-form">
+            <button class="btn-teal" type="button" @click="$router.replace('/forgot')">
+              비밀번호 찾기 화면으로 이동
+            </button>
+          </section>
 
-            <!-- 비밀번호 -->
+          <!-- 토큰 있음 -->
+          <form v-else class="cardc-form" @submit.prevent="onSubmit" novalidate>
             <div class="field">
-              <label for="password">비밀번호</label>
+              <label for="password">새 비밀번호</label>
               <div class="pill" :class="{ error: passwordTouched && !passwordValid }">
                 <input
                   id="password"
@@ -58,7 +47,6 @@
                   autocomplete="new-password"
                   placeholder="********"
                   required
-                  @keyup="checkCaps"
                   @blur="passwordTouched = true"
                 />
                 <button type="button" class="pill-action" @click="showPassword = !showPassword">
@@ -74,7 +62,6 @@
               </ul>
             </div>
 
-            <!-- 비밀번호 확인 -->
             <div class="field">
               <label for="confirm">비밀번호 확인</label>
               <div class="pill" :class="{ error: confirmTouched && !confirmValid }">
@@ -93,14 +80,18 @@
               </p>
             </div>
 
-            <!-- 제출 -->
             <button class="btn-teal" :disabled="loading || !canSubmit">
-              <span v-if="!loading">회원가입</span>
+              <span v-if="!loading">재설정 완료</span>
               <span v-else class="spinner" aria-hidden="true"></span>
             </button>
 
-            <p class="foot mt8">
-              이미 계정이 있으신가요? <router-link to="/login">로그인</router-link>
+            <p v-if="error" class="pw-error-text" style="margin-top:8px;" aria-live="polite">
+              {{ error }}
+            </p>
+
+            <p v-if="done" class="sub" style="margin-top:12px;" aria-live="polite">
+              비밀번호가 재설정되었습니다. 이제 로그인할 수 있어요.
+              <router-link to="/login">로그인</router-link>
             </p>
           </form>
         </main>
@@ -114,29 +105,22 @@ import { api } from '@/api'
 import '@/assets/css/register.css'
 
 export default {
-  name: 'Register',
+  name: 'ResetPassword',
   data() {
     return {
-      username: '', usernameTouched: false,
+      token: '',
+      tokenMissing: false,
       password: '', passwordTouched: false,
-      confirm: '', confirmTouched: false,
-      showPassword: false, capsOn: false, loading: false,
+      confirm: '',  confirmTouched: false,
+      showPassword: false,
+      loading: false,
+      error: '',
+      done: false,
+      // username을 몰라도 정책은 username 포함 금지 제외 가능하지만
+      // 여기선 서버가 최종검증하므로 클라에서는 일반 규칙만 적용
     }
   },
   computed: {
-    // 이메일 형식 검증
-    usernameValid() {
-      const v = this.username
-      // 간단하고 안전한 이메일 패턴 (공백 금지)
-      return !!v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
-    },
-    usernameErrors() {
-      const e = []
-      if (!this.username) e.push('이메일을 입력해 주세요.')
-      else if (!this.usernameValid) e.push('올바른 이메일 형식이 아닙니다.')
-      return e
-    },
-
     strengthPercent() {
       let s = 0
       if (this.password.length >= 8) s += 25
@@ -154,32 +138,36 @@ export default {
       if (!/[0-9]/.test(pw)) e.push('숫자(0-9)를 포함하세요.')
       if (!/[^A-Za-z0-9]/.test(pw)) e.push('특수문자를 포함하세요.')
       if (/\s/.test(pw)) e.push('공백 문자는 사용할 수 없습니다.')
-      if (this.username && pw.toLowerCase().includes(this.username.toLowerCase()))
-        e.push('비밀번호에 아이디(이메일)를 포함할 수 없습니다.')
       return e
     },
     passwordValid() { return this.passwordErrors.length === 0 },
-    confirmValid() { return !!this.password && this.password === this.confirm },
-
-    // 제출 가능 조건: 이메일 유효 + 비번 유효 + 확인 일치
-    canSubmit() {
-      return this.usernameValid && this.passwordValid && this.confirmValid
-    }
+    confirmValid()  { return !!this.password && this.password === this.confirm },
+    canSubmit()     { return this.passwordValid && this.confirmValid }
+  },
+  created() {
+    const t = this.$route.query.token
+    this.token = typeof t === 'string' ? t : ''
+    this.tokenMissing = !this.token
   },
   methods: {
-    checkCaps(e) { this.capsOn = e.getModifierState && e.getModifierState('CapsLock') },
     async onSubmit() {
-      if (this.loading || !this.canSubmit) return
+      if (this.loading || !this.canSubmit || this.tokenMissing) return
+      this.error = ''; this.done = false
       try {
         this.loading = true
-        // 서버가 username을 이메일로 취급한다고 가정
-        await api.post('/auth/register', { username: this.username, password: this.password })
-        alert('회원가입에 성공하셨습니다!')
-        this.$router.replace('/login')
+        await api.post('/auth/reset', {
+          token: this.token,
+          new_password: this.password,
+        })
+        this.done = true
+        // UX: 1~2초 뒤 로그인으로 넘기고 싶다면 아래 주석 해제
+        // setTimeout(() => this.$router.replace('/login'), 1200)
       } catch (err) {
-        const msg = err?.response?.data?.message || err?.message || '등록 실패'
-        alert(`회원가입 실패: ${msg}`)
-      } finally { this.loading = false }
+        const msg = err?.response?.data?.message || err?.message || '재설정 실패'
+        this.error = msg
+      } finally {
+        this.loading = false
+      }
     }
   }
 }
