@@ -13,11 +13,21 @@ import ResetPassword from '@/views/ResetPassword.vue'
 
 Vue.use(Router)
 
+// 이메일 기반 관리자 식별 로직 (라우터 전역 공통)
+const ADMIN_EMAILS = ['admin@company.com']
+function normalize (v) {
+  return (typeof v === 'string' ? v : '').trim().toLowerCase()
+}
+function isAdminUser (u) {
+  const ident = normalize(u?.email || u?.username || '')
+  return ADMIN_EMAILS.includes(ident) || u?.is_admin === true
+}
+
 const router = new Router({
   mode: 'hash',
   base: '/hirems/frontend/',
   routes: [
-    // ✅ 루트에서 로그인 여부/역할로 분기
+    // 루트에서 로그인 여부/역할로 분기
     {
       path: '/',
       meta: { hideHeader: true },
@@ -26,9 +36,7 @@ const router = new Router({
           const { data } = await api.get('/auth/me')
           const user = data?.user
           if (user) {
-            const isAdmin = typeof user.username === 'string' &&
-                            user.username.trim().toLowerCase() === 'admin'
-            return next(isAdmin ? '/home' : '/analysis/timeseries')
+            return next(isAdminUser(user) ? '/home' : '/analysis/timeseries')
           }
         } catch {}
         return next('/login')
@@ -83,10 +91,8 @@ router.beforeEach(async (to, from, next) => {
   if (to.matched.some(r => r.meta.requiresAuth)) {
     const me = await getMe()
     if (me) {
-      // ✅ 비관리자가 /home 접근하려 하면 차단
-      const isAdmin = typeof me.username === 'string' &&
-                      me.username.trim().toLowerCase() === 'admin'
-      if (to.path === '/home' && !isAdmin) {
+      // 비관리자가 /home 접근하려 하면 차단
+      if (to.path === '/home' && !isAdminUser(me)) {
         return next('/analysis/timeseries')
       }
       return next()
@@ -107,9 +113,7 @@ router.beforeEach(async (to, from, next) => {
   if (isPublic && (to.path === '/login' || to.path === '/register')) {
     const me = await getMe()
     if (me) {
-      const isAdmin = typeof me.username === 'string' &&
-                      me.username.trim().toLowerCase() === 'admin'
-      const defaultPath = isAdmin ? '/home' : '/analysis/timeseries'
+      const defaultPath = isAdminUser(me) ? '/home' : '/analysis/timeseries'
 
       // 쿼리 redirect가 있으면 안전한 경우에만 사용
       let toAfterLogin = to.query.redirect || ''
@@ -117,7 +121,7 @@ router.beforeEach(async (to, from, next) => {
       const isSafe = toAfterLogin && toAfterLogin.startsWith('/') && !BLOCKED.some(p => toAfterLogin.startsWith(p))
       if (!isSafe) toAfterLogin = defaultPath
 
-      if (to.fullPath === toAfterLogin) return next() // 루프 방지
+      if (to.fullPath === toAfterLogin) return next()
       return next(toAfterLogin)
     }
     return next()

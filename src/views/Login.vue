@@ -33,7 +33,7 @@
                   v-model.trim="username"
                   type="text"
                   autocomplete="username"
-                  placeholder="admin@company"
+                  placeholder="admin@company.com"
                   required
                 />
               </div>
@@ -90,6 +90,16 @@
 import { api } from '@/api'
 import '@/assets/css/register.css'
 
+const ADMIN_EMAILS = ['admin@company.com']  // ✅ 이메일로 관리자 식별
+
+function normalize (v) {
+  return (typeof v === 'string' ? v : '').trim().toLowerCase()
+}
+function isAdminUser (u) {
+  const ident = normalize(u?.email || u?.username || '')
+  return ADMIN_EMAILS.includes(ident) || u?.is_admin === true
+}
+
 export default {
   name: 'Login',
   data () {
@@ -106,64 +116,63 @@ export default {
     checkCaps (e) {
       this.capsOn = e.getModifierState && e.getModifierState('CapsLock')
     },
-async login () {
-  if (this.loading) return
-  try {
-    this.loading = true
-    this.error = ''
-    await api.post('/auth/login', {
-      username: this.username,
-      password: this.password
-    })
+    async login () {
+      if (this.loading) return
+      try {
+        this.loading = true
+        this.error = ''
 
-    const { data } = await api.get('/auth/me')
-    const user = data?.user || {}
-    const isAdmin =
-      (typeof user.username === 'string' &&
-       user.username.trim().toLowerCase() === 'admin') ||
-      user.is_admin === true
+        await api.post('/auth/login', {
+          username: this.username,
+          password: this.password
+        })
 
-    // 현재 세션 기준으로 localStorage 갱신 (이전 값 잔존 방지)
-    try {
-      localStorage.setItem('isAdmin', String(!!isAdmin))
-      localStorage.setItem('username', user.username || '')
-    } catch {}
+        const { data } = await api.get('/auth/me')
+        const user = data?.user || {}
+        const admin = isAdminUser(user)
 
-    if (isAdmin) {
-      // 관리자면 무조건 /home
-      this.$router.replace('/home')
-      return
+        // 세션 기준으로 localStorage 갱신
+        try {
+          localStorage.setItem('isAdmin', String(!!admin))
+          localStorage.setItem('username', user.username || '')
+          localStorage.setItem('email', user.email || '')
+        } catch {}
+
+        if (admin) {
+          // ✅ admin@company.com(또는 is_admin=true)이면 /home
+          this.$router.replace('/home')
+          return
+        }
+
+        // 일반 사용자만 redirect 처리 (안전한 내부 경로만)
+        const raw = this.$route.query.redirect
+        let to = ''
+        try { to = raw ? decodeURIComponent(String(raw)) : '' } catch { to = '' }
+
+        const BLOCKED = ['/login', '/register', '/reset', '/forgot', '/findpassword']
+        const isUnsafe = !to || !to.startsWith('/') || BLOCKED.some(p => to.startsWith(p))
+        if (!isUnsafe) {
+          this.$router.replace(to)
+          return
+        }
+
+        // 기본 목적지 (일반 사용자)
+        this.$router.replace('/analysis/timeseries')
+      } catch (err) {
+        const msg = err?.response?.data?.message || err.message || '로그인 실패'
+        if (
+          msg.includes('아이디') || msg.includes('비밀번호') ||
+          msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('unauthorized')
+        ) {
+          alert('아이디 또는 비밀번호가 올바르지 않습니다.')
+        } else {
+          alert(`로그인 실패: ${msg}`)
+        }
+        this.error = msg
+      } finally {
+        this.loading = false
+      }
     }
-
-    // 일반 사용자만 redirect 처리 (안전한 내부 경로만)
-    const raw = this.$route.query.redirect
-    let to = ''
-    try { to = raw ? decodeURIComponent(String(raw)) : '' } catch { to = '' }
-
-    const BLOCKED = ['/login', '/register', '/reset', '/forgot', '/findpassword']
-    const isUnsafe = !to || !to.startsWith('/') || BLOCKED.some(p => to.startsWith(p))
-    if (!isUnsafe) {
-      this.$router.replace(to)
-      return
-    }
-
-    // 기본 목적지 (일반 사용자)
-    this.$router.replace('/analysis/timeseries')
-  } catch (err) {
-    const msg = err?.response?.data?.message || err.message || '로그인 실패'
-    if (
-      msg.includes('아이디') || msg.includes('비밀번호') ||
-      msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('unauthorized')
-    ) {
-      alert('아이디 또는 비밀번호가 올바르지 않습니다.')
-    } else {
-      alert(`로그인 실패: ${msg}`)
-    }
-    this.error = msg
-  } finally {
-    this.loading = false
-  }
-}
   }
 }
 </script>

@@ -5,10 +5,8 @@
     :style="{ '--auth-bg': `url(${require('@/assets/auth.jpg')})` }"
   >
     <div class="auth-inner">
-      <!-- 좌측은 비어두고, 배경(지구본)은 ::before 로 전체 표시 -->
       <div class="art-pad" aria-hidden="true"></div>
 
-      <!-- RIGHT: 타이틀 + 회원가입 카드 -->
       <section class="auth-panel">
         <header class="platform-head" aria-labelledby="heroMain">
           <h1 id="heroMain" class="hero-title">
@@ -45,6 +43,44 @@
               <ul v-if="usernameTouched && usernameErrors.length" class="pw-errors compact">
                 <li v-for="(err, i) in usernameErrors" :key="i">{{ err }}</li>
               </ul>
+            </div>
+
+            <!-- 담당자(이름) -->
+            <div class="field">
+              <label for="worker">담당자(이름)</label>
+              <div class="pill" :class="{ error: workerTouched && !workerValid }">
+                <input
+                  id="worker"
+                  v-model.trim="worker"
+                  type="text"
+                  autocomplete="name"
+                  placeholder="홍길동"
+                  required
+                  @blur="workerTouched = true"
+                />
+              </div>
+              <p v-if="workerTouched && !workerValid" class="pw-error-text">
+                담당자를 입력해 주세요. (2자 이상)
+              </p>
+            </div>
+
+            <!-- 주소 -->
+            <div class="field">
+              <label for="address">주소</label>
+              <div class="pill" :class="{ error: addressTouched && !addressValid }">
+                <input
+                  id="address"
+                  v-model.trim="address"
+                  type="text"
+                  autocomplete="street-address"
+                  placeholder="서울특별시 중구 세종대로 110"
+                  required
+                  @blur="addressTouched = true"
+                />
+              </div>
+              <p v-if="addressTouched && !addressValid" class="pw-error-text">
+                주소를 입력해 주세요. (5자 이상)
+              </p>
             </div>
 
             <!-- 비밀번호 -->
@@ -117,17 +153,18 @@ export default {
   name: 'Register',
   data() {
     return {
-      username: '', usernameTouched: false,
-      password: '', passwordTouched: false,
-      confirm: '', confirmTouched: false,
+      username: '',  usernameTouched: false,
+      worker:   '',  workerTouched: false,   // ✅ 추가
+      address:  '',  addressTouched: false,  // ✅ 추가
+      password: '',  passwordTouched: false,
+      confirm:  '',  confirmTouched: false,
       showPassword: false, capsOn: false, loading: false,
     }
   },
   computed: {
-    // 이메일 형식 검증
+    // 이메일 검증
     usernameValid() {
       const v = this.username
-      // 간단하고 안전한 이메일 패턴 (공백 금지)
       return !!v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
     },
     usernameErrors() {
@@ -137,6 +174,11 @@ export default {
       return e
     },
 
+    // worker/address 간단 검증
+    workerValid()  { return !!this.worker && this.worker.length >= 2 },
+    addressValid() { return !!this.address && this.address.length >= 5 },
+
+    // 비밀번호 강도
     strengthPercent() {
       let s = 0
       if (this.password.length >= 8) s += 25
@@ -159,11 +201,11 @@ export default {
       return e
     },
     passwordValid() { return this.passwordErrors.length === 0 },
-    confirmValid() { return !!this.password && this.password === this.confirm },
+    confirmValid()  { return !!this.password && this.password === this.confirm },
 
-    // 제출 가능 조건: 이메일 유효 + 비번 유효 + 확인 일치
+    // 제출 허용
     canSubmit() {
-      return this.usernameValid && this.passwordValid && this.confirmValid
+      return this.usernameValid && this.workerValid && this.addressValid && this.passwordValid && this.confirmValid
     }
   },
   methods: {
@@ -172,14 +214,20 @@ export default {
       if (this.loading || !this.canSubmit) return
       try {
         this.loading = true
-        // 서버가 username을 이메일로 취급한다고 가정
-        await api.post('/auth/register', { username: this.username, password: this.password })
+        await api.post('/auth/register', {
+          username: this.username,
+          password: this.password,
+          worker:   this.worker,   // ✅ 전송
+          address:  this.address   // ✅ 전송
+        })
         alert('회원가입에 성공하셨습니다!')
         this.$router.replace('/login')
       } catch (err) {
         const msg = err?.response?.data?.message || err?.message || '등록 실패'
         alert(`회원가입 실패: ${msg}`)
-      } finally { this.loading = false }
+      } finally {
+        this.loading = false
+      }
     }
   }
 }

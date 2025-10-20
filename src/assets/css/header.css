@@ -1,3 +1,4 @@
+/* ───────────────────────── Topbar Base ───────────────────────── */
 .hdr-topbar {
   position: sticky;
   top: 0;
@@ -21,13 +22,7 @@
   font-size: 18px;
   letter-spacing: 0.4px;
 }
-.hdr-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
-}
+.hdr-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
 .hdr-badge {
   font-size: 12px;
   background: color-mix(in srgb, var(--accent) 12%, var(--surface));
@@ -37,126 +32,15 @@
   border-radius: 8px;
 }
 
+.hdr-actions { display: flex; align-items: center; gap: 10px; }
+
 /* 버튼 공통 */
-.hdr-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
 .hdr-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
   background: color-mix(in srgb, var(--surface) 70%, transparent);
-  border: 1px solid transparent;
-  color: var(--text);
-  transition: all .25s ease;
-  cursor: pointer;                /* ✅ 모든 버튼 기본 포인터 */
-}
-.hdr-btn:hover {
-  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
-  color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
-}
-.hdr-btn:active { transform: scale(0.96); }
-
-.hdr-ico svg {
-  width: 20px;
-  height: 20px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 2;
-}
-
-/* pill 버튼(텍스트가 가로로 보이게) */
-.hdr-btn--pill{
-  width: auto;                 /* 원형(38px) 해제 */
-  height: 36px;
-  border-radius: 9999px;
-  padding: 0 12px;             /* 가로 여백 */
-  gap: 8px;                    /* 아이콘-라벨 간격 */
-  white-space: nowrap;         /* 줄바꿈 방지 */
-}
-.hdr-label{
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-/* 아이콘 크기 미세 조정 (pill에서 살짝 작게) */
-.hdr-btn--pill .hdr-ico svg{ width:18px; height:18px; }
-
-/* 비활성(홈에서 뒤로가기) */
-.hdr-btn[disabled]{
-  opacity:.5; 
-  cursor:not-allowed !important;   /* ✅ 비활성은 not-allowed 유지 */
-  transform:none !important; 
-  box-shadow:none !important;
-}
-
-/* 로그아웃 전용 hover 톤 */
-.hdr-btn.hdr-logout{
-  color: var(--text);
-  cursor: pointer;                 /* ✅ 명시(선호 스타일) */
-}
-.hdr-btn.hdr-logout:hover{
-  background: rgba(239,68,68,.12);
-  color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239,68,68,.15);
-}
-
-/* 뒤로가기도 명시적으로 포인터 */
-.hdr-btn.hdr-back{
-  cursor: pointer;                 /* ✅ 명시 */
-}
-
-/* ───────────── 라이트/다크 모드 ───────────── */
-html[data-theme="light"] {
-  --hdr-bg: rgba(255, 255, 255, 0.88);
-  --hdr-border: #e2e8f0;
-  --surface: #f9fafb;
-  --text: #0f172a;
-  --accent: #22d3ee;
-}
-html[data-theme="dark"] {
-  --hdr-bg: rgba(17, 24, 39, 0.82);
-  --hdr-border: rgba(148, 163, 184, 0.18);
-  --surface: #0f172a;
-  --text: #e5e7eb;
-  --accent: #22d3ee;
-}
-
-/* 공통(네가 사용 중인 베이스 그대로 유지) */
-.hdr-topbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 28px;
-  backdrop-filter: blur(14px) saturate(160%);
-  background: var(--hdr-bg);
-  border-bottom: 1px solid var(--hdr-border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.hdr-brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; letter-spacing:.4px; }
-.hdr-dot { width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
-.hdr-badge { font-size:12px; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color:var(--accent); border:1px solid color-mix(in srgb, var(--accent) 25%, transparent); padding:2px 6px; border-radius:8px; }
-
-.hdr-actions { display:flex; align-items:center; gap:10px; }
-
-.hdr-btn {
-  display:inline-flex; align-items:center; justify-content:center;
-  width:38px; height:38px; border-radius:50%;
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
-  border:1px solid transparent; color:var(--text);
-  transition: all .25s ease; cursor:pointer;
+  border: 1px solid transparent; color: var(--text);
+  transition: all .25s ease; cursor: pointer;
 }
 .hdr-btn:hover {
   background: color-mix(in srgb, var(--accent) 15%, var(--surface));
@@ -167,20 +51,17 @@ html[data-theme="dark"] {
 
 .hdr-btn--pill { width:auto; height:36px; border-radius:9999px; padding:0 12px; gap:8px; white-space:nowrap; }
 .hdr-label { font-size:13px; font-weight:700; line-height:1; }
-.hdr-btn[disabled]{ opacity:.5; cursor:not-allowed !important; transform:none !important; box-shadow:none !important; }
+.hdr-btn[disabled]{ opacity:.5; cursor:not-allowed!important; transform:none!important; box-shadow:none!important; }
 
 .hdr-ico svg { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:2; }
 
-/* 로그아웃 핫톤 */
-.hdr-btn.hdr-logout:hover{
-  background: rgba(239,68,68,.12); color:#ef4444;
-  box-shadow: 0 0 0 3px rgba(239,68,68,.15);
-}
+/* 뒤로가기/로그아웃 톤 */
+.hdr-btn.hdr-logout:hover{ background: rgba(239,68,68,.12); color:#ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.15); }
+.hdr-btn.hdr-back{ cursor: pointer; }
 
-/* ── 프로필 드롭다운 ───────────────────────── */
+/* ───────────────────────── Profile Button ────────────────────── */
 .hdr-profile { position: relative; }
 .hdr-profile-btn { gap:10px; padding-right:10px; }
-
 .hdr-avatar{
   width:24px; height:24px; border-radius:50%;
   display:inline-grid; place-items:center;
@@ -188,46 +69,343 @@ html[data-theme="dark"] {
   color: var(--text); font-size:12px; font-weight:800;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
 }
-.hdr-name { max-width: 160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:700; font-size:13px; }
-.hdr-caret { width:16px; height:16px; opacity:.7; }
+.hdr-name { max-width: 180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:700; font-size:13px; }
+.hdr-caret { width:16px; height:16px; opacity:.7; transition: transform .2s ease; }
+.hdr-caret.is-open { transform: rotate(180deg); }
+
+/* ───────────────────────── Dropdown (Glass) ──────────────────── */
+.hdr-pop-enter-active, .hdr-pop-leave-active { transition: opacity .16s ease, transform .16s ease; }
+.hdr-pop-enter-from, .hdr-pop-leave-to { opacity: 0; transform: translateY(6px) scale(0.98); }
 
 .hdr-menu{
-  position:absolute; right:0; top: calc(100% + 8px);
-  min-width: 200px; padding:6px;
-  border-radius: 12px; border:1px solid var(--hdr-border);
-  background: var(--hdr-bg); backdrop-filter: blur(10px) saturate(160%);
-  box-shadow: 0 16px 40px rgba(2,6,23,.18); z-index: 120;
+  position:absolute; right:0; top: calc(100% + 10px);
+  min-width: 280px; padding:8px;
+  border-radius: 14px;
+  border:1px solid var(--menu-border);
+  background: var(--menu-bg);
+  backdrop-filter: blur(10px) saturate(160%);
+  box-shadow: 0 18px 50px var(--menu-shadow);
+  z-index: 120;
+  outline: none;
 }
 .hdr-menu:before{
-  content:""; position:absolute; right:18px; top:-6px;
-  width:12px; height:12px; transform: rotate(45deg);
-  background: var(--hdr-bg); border-left:1px solid var(--hdr-border); border-top:1px solid var(--hdr-border);
+  content:""; position:absolute; right:18px; top:-7px;
+  width:14px; height:14px; transform: rotate(45deg);
+  background: var(--menu-bg);
+  border-left:1px solid var(--menu-border);
+  border-top:1px solid var(--menu-border);
+  filter: drop-shadow(0 2px 1px rgba(0,0,0,.03));
 }
 
+/* 유저 카드 */
+.menu-user{
+  display:flex; gap:12px; align-items:center;
+  padding:12px;
+  border-radius: 10px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--surface) 85%, transparent) 0%,
+    color-mix(in srgb, var(--surface) 65%, transparent) 100%);
+}
+.menu-avatar{
+  width:42px; height:42px; border-radius:50%;
+  display:grid; place-items:center; font-weight:800;
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent);
+}
+.menu-name{ font-size:14px; font-weight:800; line-height:1.2; }
+.menu-email{ font-size:12px; opacity:.8; max-width: 170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.menu-chips{ margin-top:6px; display:flex; gap:6px; }
+.chip{
+  display:inline-flex; align-items:center; height:20px;
+  padding:0 8px; border-radius:9999px; font-size:11px; font-weight:700;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.chip-admin{
+  background: rgba(34,197,94,.12);
+  color: #16a34a;
+  border-color: rgba(34,197,94,.28);
+}
+
+/* 메뉴 아이템 */
+.menu-section { padding:4px; }
 .hdr-menu-item{
-  width:100%; display:flex; align-items:center; gap:10px;
-  padding:10px 12px; border-radius:10px; cursor:pointer;
+  width:100%; display:flex; align-items:center; gap:12px;
+  padding:12px; border-radius:10px; cursor:pointer;
   background: transparent; border:0; color: var(--text); text-align:left;
-  transition: background .18s ease, color .18s ease, transform .06s ease;
+  transition: background .16s ease, color .16s ease, transform .06s ease, box-shadow .16s ease;
+  position: relative;
 }
 .hdr-menu-item svg{ width:18px; height:18px; stroke: currentColor; fill:none; stroke-width:2; }
-.hdr-menu-item:hover{ background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); transform: translateY(-1px); }
-
-.hdr-menu-sep{ height:1px; margin:6px; background: var(--hdr-border); border-radius:1px; }
-.hdr-menu-danger:hover{ background: rgba(239,68,68,.12); color:#ef4444; }
-
-/* ── 라이트/다크 변수 ─────────────────────── */
-html[data-theme="light"]{
-  --hdr-bg: rgba(255,255,255,.88);
-  --hdr-border:#e2e8f0;
-  --surface:#f9fafb;
-  --text:#0f172a;
-  --accent:#22d3ee;
+.hdr-menu-item .mi-chevron{ margin-left:auto; font-style:normal; opacity:.5; transform: translateX(0); transition: transform .16s ease, opacity .16s ease; }
+.hdr-menu-item:hover{
+  background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent);
+  transform: translateY(-1px);
 }
-html[data-theme="dark"]{
-  --hdr-bg: rgba(17,24,39,.82);
-  --hdr-border: rgba(148,163,184,.18);
-  --surface:#0f172a;
-  --text:#e5e7eb;
-  --accent:#22d3ee;
+.hdr-menu-item:hover .mi-chevron{ opacity:.8; transform: translateX(2px); }
+
+/* 키보드 포커스 링 */
+.hdr-menu-item:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring-2);
+}
+
+/* 디바이더 */
+.hdr-menu-sep{ height:1px; margin:8px; background: var(--menu-border); border-radius:1px; }
+
+/* 위험 버튼 */
+.hdr-menu-danger{ color: var(--text); }
+.hdr-menu-danger:hover{ background: rgba(239,68,68,.12); color:#ef4444; }
+.hdr-menu-danger:focus-visible{ box-shadow: 0 0 0 3px rgba(239,68,68,.25); }
+
+/* ───────────────────────── Theme Tokens ──────────────────────── */
+html[data-theme="light"] {
+  --hdr-bg: rgba(255, 255, 255, 0.88);
+  --hdr-border: #e2e8f0;
+  --surface: #f9fafb;
+  --text: #0f172a;
+  --accent: #22d3ee;
+
+  --menu-bg: rgba(255,255,255,.86);
+  --menu-border: #e5e7eb;
+  --menu-shadow: rgba(2,6,23,.12);
+  --ring-2: rgba(34,211,238,.35);
+}
+
+html[data-theme="dark"] {
+  --hdr-bg: rgba(17, 24, 39, 0.82);
+  --hdr-border: rgba(148, 163, 184, 0.18);
+  --surface: #0f172a;
+  --text: #e5e7eb;
+  --accent: #22d3ee;
+
+  --menu-bg: rgba(17,24,39,.86);
+  --menu-border: rgba(148,163,184,.22);
+  --menu-shadow: rgba(0,0,0,.45);
+  --ring-2: rgba(34,211,238,.35);
+}
+
+.hdr-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hdr-brand { 
+  flex: 1 1 auto; 
+  min-width: 0;
+  overflow: hidden;
+}
+.hdr-logo {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hdr-actions { 
+  flex: 0 1 auto; 
+  min-width: 0;
+  display: flex; 
+  align-items: center; 
+  gap: 10px;
+}
+
+.hdr-name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .hdr-topbar { padding: 10px 12px; }
+
+  .hdr-btn { width: 36px; height: 36px; }
+  .hdr-btn--pill { height: 36px; padding: 0 10px; }
+
+  .hdr-profile-btn { padding-right: 8px; }
+  .hdr-avatar {
+    width: 26px; height: 26px; font-size: 12px;
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  .hdr-name {
+    display: inline-block !important;
+    max-width: 96px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    opacity: .95;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hdr-caret { width: 16px; height: 16px; opacity: .8; }
+
+  .hdr-label--back { display: none; }
+}
+
+@media (max-width: 480px) {
+  /* 헤더 자체: 높이/패딩 축소 + 그림자/블러 완화 */
+  .hdr-topbar{
+    height: 54px;                 /* 균일 높이 */
+    padding: 8px 12px;
+    gap: 6px;
+    backdrop-filter: blur(10px) saturate(120%);
+    box-shadow: 0 1px 6px rgba(0,0,0,.05);   /* 과한 그림자 ↓ */
+    border-bottom-color: color-mix(in srgb, var(--hdr-border) 80%, transparent);
+  }
+
+  .hdr-brand{ gap: 8px; font-size: 16px; }
+  .hdr-badge{ display: none; }
+  .hdr-dot{ width: 8px; height: 8px; box-shadow: 0 0 4px var(--accent); }
+
+  .hdr-actions{ gap: 8px; }
+  .hdr-btn{
+    width: 32px; height: 32px;
+    background: color-mix(in srgb, var(--surface) 65%, transparent);
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .hdr-btn--pill{
+    height: 32px; padding: 0 8px;
+  }
+  .hdr-ico svg{ width: 18px; height: 18px; }
+
+  .hdr-btn:hover{
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    color: var(--accent);
+    transform: none;
+    box-shadow: none;
+  }
+
+  .hdr-profile-btn{
+    padding-right: 6px;
+    background: color-mix(in srgb, var(--surface) 78%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+  .hdr-avatar{
+    width: 22px; height: 22px; font-size: 11px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 36%, transparent);
+  }
+  .hdr-name{
+    max-width: 80px;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1;
+    opacity: .9;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hdr-caret{ width: 14px; height: 14px; opacity: .6; }
+
+  .hdr-label--back{ display: none; }
+}
+
+@media (max-width: 380px) {
+  .hdr-btn{ width: 30px; height: 30px; }
+  .hdr-btn--pill{ height: 30px; padding: 0 6px; }
+  .hdr-name{ max-width: 68px; font-size: 11px; }
+  .hdr-avatar{ width: 20px; height: 20px; font-size: 10.5px; }
+}
+
+@media (max-width: 1024px) {
+  .hdr-profile-btn{
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding-right: 6px; /* 살짝만 */
+  }
+
+  .hdr-avatar{
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; line-height: 1;
+
+    background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+    box-shadow: none !important;
+    outline: none;
+  }
+
+  /* 3) hover 효과는 아바타에만 약하게 (덩어리감 최소화) */
+  .hdr-profile-btn:hover .hdr-avatar{
+    background: color-mix(in srgb, var(--accent) 20%, var(--surface));
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    transform: none; box-shadow: none;
+  }
+
+  /* 4) 포커스 링은 버튼 대신 아바타에만 (원형 유지) */
+  .hdr-profile-btn:focus-visible .hdr-avatar{
+    box-shadow: 0 0 0 3px rgba(34,211,238,.28);
+  }
+
+  /* 5) 잔상/중첩 제거용 안전장치 */
+  .hdr-profile .hdr-avatar,
+  .hdr-profile .hdr-avatar::before,
+  .hdr-profile .hdr-avatar::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* 초소형(≤380px): 더 타이트하게 */
+@media (max-width: 380px) {
+  .hdr-avatar{ width: 22px; height: 22px; font-size: 11px; }
+}
+
+/* === 모바일(≤480px): 프로필/테마 버튼 크기·정렬 통일 === */
+@media (max-width: 480px) {
+  .hdr-actions { gap: 10px; }
+  .hdr-btn,
+  .hdr-theme,
+  .hdr-profile-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hdr-ico svg { width: 22px; height: 22px; }
+
+  .hdr-profile-btn {
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+    box-shadow: none;
+  }
+  .hdr-profile-btn:hover {
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  }
+
+  .hdr-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+    border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+    box-shadow: none;
+    background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  }
+
+  .hdr-name,
+  .hdr-caret { display: none !important; }
+
+  .hdr-label--back { display: none; }
+}
+
+@media (max-width: 380px) {
+  .hdr-btn,
+  .hdr-theme,
+  .hdr-profile-btn { width: 38px; height: 38px; }
+  .hdr-avatar { width: 24px; height: 24px; }
+}
+
+@media (max-width: 520px) {
+  .hdr-btn.hdr-back {
+    display: none !important;
+    visibility: hidden !important;
+  }
 }
