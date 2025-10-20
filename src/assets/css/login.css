@@ -43,8 +43,9 @@
   content:""; position:fixed; inset:-4rem;
   background-image: var(--lp-bg);
   background-size:cover; background-position:50% 50%;
-  filter:saturate(1.05) contrast(1.05) brightness(1);
-  transform:scale(1.05); z-index:0; opacity:.45; /* ✅ 더 진하게 */
+  filter: saturate(1.1) contrast(1.1) brightness(0.8);
+  opacity: 0.65;
+  transform:scale(1.05); z-index:0;
 }
 .lp-shell::after{
   content:""; position:fixed; inset:0; z-index:1;

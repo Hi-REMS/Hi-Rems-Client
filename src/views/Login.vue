@@ -67,8 +67,7 @@
                 <input type="checkbox" disabled />
                 <span>로그인 상태 유지</span>
               </label>
-              <router-link class="link" to="/findpassword"
-                >비밀번호 찾기</router-link>
+              <router-link class="link" to="/findpassword">비밀번호 찾기</router-link>
             </div>
 
             <button class="btn-teal" :disabled="loading">
@@ -89,11 +88,11 @@
 
 <script>
 import { api } from '@/api'
-import '@/assets/css/register.css' 
+import '@/assets/css/register.css'
 
 export default {
   name: 'Login',
-  data() {
+  data () {
     return {
       username: '',
       password: '',
@@ -104,44 +103,52 @@ export default {
     }
   },
   methods: {
-    checkCaps(e) {
+    checkCaps (e) {
       this.capsOn = e.getModifierState && e.getModifierState('CapsLock')
     },
-// ...생략...
-async login() {
+async login () {
   if (this.loading) return
   try {
     this.loading = true
     this.error = ''
-
     await api.post('/auth/login', {
       username: this.username,
       password: this.password
     })
 
-    // redirect 처리
+    const { data } = await api.get('/auth/me')
+    const user = data?.user || {}
+    const isAdmin =
+      (typeof user.username === 'string' &&
+       user.username.trim().toLowerCase() === 'admin') ||
+      user.is_admin === true
+
+    // 현재 세션 기준으로 localStorage 갱신 (이전 값 잔존 방지)
+    try {
+      localStorage.setItem('isAdmin', String(!!isAdmin))
+      localStorage.setItem('username', user.username || '')
+    } catch {}
+
+    if (isAdmin) {
+      // 관리자면 무조건 /home
+      this.$router.replace('/home')
+      return
+    }
+
+    // 일반 사용자만 redirect 처리 (안전한 내부 경로만)
     const raw = this.$route.query.redirect
     let to = ''
-    try {
-      to = raw ? decodeURIComponent(String(raw)) : ''
-    } catch { to = '' }
+    try { to = raw ? decodeURIComponent(String(raw)) : '' } catch { to = '' }
 
-    // 허용/차단 규칙
     const BLOCKED = ['/login', '/register', '/reset', '/forgot', '/findpassword']
-    const isUnsafe =
-      !to ||
-      !to.startsWith('/') ||                  // 내부 경로만 허용
-      BLOCKED.some(p => to.startsWith(p))     // 위험 경로 차단
-
+    const isUnsafe = !to || !to.startsWith('/') || BLOCKED.some(p => to.startsWith(p))
     if (!isUnsafe) {
       this.$router.replace(to)
       return
     }
 
-    // 기본 목적지
-    const { data } = await api.get('/auth/me')
-    const isAdmin = data?.user?.username === 'admin'
-    this.$router.replace(isAdmin ? '/home' : '/analysis/timeseries')
+    // 기본 목적지 (일반 사용자)
+    this.$router.replace('/analysis/timeseries')
   } catch (err) {
     const msg = err?.response?.data?.message || err.message || '로그인 실패'
     if (

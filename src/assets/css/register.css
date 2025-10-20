@@ -90,15 +90,13 @@
   background-image: var(--auth-bg);
   background-size: cover;
   background-position: 50% 50%;
-  /* ✅ 살짝 더 진하게 (opacity 0.24 → 0.45) */
   filter: saturate(1.05) contrast(1.05) brightness(1);
   transform: scale(1.05);
   z-index: 0;
-  opacity: 0.5
+  opacity: 0.9
 }
 
 .auth::after {
-  /* ✅ 베일은 유지하되 살짝 줄임 */
   content: "";
   position: fixed;
   inset: 0;

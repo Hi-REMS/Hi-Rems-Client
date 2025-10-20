@@ -14,23 +14,41 @@ import ResetPassword from '@/views/ResetPassword.vue'
 Vue.use(Router)
 
 const router = new Router({
-  mode: 'hash',                     // 새로고침 404 방지
-  base: '/hirems/frontend/',        // hash 모드에선 영향 적지만 유지해도 OK
+  mode: 'hash',
+  base: '/hirems/frontend/',
   routes: [
-    { path: '/', redirect: '/login',meta: { hideHeader: true }},
-    { path: '/login', component: Login, meta: { hideHeader: true }},
-    { path: '/register', component: Register, meta: { hideHeader: true }},
-    // ✅ 보호 라우트들에 requiresAuth
-    { path: '/home', component: Home, meta: { requiresAuth: true, hideHeader : false } },
-    { path: '/analysis/timeseries', component: AnalysisTimeseries, meta: { requiresAuth: true, hideHeader : false} },
-    { path: '/energy', name: 'EnergyDashboard', component: EnergyDashboard, meta: { requiresAuth: true, hideHeader : false} },
-    { path: '*', redirect: '/' },
-    { path: '/findpassword', name: 'FindPassword', component: FindPassword, meta: {hideHeader : true} },
-    { path: '/reset', component: ResetPassword },
+    // ✅ 루트에서 로그인 여부/역할로 분기
+    {
+      path: '/',
+      meta: { hideHeader: true },
+      beforeEnter: async (to, from, next) => {
+        try {
+          const { data } = await api.get('/auth/me')
+          const user = data?.user
+          if (user) {
+            const isAdmin = typeof user.username === 'string' &&
+                            user.username.trim().toLowerCase() === 'admin'
+            return next(isAdmin ? '/home' : '/analysis/timeseries')
+          }
+        } catch {}
+        return next('/login')
+      }
+    },
 
+    // 공개 페이지 (항상 와일드카드 위)
+    { path: '/login', component: Login, meta: { hideHeader: true } },
+    { path: '/register', component: Register, meta: { hideHeader: true } },
+    { path: '/findpassword', name: 'FindPassword', component: FindPassword, meta: { hideHeader: true } },
+    { path: '/reset', component: ResetPassword, meta: { hideHeader: true } },
+
+    // 보호 라우트
+    { path: '/home', component: Home, meta: { requiresAuth: true, hideHeader: false } },
+    { path: '/analysis/timeseries', component: AnalysisTimeseries, meta: { requiresAuth: true, hideHeader: false } },
+    { path: '/energy', name: 'EnergyDashboard', component: EnergyDashboard, meta: { requiresAuth: true, hideHeader: false } },
+
+    // 항상 마지막
+    { path: '*', redirect: '/' }
   ],
-
-  // 라우트 변경 시 스크롤 처리
   scrollBehavior (to, from, savedPosition) {
     if (savedPosition) return savedPosition
     if (to.hash) return { selector: to.hash }
@@ -38,7 +56,6 @@ const router = new Router({
   }
 })
 
-// (선택) 커스텀 스크롤 컨테이너 리셋
 router.afterEach(() => {
   requestAnimationFrame(() => {
     window.scrollTo(0, 0)
@@ -48,46 +65,65 @@ router.afterEach(() => {
   })
 })
 
-/* ───────────────── 인증 가드 ─────────────────
-   - 보호 라우트 진입 시 /auth/me로 로그인 여부 확인
-   - 미인증이면 /login?redirect=원래경로 로 보냄
-   - 이미 로그인 상태에서 /login·/register 접근 시 redirect 또는 /home
-*/
+// ───────────────── 인증 가드 ─────────────────
 router.beforeEach(async (to, from, next) => {
-  const isAuthPage = (to.path === '/login' || to.path === '/register')
+  const PUBLIC = ['/login', '/register', '/findpassword', '/reset']
+  const isPublic = PUBLIC.some(p => to.path.startsWith(p))
 
-  // /auth/me 호출 헬퍼 (쿠키는 axios 인스턴스가 자동 포함)
-  const checkAuth = async () => {
+  const getMe = async () => {
     try {
-      await api.get('/auth/me')
-      return true
+      const { data } = await api.get('/auth/me')
+      return data?.user || null
     } catch {
-      return false
+      return null
     }
   }
 
+  // 보호 라우트 접근
   if (to.matched.some(r => r.meta.requiresAuth)) {
-    // 보호 라우트
-    const ok = await checkAuth()
-    if (ok) return next()
+    const me = await getMe()
+    if (me) {
+      // ✅ 비관리자가 /home 접근하려 하면 차단
+      const isAdmin = typeof me.username === 'string' &&
+                      me.username.trim().toLowerCase() === 'admin'
+      if (to.path === '/home' && !isAdmin) {
+        return next('/analysis/timeseries')
+      }
+      return next()
+    }
 
-    // 미인증 → 로그인으로, 원래 경로를 redirect 쿼리로 전달
-    const redirect = encodeURIComponent(to.fullPath)
-    return next(`/login?redirect=${redirect}`)
+    // 미인증 → 로그인 (redirect는 내부/안전 경로만 허용)
+    const safeRedirect = (() => {
+      const raw = to.fullPath || ''
+      const BLOCKED = ['/login','/register','/reset','/findpassword']
+      if (!raw.startsWith('/')) return ''
+      if (BLOCKED.some(p => raw.startsWith(p))) return ''
+      return raw
+    })()
+    return next(safeRedirect ? `/login?redirect=${encodeURIComponent(safeRedirect)}` : '/login')
   }
 
-  if (isAuthPage) {
-    // 로그인/회원가입 페이지에 들어오려는 경우, 이미 로그인 상태면 돌려보냄
-    const ok = await checkAuth()
-    if (ok) {
-      // 쿼리에 redirect가 있으면 우선 사용
-      const toAfterLogin = to.query.redirect || '/home'
-      if (to.fullPath === toAfterLogin) return next() // 무한루프 방지
+  // 이미 로그인 상태에서 /login 또는 /register 접근 시 역할별 기본 경로로
+  if (isPublic && (to.path === '/login' || to.path === '/register')) {
+    const me = await getMe()
+    if (me) {
+      const isAdmin = typeof me.username === 'string' &&
+                      me.username.trim().toLowerCase() === 'admin'
+      const defaultPath = isAdmin ? '/home' : '/analysis/timeseries'
+
+      // 쿼리 redirect가 있으면 안전한 경우에만 사용
+      let toAfterLogin = to.query.redirect || ''
+      const BLOCKED = ['/login','/register','/reset','/findpassword']
+      const isSafe = toAfterLogin && toAfterLogin.startsWith('/') && !BLOCKED.some(p => toAfterLogin.startsWith(p))
+      if (!isSafe) toAfterLogin = defaultPath
+
+      if (to.fullPath === toAfterLogin) return next() // 루프 방지
       return next(toAfterLogin)
     }
     return next()
   }
-  return next()
+
+  next()
 })
 
 export default router
