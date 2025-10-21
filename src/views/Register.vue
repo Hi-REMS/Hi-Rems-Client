@@ -64,22 +64,22 @@
               </p>
             </div>
 
-            <!-- 주소 -->
+            <!-- 전화번호 -->
             <div class="field">
-              <label for="address">주소</label>
-              <div class="pill" :class="{ error: addressTouched && !addressValid }">
+              <label for="phoneNumber">전화번호</label>
+              <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
                 <input
-                  id="address"
-                  v-model.trim="address"
-                  type="text"
-                  autocomplete="street-address"
-                  placeholder="서울특별시 중구 세종대로 110"
+                  id="phoneNumber"
+                  v-model.trim="phoneNumber"
+                  type="tel"
+                  autocomplete="tel"
+                  placeholder="010-1234-5678"
                   required
-                  @blur="addressTouched = true"
+                  @blur="phoneTouched = true"
                 />
               </div>
-              <p v-if="addressTouched && !addressValid" class="pw-error-text">
-                주소를 입력해 주세요. (5자 이상)
+              <p v-if="phoneTouched && !phoneValid" class="pw-error-text">
+                전화번호를 입력해 주세요. (숫자 10~13자)
               </p>
             </div>
 
@@ -153,16 +153,15 @@ export default {
   name: 'Register',
   data() {
     return {
-      username: '',  usernameTouched: false,
-      worker:   '',  workerTouched: false,   // ✅ 추가
-      address:  '',  addressTouched: false,  // ✅ 추가
-      password: '',  passwordTouched: false,
-      confirm:  '',  confirmTouched: false,
+      username: '', usernameTouched: false,
+      worker: '', workerTouched: false,
+      phoneNumber: '', phoneTouched: false, // ✅ 변경
+      password: '', passwordTouched: false,
+      confirm: '', confirmTouched: false,
       showPassword: false, capsOn: false, loading: false,
     }
   },
   computed: {
-    // 이메일 검증
     usernameValid() {
       const v = this.username
       return !!v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
@@ -173,12 +172,8 @@ export default {
       else if (!this.usernameValid) e.push('올바른 이메일 형식이 아닙니다.')
       return e
     },
-
-    // worker/address 간단 검증
-    workerValid()  { return !!this.worker && this.worker.length >= 2 },
-    addressValid() { return !!this.address && this.address.length >= 5 },
-
-    // 비밀번호 강도
+    workerValid() { return !!this.worker && this.worker.length >= 2 },
+    phoneValid() { return !!this.phoneNumber && this.phoneNumber.replace(/[^0-9]/g, '').length >= 10 },
     strengthPercent() {
       let s = 0
       if (this.password.length >= 8) s += 25
@@ -201,11 +196,9 @@ export default {
       return e
     },
     passwordValid() { return this.passwordErrors.length === 0 },
-    confirmValid()  { return !!this.password && this.password === this.confirm },
-
-    // 제출 허용
+    confirmValid() { return !!this.password && this.password === this.confirm },
     canSubmit() {
-      return this.usernameValid && this.workerValid && this.addressValid && this.passwordValid && this.confirmValid
+      return this.usernameValid && this.workerValid && this.phoneValid && this.passwordValid && this.confirmValid
     }
   },
   methods: {
@@ -217,8 +210,8 @@ export default {
         await api.post('/auth/register', {
           username: this.username,
           password: this.password,
-          worker:   this.worker,   // ✅ 전송
-          address:  this.address   // ✅ 전송
+          worker: this.worker,
+          phoneNumber: this.phoneNumber,
         })
         alert('회원가입에 성공하셨습니다!')
         this.$router.replace('/login')

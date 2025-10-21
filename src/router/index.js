@@ -10,6 +10,7 @@ import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
 import FindPassword from '@/views/FindPassword.vue'
 import ResetPassword from '@/views/ResetPassword.vue'
+import ChangePassword from '@/views/ChangePassword.vue'
 
 Vue.use(Router)
 
@@ -47,6 +48,7 @@ const router = new Router({
     { path: '/login', component: Login, meta: { hideHeader: true } },
     { path: '/register', component: Register, meta: { hideHeader: true } },
     { path: '/findpassword', name: 'FindPassword', component: FindPassword, meta: { hideHeader: true } },
+    { path: '/change-password', name: 'ChangePassword', component: ChangePassword, meta: { hideHeader: true } },
     { path: '/reset', component: ResetPassword, meta: { hideHeader: true } },
 
     // 보호 라우트

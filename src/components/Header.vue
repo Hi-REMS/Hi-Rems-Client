@@ -278,7 +278,7 @@ export default {
     },
     goChangePassword () {
       this.menuOpen = false
-      this.$router.push('/findpassword')
+      this.$router.push('/change-password')
     },
     async logout () {
       this.menuOpen = false
