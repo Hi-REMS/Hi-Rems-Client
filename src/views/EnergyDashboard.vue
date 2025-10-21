@@ -594,7 +594,6 @@ export default {
 detailRowsVisible() {
   const rows = Array.isArray(this.detailRows) ? this.detailRows : [];
 
-  // 06시~18시 범위만 남기기
   const inWindow = rows.filter(r => {
     const hh = this.toHH(r.hour);           // "08:00" → "08"
     if (hh == null) return false;
@@ -602,7 +601,6 @@ detailRowsVisible() {
     return n >= 6 && n <= 18;
   });
 
-  // 뒤에서부터 kWh가 있는 마지막 행까지만 표시 (기존 로직 유지)
   let last = -1;
   for (let i = inWindow.length - 1; i >= 0; i--) {
     const v = inWindow[i]?.kwh;

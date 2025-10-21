@@ -116,8 +116,6 @@ export default {
       loading: false,
       error: '',
       done: false,
-      // username을 몰라도 정책은 username 포함 금지 제외 가능하지만
-      // 여기선 서버가 최종검증하므로 클라에서는 일반 규칙만 적용
     }
   },
   computed: {

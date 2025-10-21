@@ -325,8 +325,21 @@
           </li>
         </ul>
       </article>
-    </section>
 
+<article class="card col-3">
+  <router-link class="qa-card" :to="{ name:'EnergyDashboard' }">
+    <div class="qa-icon">⚡</div>
+    <div class="qa-main">
+      <div class="qa-title">발전량 모니터링</div>
+      <div class="qa-desc">누적 · 일간 · 주간 · 연간 데이터</div>
+    </div>
+    <span class="qa-arrow">›</span>
+  </router-link>
+</article>
+
+
+    </section>
+    
     <!-- 로딩 오버레이 -->
     <div v-if="loading" class="loading-overlay" role="status" aria-live="polite">
       <div class="spinner-neo"></div>

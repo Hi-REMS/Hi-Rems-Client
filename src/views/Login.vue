@@ -139,7 +139,7 @@ export default {
         } catch {}
 
         if (admin) {
-          // ✅ admin@company.com(또는 is_admin=true)이면 /home
+          // admin@company.com(또는 is_admin=true)이면 /home
           this.$router.replace('/home')
           return
         }

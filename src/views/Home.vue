@@ -220,13 +220,6 @@
             </div>
           </router-link>
 -->
-          <router-link class="rems-qa-btn" :to="{ name:'EnergyDashboard' }">
-            <div class="rems-qa-icon">🧭</div>
-            <div class="rems-qa-text">
-              <div class="rems-qa-title">발전량 모니터링</div>
-              <div class="rems-qa-desc">누적/일간/주간/연간 데이터</div>
-            </div>
-          </router-link>
         </div>
       </article>
     </section>

@@ -117,7 +117,6 @@ router.beforeEach(async (to, from, next) => {
     if (me) {
       const defaultPath = isAdminUser(me) ? '/home' : '/analysis/timeseries'
 
-      // 쿼리 redirect가 있으면 안전한 경우에만 사용
       let toAfterLogin = to.query.redirect || ''
       const BLOCKED = ['/login','/register','/reset','/findpassword']
       const isSafe = toAfterLogin && toAfterLogin.startsWith('/') && !BLOCKED.some(p => toAfterLogin.startsWith(p))

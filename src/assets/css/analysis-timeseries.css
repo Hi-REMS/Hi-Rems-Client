@@ -480,3 +480,93 @@ html[data-theme="light"] .ts-page .toolbar {
 .modal-x{ background:none; border:0; color:inherit; cursor:pointer; font-size:18px; }
 .modal-body{ padding:12px 14px; }
 .modal-ftr{ padding:12px 14px; border-top:1px solid var(--border-1,#283247); display:flex; justify-content:flex-end; gap:8px; }
+
+/* ────────────────────────────────
+   발전량 모니터링 카드 (라이트/다크 대응)
+──────────────────────────────── */
+.qa-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-decoration: none;
+  border-radius: 16px;
+  padding: 20px 24px;
+  height: 100%;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  border: 1px solid var(--card-border);
+  color: var(--card-text);
+  transition: all 0.25s ease;
+}
+
+.qa-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+  border-color: var(--accent-color);
+}
+
+/* 아이콘 */
+.qa-icon {
+  flex: 0 0 auto;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--accent-color);
+}
+
+/* 본문 */
+.qa-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.qa-title {
+  font-weight: 700;
+  font-size: 15.5px;
+  color: inherit;
+}
+
+.qa-desc {
+  font-size: 13px;
+  color: var(--sub-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 화살표 */
+.qa-arrow {
+  font-size: 22px;
+  color: var(--sub-text);
+  flex: 0 0 auto;
+  transition: transform .2s ease, color .2s ease;
+}
+
+.qa-card:hover .qa-arrow {
+  transform: translateX(3px);
+  color: var(--accent-color);
+}
+
+/* 라이트모드 변수 */
+html.light .qa-card {
+  --card-bg: #ffffff;
+  --card-text: #1c1d1f;
+  --card-border: rgba(0,0,0,0.08);
+  --sub-text: #6b7280;
+  --accent-color: #1dd6c9;
+}
+
+/* 다크모드 변수 */
+html.dark .qa-card {
+  --card-bg: #1d1f22;
+  --card-text: #f3f4f6;
+  --card-border: rgba(255,255,255,0.08);
+  --sub-text: #9ca3af;
+  --accent-color: #000000;
+}
+
+html.dark .qa-card:hover {
+  box-shadow: 0 10px 24px rgba(0,0,0,0.45);
+}
