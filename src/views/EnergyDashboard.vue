@@ -1070,48 +1070,65 @@ watch: {
       if (this.downloading) return
       this.showDl = false
     },
-    async doDownload(){
-      const imei = this.imeiField?.trim()
-      if(!imei){ alert('IMEI가 없습니다.'); return }
+async doDownload () {
+  const imei = this.imeiField?.trim()
+  if (!imei) { alert('IMEI가 없습니다.'); return }
 
-      if(!this.dlYear || !this.dlMonth){ alert('연/월을 선택해주세요.'); return }
+  if (!this.dlYear || !this.dlMonth) {
+    alert('연/월을 선택해주세요.')
+    return
+  }
 
-      try{
-        this.downloading = true
-        const qs = new URLSearchParams({ imei, year: String(this.dlYear), month: String(this.dlMonth) })
-        if (this.multiField) qs.set('multi', this.multiField) // ★ 멀티 전달
-        const url = `/api/export/month-csv?${qs.toString()}`
-        const res = await res.fetch(url)
-        if(!res.ok){
-          let msg = `다운로드 실패 (HTTP ${res.status})`
-          try {
-            const j = await res.json();
-            if (j && j.error) msg = j.error;
-          } catch (_e) { /* non-JSON 응답일 수 있음 */ }
-          throw new Error(msg)
-        }
-        const blob = await res.blob()
+  try {
+    this.downloading = true
 
-        let filename = `월별_${imei}_${this.dlYear}-${String(this.dlMonth).padStart(2,'0')}${this.multiField?`_multi-${this.multiField}`:''}.csv`
-        const cd = res.headers.get('Content-Disposition') || ''
-        const m = cd.match(/filename\*=UTF-8''([^;]+)/i)
-        if (m && m[1]) filename = decodeURIComponent(m[1])
+    const qs = new URLSearchParams({
+      imei,
+      year: String(this.dlYear),
+      month: String(this.dlMonth)
+    })
+    if (this.multiField) qs.set('multi', this.multiField) // ★ 멀티 전달
 
-        const a = document.createElement('a')
-        a.href = URL.createObjectURL(blob)
-        a.download = filename
-        document.body.appendChild(a)
-        a.click()
-        a.remove()
-        URL.revokeObjectURL(a.href)
+    const url = `/api/export/month-csv?${qs.toString()}`
+    const resp = await fetch(url)
 
-        this.showDl = false
-      } catch(e){
-        alert(e?.message || '다운로드 중 오류가 발생했습니다.')
-      } finally{
-        this.downloading = false
-      }
-    },
+    if (!resp.ok) {
+      let msg = `다운로드 실패 (HTTP ${resp.status})`
+      try {
+        const j = await resp.json()
+        if (j && j.error) msg = j.error
+      } catch (_) { /* non-JSON 응답일 수 있음 */ }
+      throw new Error(msg)
+    }
+
+    const blob = await resp.blob()
+
+    // 파일명 추출 (헤더 우선)
+    let filename = `월별_${imei}_${this.dlYear}-${String(this.dlMonth).padStart(2,'0')}`
+    if (this.multiField) filename += `_multi-${this.multiField}`
+    filename += `.csv`
+
+    const cd = resp.headers.get('Content-Disposition') || ''
+    const m = cd.match(/filename\*=UTF-8''([^;]+)/i)
+    if (m && m[1]) filename = decodeURIComponent(m[1])
+
+    // 다운로드 트리거
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(blobUrl)
+
+    this.showDl = false
+  } catch (e) {
+    alert(e?.message || '다운로드 중 오류가 발생했습니다.')
+  } finally {
+    this.downloading = false
+  }
+},
 
     // 개발용 가드: 연간 ≥ 월간 ≥ 주간 확인
     assertAggregateOrder(){
