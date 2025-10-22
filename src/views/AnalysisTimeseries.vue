@@ -493,13 +493,17 @@ export default {
       imeiUse: '',
       selectedMulti: null,
 
+      // ★ 추가: 중복 호출/초기화 가드
+      searching: false,
+      _inited: false,
+
       driverUnits: [],
 
       kpis: [
-        { key: 'now',     title: '현재 출력',            unit: 'kWh'  },
+        { key: 'now',     title: '현재 출력',            unit: 'kW'  },  // ★ 단위 수정
         { key: 'today',   title: '금일 발전량',          unit: 'kWh' },
         { key: 'co2',     title: 'CO₂ 저감',            unit: 'tCO₂' },
-        { key: 'avg',     title: '지난 달 평균 발전량', unit: 'kWh'  },
+        { key: 'avg',     title: '지난 달 평균 발전량', unit: 'kW'  },
         { key: 'status',  title: '시스템 상태',          unit: ''    },
         { key: 'total',   title: '누적 발전량',          unit: 'kWh' },
       ],
@@ -719,10 +723,12 @@ export default {
 
   watch: {
     '$route.query.imei'(v) {
-      if (typeof v === 'string' && v.trim()) {
-        this.imeiField = v.trim()
-        this.onSearch()
-      }
+      const next = (typeof v === 'string') ? v.trim() : ''
+      if (!next) return
+      // 이미 같은 값이면 재조회 금지
+      if (next === this.imeiUse || next === this.imeiField) return
+      this.imeiField = next
+      this.onSearch()
     }
   },
 
@@ -734,6 +740,9 @@ export default {
 
     // 초기 IMEI 결정
     async initImeiFlow () {
+      if (this._inited) return
+      this._inited = true
+
       const qImei = (this.$route?.query?.imei || '').toString().trim()
       if (qImei) {
         this.imeiField = qImei
@@ -746,10 +755,7 @@ export default {
         const def = data?.defaultImei || (Array.isArray(data?.items) && data.items[0]?.rtuImei) || ''
         if (def) {
           this.imeiField = def
-          const q = { ...(this.$route?.query || {}), imei: def }
-          if (this.energyField) q.energy = this.energyField
-          if (this.typeField)   q.type   = this.typeField
-          this.$router?.replace({ query: q }).catch(()=>{})
+          // 라우터 변경은 onSearch 내부가 변경있을 때만 처리
           this.onSearch()
         } else {
           this.imeiField = ''
@@ -846,28 +852,41 @@ export default {
     },
     onLeave () { this.hoverIdx = null; },
 
-    onSearch () {
-      const imei = this.imeiField?.trim();
-      if (!imei) { this.resetAll(); return; }
-
-      this.abortAll();
-      this.currentReqId += 1;
-
-      this.imeiUse = imei;
-
+    async onSearch () {
+      if (this.searching) return; // ★ 중복 방지
+      this.searching = true;
       try {
-        if (this.$router) {
-          const q = { ...(this.$route?.query || {}), imei };
-          if (this.energyField) q.energy = this.energyField;
-          if (this.typeField)   q.type   = this.typeField;
-          this.$router.replace({ query: q });
-        }
-      } catch (e) {
-        this.lastRouterErr = (e && e.message) ? e.message : 'router';
-      }
+        const imei = this.imeiField?.trim();
+        if (!imei) { this.resetAll(); return; }
 
-      this.clearForLoading();
-      this.loadAll();
+        this.abortAll();
+        this.currentReqId += 1;
+
+        this.imeiUse = imei;
+
+        // ★ 라우터 쿼리는 변경 있을 때만 업데이트
+        try {
+          if (this.$router) {
+            const cur = this.$route?.query || {}
+            const next = {
+              ...cur,
+              imei,
+              ...(this.energyField ? { energy: this.energyField } : {}),
+              ...(this.typeField   ? { type:   this.typeField   } : {}),
+            }
+            if (JSON.stringify(cur) !== JSON.stringify(next)) {
+              await this.$router.replace({ query: next })
+            }
+          }
+        } catch (e) {
+          this.lastRouterErr = (e && e.message) ? e.message : 'router';
+        }
+
+        this.clearForLoading();
+        await this.loadAll();
+      } finally {
+        this.searching = false;
+      }
     },
 
     async loadAll () {
@@ -927,43 +946,19 @@ export default {
       this.latestCollectedAt = row?.time || row?.createdAt || row?.ts || null;
     },
 
-    // 시간대별 발전량 (kWh)
+    // 시간대별 발전량 (kWh) - ★ /series 로 통일 (합산/멀티 공용)
     async loadHourly (reqId) {
-      const hasMulti = !!this.selectedMulti;
-
-      if (!hasMulti) {
-        const params = new URLSearchParams({
-          rtuImei: this.imeiUse,
-          imei: this.imeiUse,
-          energy: this.energyField || '01'
-        });
-        if (this.typeField) params.set('type', this.typeField);
-        const url = `/api/energy/electric/hourly?${params.toString()}`;
-
-        const r = await fetch(url, this.fopts('hourly'));
-        if (!r.ok) return;
-        if (reqId && reqId !== this.currentReqId) return;
-        const j = await r.json();
-        const hours = Array.isArray(j?.hours) ? j.hours : [];
-        this.hourly = hours
-          .map(h => ({ hour: String(h.hour).padStart(2,'0'), kwh: (h.kwh==null?null:Number(h.kwh)) }))
-          .sort((a,b) => a.hour.localeCompare(b.hour));
-
-        const sum = this.hourly.reduce((s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s), 0);
-        this.kpi.today_kwh = Number.isFinite(sum) ? Math.round(sum*1000)/1000 : null;
-        return;
-      }
-
-      // 멀티 선택 시
       const params = new URLSearchParams({
         rtuImei: this.imeiUse,
         imei: this.imeiUse,
         range: 'weekly',
         detail: 'hourly',
-        energy: this.energyField || '01',
-        multi: this.selectedMulti
+        energy: this.energyField || '01'
       });
       if (this.typeField) params.set('type', this.typeField);
+      if (this.selectedMulti) params.set('multi', this.selectedMulti);
+
+      // 백엔드 시리즈 라우트가 전기 하위로 마운트되어 있으므로 경로 유지
       const url = `/api/energy/electric/series?${params.toString()}`;
 
       const r = await fetch(url, this.fopts('hourly'));
@@ -973,7 +968,7 @@ export default {
 
       const rows = j?.detail_hourly?.rows || [];
       this.hourly = rows
-        .map(h => ({ hour: String(h.hour).slice(0,2), kwh: (h.kwh==null?null:Number(h.kwh)) }))
+        .map(h => ({ hour: String(h.hour).slice(0,2).padStart(2,'0'), kwh: (h.kwh==null?null:Number(h.kwh)) }))
         .sort((a,b) => a.hour.localeCompare(b.hour));
 
       const sum = this.hourly.reduce((s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s), 0);
@@ -1174,7 +1169,7 @@ export default {
         this.maintenance.lastInspection = body.lastInspection || null;
         this.maintenance.asNotes = body.asNotes || null;
         this.maintModal.open = false;
-        alert('유지보수 정보가 저장되었습니다.');
+        alert('저장되었습니다.');
       } catch (e) {
         alert('유지보수 저장 실패: ' + (e?.message || e));
       } finally {
@@ -1287,36 +1282,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-/* ====== 모달(네임스페이스: ats-) ====== */
-.ats-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999}
-.ats-modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:saturate(120%) blur(2px)}
-.ats-modal__panel{
-  position:relative;
-  width:min(680px, 92vw);
-  max-height:calc(100vh - 10vh);
-  overflow:auto;
-  background:#fff;
-  border-radius:16px;
-  box-shadow:0 20px 44px rgba(0,0,0,.22);
-  padding:16px 16px 12px;
-  z-index:1;
-}
-.ats-modal__hd{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 10px}
-.ats-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.ats-field{display:flex;flex-direction:column;gap:6px}
-.ats-field > span{font-size:12px;color:#666}
-.input{border:1px solid #e3e6ea;border-radius:10px;padding:10px 12px;font-size:14px}
-.ats-modal__actions{grid-column:1 / -1;display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
-
-.btn{cursor:pointer}
-.btn.primary{background:#00b3a4;color:#fff;border:none;padding:8px 14px;border-radius:10px}
-.btn.ghost{background:transparent;border:1px solid #d7dbe1;color:#333;padding:8px 14px;border-radius:10px}
-.btn.sm{font-size:12px;padding:6px 10px}
-.btn-spinner{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .9s linear infinite;vertical-align:-3px}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ====== 페이지 기타(기존 스타일 유지 가정) ====== */
-.loading-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.35);z-index:8000}
-</style>

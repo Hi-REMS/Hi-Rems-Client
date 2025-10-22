@@ -459,16 +459,15 @@
                     <th>CO₂저감량(kg)</th>
                   </tr>
                 </thead>
-<tbody>
-  <!-- 기존: v-for="(r, i) in detailRows" -->
-  <tr v-for="(r, i) in detailRowsVisible" :key="'hr'+i">
-    <td>{{ r.hour.replace(':00','시') }}</td>
-    <td class="edb-num">{{ fmt(r.kwh, 1) }}</td>
-    <td class="edb-num">{{ r.weather || '—' }}</td>
-    <td class="edb-num">{{ r.co2_kg==null ? '—' : fmt(r.co2_kg, 2) }}</td>
-  </tr>
-</tbody>
-
+                <tbody>
+                  <!-- 보이는 시간대만, 뒤쪽 불필요한 null 꼬리 제거 -->
+                  <tr v-for="(r, i) in detailRowsVisible" :key="'hr'+i">
+                    <td>{{ r.hour.replace(':00','시') }}</td>
+                    <td class="edb-num">{{ fmt(r.kwh, 1) }}</td>
+                    <td class="edb-num">{{ r.weather || '—' }}</td>
+                    <td class="edb-num">{{ r.co2_kg==null ? '—' : fmt(r.co2_kg, 2) }}</td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           </div>
@@ -588,26 +587,30 @@ export default {
       yearOptions: Array.from({ length: 11 }, (_, i) => y - i),
 
       hasSearched: false,
+
+      // 레이스 방지
+      searching: false,
+      currentReqId: 0,
     }
   },
   computed: {
-detailRowsVisible() {
-  const rows = Array.isArray(this.detailRows) ? this.detailRows : [];
+    detailRowsVisible() {
+      const rows = Array.isArray(this.detailRows) ? this.detailRows : [];
 
-  const inWindow = rows.filter(r => {
-    const hh = this.toHH(r.hour);           // "08:00" → "08"
-    if (hh == null) return false;
-    const n = Number(hh);
-    return n >= 6 && n <= 18;
-  });
+      const inWindow = rows.filter(r => {
+        const hh = this.toHH(r.hour);
+        if (hh == null) return false;
+        const n = Number(hh);
+        return n >= 6 && n <= 18;
+      });
 
-  let last = -1;
-  for (let i = inWindow.length - 1; i >= 0; i--) {
-    const v = inWindow[i]?.kwh;
-    if (v != null && Number.isFinite(Number(v))) { last = i; break; }
-  }
-  return last >= 0 ? inWindow.slice(0, last + 1) : inWindow;
-},
+      let last = -1;
+      for (let i = inWindow.length - 1; i >= 0; i--) {
+        const v = inWindow[i]?.kwh;
+        if (v != null && Number.isFinite(Number(v))) { last = i; break; }
+      }
+      return last >= 0 ? inWindow.slice(0, last + 1) : inWindow;
+    },
     trendDay(){
       const base = this.summary.today_kwh || 0;
       return Math.min(99, Math.max(0, Math.round(base * 1.2)));
@@ -743,18 +746,25 @@ detailRowsVisible() {
       return this.hasSearched && !!this.hasAnyData;
     },
   },
-  // <script> 안에 추가 (watch)
-watch: {
-  '$route.query'(q) {
-    const imei = (q.imei || '').toString().trim()
-    if (imei && imei !== this.imeiField) {
-      this.imeiField = imei
-      this.typeField  = typeof q.type  === 'string' ? q.type  : ''
-      this.multiField = typeof q.multi === 'string' ? q.multi : ''
-      this.onSearch()
+  watch: {
+    // 쿼리 변화로 진입했을 때(IMEI/type/multi) 재조회
+    '$route.query'(q) {
+      const nextImei  = (q.imei || '').toString().trim()
+      const nextType  = typeof q.type  === 'string' ? q.type  : ''
+      const nextMulti = typeof q.multi === 'string' ? q.multi : ''
+      const shouldReload =
+        (nextImei && nextImei !== this.imeiField) ||
+        (nextType  !== this.typeField) ||
+        (nextMulti !== this.multiField)
+
+      if (shouldReload) {
+        if (nextImei) this.imeiField = nextImei
+        this.typeField  = nextType
+        this.multiField = nextMulti
+        this.onSearch()
+      }
     }
-  }
-},
+  },
   methods: {
     fmt(v,d=0){ return v==null?'—':Number(v).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}) },
     dash(v){ return (v==null||v==='')?'-':`${v}` },
@@ -868,25 +878,32 @@ watch: {
       const params=new URLSearchParams({ rtuImei: imei, range })
       if(this.energyField) params.set('energy', this.energyField)
       if(this.typeField)   params.set('type', this.typeField)
-      if(this.multiField)  params.set('multi', this.multiField) // ★ 멀티 전달
+      if(this.multiField)  params.set('multi', this.multiField)
       if(withHourly)       params.set('detail', 'hourly')
       const r=await fetch(`/api/energy/electric/series?${params.toString()}`)
       if(!r.ok) throw new Error('데이터를 가져오지 못했습니다.')
       return r.json()
     },
 
-    // ▼ AnalysisTimeseries.vue와 동일한 소스에서 ‘오늘 시간대별’ 로딩
+    // 오늘 시간대별: /series(detail=hourly)로 통일
     async fetchHourlyLikeAT(){
       const imei=this.imeiField?.trim()
       if(!imei) return []
-      const params=new URLSearchParams({ rtuImei: imei, energy: this.energyField || '01' })
-      if (this.typeField) params.set('type', this.typeField)
-      const r = await fetch(`/api/energy/electric/hourly?${params.toString()}`)
+      const params=new URLSearchParams({
+        rtuImei: imei,
+        energy: this.energyField || '01',
+        range: 'weekly',
+        detail: 'hourly'
+      })
+      if (this.typeField)  params.set('type',  this.typeField)
+      if (this.multiField) params.set('multi', this.multiField)
+
+      const r = await fetch(`/api/energy/electric/series?${params.toString()}`)
       if(!r.ok) return []
       const j = await r.json()
-      const hours = Array.isArray(j?.hours) ? j.hours : []
-      return hours
-        .map(h => ({ hour: String(h.hour).padStart(2,'0'), kwh: (h.kwh==null?null:Number(h.kwh)) }))
+      const rows = j?.detail_hourly?.rows || []
+      return rows
+        .map(h => ({ hour: String(h.hour).slice(0,2).padStart(2,'0'), kwh: (h.kwh==null?null:Number(h.kwh)) }))
         .sort((a,b) => a.hour.localeCompare(b.hour))
     },
 
@@ -921,9 +938,11 @@ watch: {
     },
 
     async onSearch(){
-      const imei=this.imeiField?.trim(); if(!imei) return
+      const imei=this.imeiField?.trim(); if(!imei || this.searching) return
+      this.searching = true
       this.loading=true; this.errorMsg=''
       this.hasSearched = false;
+      const myReq = ++this.currentReqId
 
       // 초기화
       this.bars=[]; this.totalKwh=0; this.detailDay=''; this.detailRows=[]
@@ -932,12 +951,19 @@ watch: {
       this.kpis={ totalKwh:0,totalCo2:0,totalTrees:0 }
       this.avgEff=null
 
-      this.$router?.replace({ query:{
-        imei,
-        energy:this.energyField||undefined,
-        type:this.typeField||undefined,
-        multi:this.multiField||undefined
-      }})
+      // 라우터 쿼리: 변경 있을 때만 replace
+      try {
+        const cur = this.$route?.query || {}
+        const next = {
+          imei,
+          ...(this.energyField ? { energy: this.energyField } : {}),
+          ...(this.typeField   ? { type:   this.typeField   } : {}),
+          ...(this.multiField  ? { multi:  this.multiField  } : {}),
+        }
+        if (JSON.stringify(cur) !== JSON.stringify(next)) {
+          await this.$router.replace({ query: next })
+        }
+      } catch { /* no-op */ }
 
       try{
         //  주간(차트용) +  오늘 시간대별(표/일간 KPI용)
@@ -945,13 +971,14 @@ watch: {
           this.fetchRange('weekly', false),
           this.fetchHourlyLikeAT()
         ])
+        if (myReq !== this.currentReqId) return
 
         // 주간 차트
         this.bars=(weekly.series||[]).map(s=>({x:s.bucket,y:s.kwh}))
         this.totalKwh=round2(weekly.summary?.total_kwh ?? this.bars.reduce((a,c)=>a+(c.y||0),0))
         this.weekRangeUtc=weekly.range_utc||null
 
-        // 시간대별 상세정보: AnalysisTimeseries와 동일 소스 사용
+        // 시간대별 상세정보
         const kstToday = new Date().toLocaleDateString('sv-SE', { timeZone:'Asia/Seoul' }).replace(/\./g,'-')
         this.detailDay = kstToday
         this.detailRows = (hourly||[]).map(h => ({
@@ -967,6 +994,7 @@ watch: {
 
         // 시간대별 날씨 병합
         const wx = await this.fetchWeatherHourlyByImei()
+        if (myReq !== this.currentReqId) return
         if (wx.hourly.length){
           const wmap = new Map(wx.hourly.map(h => [ this.toHH(h.hour), h ]))
           this.detailRows = this.detailRows.map(r => {
@@ -979,6 +1007,7 @@ watch: {
         // 월간(일별) / 연간(YTD)
         const now=new Date(); const y=now.getFullYear(); const m=String(now.getMonth()+1).padStart(2,'0'); const ym=`${y}-${m}`
         const [monthly,yearly]=await Promise.all([ this.fetchRange('monthly'), this.fetchRange('yearly') ])
+        if (myReq !== this.currentReqId) return
 
         // 월간: 주차 집계
         this.monthRangeUtc=monthly.range_utc||null
@@ -1014,11 +1043,13 @@ watch: {
         this.errorMsg=e?.message||'오류가 발생했습니다.'
         console.error('[EnergyDashboard:onSearch]', e)
       } finally{
+        this.searching = false
         this.loading=false
       }
     },
 
     reset(){
+      if (this.searching) return
       this.imeiField=''
       this.regionField='yesan'
       this.energyField='01'
@@ -1030,7 +1061,7 @@ watch: {
       this.summary={capacity_kw:DUMMY_CAP_KW,today_kwh:0,month_kwh:0,year_kwh:0,co2_kg:0,trees:0,install_date:null,monitor_start:null}
       this.kpis={ totalKwh:0,totalCo2:0,totalTrees:0 }; this.avgEff=null
       this.hasSearched = false
-      this.$router?.replace({ query:{} })
+      this.$router?.replace({ query:{} }).catch(()=>{})
     },
 
     onBarEnter(chart, idx, evt){ this.updateTip(chart, idx, evt); this.tip.show = true },
@@ -1070,65 +1101,63 @@ watch: {
       if (this.downloading) return
       this.showDl = false
     },
-async doDownload () {
-  const imei = this.imeiField?.trim()
-  if (!imei) { alert('IMEI가 없습니다.'); return }
+    async doDownload () {
+      const imei = this.imeiField?.trim()
+      if (!imei) { alert('IMEI가 없습니다.'); return }
 
-  if (!this.dlYear || !this.dlMonth) {
-    alert('연/월을 선택해주세요.')
-    return
-  }
+      if (!this.dlYear || !this.dlMonth) {
+        alert('연/월을 선택해주세요.')
+        return
+      }
 
-  try {
-    this.downloading = true
-
-    const qs = new URLSearchParams({
-      imei,
-      year: String(this.dlYear),
-      month: String(this.dlMonth)
-    })
-    if (this.multiField) qs.set('multi', this.multiField) // ★ 멀티 전달
-
-    const url = `/api/export/month-csv?${qs.toString()}`
-    const resp = await fetch(url)
-
-    if (!resp.ok) {
-      let msg = `다운로드 실패 (HTTP ${resp.status})`
       try {
-        const j = await resp.json()
-        if (j && j.error) msg = j.error
-      } catch (_) { /* non-JSON 응답일 수 있음 */ }
-      throw new Error(msg)
-    }
+        this.downloading = true
 
-    const blob = await resp.blob()
+        const qs = new URLSearchParams({
+          imei,
+          year: String(this.dlYear),
+          month: String(this.dlMonth)
+        })
+        if (this.multiField) qs.set('multi', this.multiField)
 
-    // 파일명 추출 (헤더 우선)
-    let filename = `월별_${imei}_${this.dlYear}-${String(this.dlMonth).padStart(2,'0')}`
-    if (this.multiField) filename += `_multi-${this.multiField}`
-    filename += `.csv`
+        const url = `/api/export/month-csv?${qs.toString()}`
+        const resp = await fetch(url)
 
-    const cd = resp.headers.get('Content-Disposition') || ''
-    const m = cd.match(/filename\*=UTF-8''([^;]+)/i)
-    if (m && m[1]) filename = decodeURIComponent(m[1])
+        if (!resp.ok) {
+          let msg = `다운로드 실패 (HTTP ${resp.status})`
+          try {
+            const j = await resp.json()
+            if (j && j.error) msg = j.error
+          } catch (_) { /* non-JSON 응답일 수 있음 */ }
+          throw new Error(msg)
+        }
 
-    // 다운로드 트리거
-    const blobUrl = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = blobUrl
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    URL.revokeObjectURL(blobUrl)
+        const blob = await resp.blob()
 
-    this.showDl = false
-  } catch (e) {
-    alert(e?.message || '다운로드 중 오류가 발생했습니다.')
-  } finally {
-    this.downloading = false
-  }
-},
+        let filename = `월별_${imei}_${this.dlYear}-${String(this.dlMonth).padStart(2,'0')}`
+        if (this.multiField) filename += `_multi-${this.multiField}`
+        filename += `.csv`
+
+        const cd = resp.headers.get('Content-Disposition') || ''
+        const m = cd.match(/filename\*=UTF-8''([^;]+)/i)
+        if (m && m[1]) filename = decodeURIComponent(m[1])
+
+        const blobUrl = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = blobUrl
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(blobUrl)
+
+        this.showDl = false
+      } catch (e) {
+        alert(e?.message || '다운로드 중 오류가 발생했습니다.')
+      } finally {
+        this.downloading = false
+      }
+    },
 
     // 개발용 가드: 연간 ≥ 월간 ≥ 주간 확인
     assertAggregateOrder(){
