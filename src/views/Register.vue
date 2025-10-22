@@ -34,7 +34,7 @@
                   type="email"
                   inputmode="email"
                   autocomplete="username"
-                  placeholder="admin@company.com"
+                  placeholder="ex) test@test.com"
                   required
                   @blur="usernameTouched = true"
                   @keydown.space.prevent

@@ -1,168 +1,220 @@
 /* =========================================================================
-   Hi-REMS Login · Modern Minimal / login.css
-   - Register와 동일한 토큰/톤
-   - 배경 더 진하게 (opacity 0.45) + 베일은 살짝만
+   Hi-REMS Auth · Modern Minimal — Register (Refined)
+   - Single-line inputs (no double borders)
+   - Clear focus ring, better spacing & readability
+   - Consistent autofill, error states, mobile friendly (iOS zoom safe)
    ========================================================================== */
 
-/* ========== 토큰 ========== */
-:root{
-  --bg:#f6f7f9; --text:#0f172a; --muted:#606a75; --border:#e6e8ec;
-  --card-bg:rgba(255,255,255,.82); --card-blur:14px;
-  --pill-bg:#f2f4f7; --pill-text:#0f172a; --pill-border:#e6e8ec;
-  --brand:#10b981; --brand-600:#059669; --brand-700:#047857;
-  --danger:#ef4444; --warning:#f59e0b; --ok:#22c55e; --focus:#4f46e5;
-  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
-  --shadow-md:0 12px 32px rgba(15,23,42,.12);
-  --radius-lg:16px; --radius-md:12px; --radius-sm:10px;
-  --font:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,
-         Apple SD Gothic Neo,"맑은 고딕","Malgun Gothic","Helvetica Neue",
-         Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+/* ===== Tokens ===== */
+:root {
+  /* base */
+  --bg: #f6f7f9;
+  --text: #0f172a;
+  --muted: #606a75;
+  --border: #dfe3ea;
+
+  /* surfaces */
+  --card-bg: color-mix(in oklab, #fff 88%, transparent);
+  --elev-shadow: 0 8px 24px rgba(15, 23, 42, .10);
+
+  /* inputs */
+  --surface-1: color-mix(in oklab, #fff 86%, transparent);
+  --surface-err: color-mix(in oklab, #fee2e2 70%, #fff 30%);
+  --ring: #4f46e5;             /* focus ring (indigo) */
+  --ring-weak: color-mix(in oklab, var(--ring) 20%, transparent);
+  --error: #ef4444;
+  --ok: #10b981;
+
+  /* brand */
+  --brand: #10b981;
+  --brand-600: #059669;
+  --brand-700: #047857;
+
+  /* radius & shadows */
+  --r-lg: 16px; --r-md: 12px; --r-sm: 10px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow-md: 0 10px 28px rgba(15, 23, 42, .14);
+
+  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans,
+          Apple SD Gothic Neo, "맑은 고딕", "Malgun Gothic", "Helvetica Neue",
+          Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
-@media (prefers-color-scheme:dark){
+
+@media (prefers-color-scheme: dark) {
   :root{
     --bg:#0b0f16; --text:#e6eaf2; --muted:#9aa3af; --border:#202633;
-    --card-bg:rgba(20,26,36,.66); --card-blur:18px;
-    --pill-bg:#121821; --pill-text:#e6eaf2; --pill-border:#1e2633;
+    --card-bg: color-mix(in oklab, #111827 78%, transparent);
+    --surface-1: color-mix(in oklab, #0f172a 82%, transparent);
+    --surface-err: color-mix(in oklab, #3b0d0d 80%, #0f172a 20%);
+    --ring:#818cf8;
     --brand:#14b8a6; --brand-600:#0ea5a0; --brand-700:#0b8f8a;
-    --danger:#f87171; --warning:#fbbf24; --ok:#34d399; --focus:#818cf8;
-    --shadow-sm:0 1px 2px rgba(0,0,0,.22);
-    --shadow-md:0 12px 32px rgba(0,0,0,.35);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.22);
+    --shadow-md: 0 12px 32px rgba(0,0,0,.35);
   }
 }
 
-/* ========== 배경/쉘 ========== */
-.lp-shell{
-  position:relative; min-height:100dvh; overflow:hidden;
-  color:var(--text); font-family:var(--font);
-  background: radial-gradient(1200px 1200px at 60% -10%, rgba(16,185,129,.12), transparent 60%),
-              linear-gradient(180deg, var(--bg), var(--bg));
-}
-
-/* 배경 이미지 (컴포넌트 인라인에서 --lp-bg 주입) */
-.lp-shell::before{
-  content:""; position:fixed; inset:-4rem;
-  background-image: var(--lp-bg);
-  background-size:cover; background-position:50% 50%;
-  filter: saturate(1.1) contrast(1.1) brightness(0.8);
-  opacity: 0.65;
-  transform:scale(1.05); z-index:0;
-}
-.lp-shell::after{
-  content:""; position:fixed; inset:0; z-index:1;
+/* ===== Layout ===== */
+.auth{
+  --panel-w: min(560px, 92vw);
+  min-height:100dvh; color:var(--text); font-family:var(--font);
   background:
-    radial-gradient(800px 800px at 15% 20%, rgba(0,0,0,.15), transparent 60%),
-    linear-gradient(180deg, rgba(9,14,20,.12), rgba(9,14,20,.16)); /* 살짝만 */
+    radial-gradient(1200px 1200px at 60% -10%, rgba(16,185,129,.12), transparent 60%),
+    linear-gradient(180deg, var(--bg), var(--bg));
+  overflow:hidden; position:relative;
 }
+.auth::before{
+  content:""; position:fixed; inset:-4rem;
+  background-image:var(--auth-bg); background-size:cover; background-position:50% 50%;
+  filter:saturate(1.05) contrast(1.05) brightness(1); transform:scale(1.05);
+  z-index:0; opacity:.9;
+}
+.auth::after{
+  content:""; position:fixed; inset:0;
+  background:
+    radial-gradient(800px 800px at 15% 20%, rgba(0,0,0,.12), transparent 60%),
+    linear-gradient(180deg, rgba(9,14,20,.10), rgba(9,14,20,.12));
+  z-index:1;
+}
+.auth-inner{
+  position:relative; z-index:2;
+  display:grid; grid-template-columns:1fr minmax(0, var(--panel-w));
+  align-items:center; gap:clamp(24px, 4vw, 56px);
+  min-height:100dvh; max-width:1280px; margin:0 auto; padding:clamp(20px,4vw,36px);
+}
+.art-pad{ min-height:40vh; }
+.auth-panel{ display:grid; gap:18px; }
 
-/* ========== 레이아웃 ========== */
-.login-page{ position:relative; z-index:2; }
-.lp-hero{ padding:clamp(20px,6vw,56px) clamp(20px,4vw,36px) 0; }
-.lp-hero-inner{ max-width:1280px; margin:0 auto; }
-.lp-title{ font-size:clamp(26px,3.2vw,38px); line-height:1.15; letter-spacing:-.02em; font-weight:800; }
-.lp-sub{ margin-top:8px; color:var(--muted); font-size:clamp(13px,1.2vw,15.5px); line-height:1.6; }
+/* Platform head */
+.platform-head{ display:grid; gap:12px; margin-bottom:6px; }
+.hero-title{ font-size:clamp(26px,3.2vw,38px); line-height:1.15; letter-spacing:-.02em; font-weight:800; }
+.hero-sub{ font-size:clamp(13px,1.2vw,15.5px); color:var(--muted); line-height:1.6; }
 
-/* 배지는 제거(혹시 마크업 남아있으면 숨김) */
-.lp-badge{ display:none !important; }
-
-/* 일러스트(선택) */
-.lp-illustration{ position:relative; height:120px; margin-top:12px; }
-.lp-sun{ position:absolute; left:0; top:0; width:64px; height:64px; opacity:.9; }
-.lp-panel{ position:absolute; left:76px; top:18px; width:200px; height:auto; opacity:.9; filter:drop-shadow(0 4px 12px rgba(0,0,0,.18)); }
-.lp-wave{ position:absolute; left:0; right:0; bottom:-8px; width:100%; height:80px; fill:rgba(20,26,36,.08); }
-
-/* 카드(글라스) */
-.lp-card{
-  margin: clamp(16px,3.6vw,32px) auto clamp(28px,6vw,56px);
-  width:min(520px,92vw);
-  border-radius:var(--radius-lg);
+/* Card */
+.auth-card{
+  border-radius:var(--r-lg);
   background:var(--card-bg);
-  backdrop-filter: blur(var(--card-blur));
-  border:1px solid color-mix(in oklab, var(--border) 70%, transparent);
-  box-shadow:var(--shadow-md);
-  padding: clamp(18px,2.2vw,26px);
+  backdrop-filter:blur(14px);
+  border:1px solid color-mix(in oklab, var(--border) 74%, transparent);
+  box-shadow:var(--elev-shadow);
+  padding:clamp(18px,2.2vw,26px);
 }
-.lp-card-head h2{ font-size:20px; font-weight:800; letter-spacing:-.01em; }
-.lp-muted{ color:var(--muted); font-size:13.5px; }
+.cardc-hd{ margin-bottom:10px; }
+.cardc-hd h2{ font-size:20px; font-weight:800; letter-spacing:-.01em; }
+.cardc-hd .sub{ margin-top:6px; color:var(--muted); font-size:13.5px; line-height:1.6; }
 
-/* 폼 */
-.lp-form{ display:grid; gap:16px; margin-top:10px; }
-.lp-field{ display:grid; gap:8px; }
-.lp-field label{ font-size:13px; font-weight:700; color:var(--muted); }
+/* ===== Form ===== */
+.cardc-form{ display:grid; gap:16px; margin-top:8px; }
+.field{ display:grid; gap:8px; }
+.field label{ font-size:13px; font-weight:700; color:var(--muted); }
 
-/* 컨트롤(필) */
-.lp-control{
-  display:flex; align-items:center; gap:8px;
-  border-radius:999px; border:1px solid var(--pill-border);
-  background:var(--pill-bg); padding:10px 12px;
-  transition:border-color 170ms ease, box-shadow 170ms ease, background-color 170ms ease;
+/* --- Input capsule (single-line style) --- */
+.pill{
+  display:flex; align-items:center; gap:10px;
+  border-radius:999px;
+  /* 핵심: 기본 테두리는 투명, 그림자만 사용 → double border 방지 */
+  border:1px solid transparent;
+  background:var(--surface-1);
+  padding:12px 14px;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 60%, transparent);
+  transition: box-shadow .18s ease, background-color .18s ease, transform .12s ease;
 }
-.lp-control:focus-within{
-  border-color: color-mix(in oklab, var(--focus) 70%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 16%, transparent);
+.pill:focus-within{
+  /* 내부 가이드라인 제거하고 외곽 포커스 링만 */
+  box-shadow:
+    0 0 0 4px var(--ring-weak),
+    inset 0 0 0 1px color-mix(in oklab, var(--ring) 60%, transparent);
 }
-.lp-icon{ font-size:14px; opacity:.85; }
-.lp-control input{
-  flex:1 1 auto; min-width:0; border:0; outline:0; background:transparent;
-  color:var(--pill-text); font-size:15px; line-height:1.4; padding:2px;
+.pill.error{
+  background:var(--surface-err);
+  box-shadow:
+    0 0 0 4px color-mix(in oklab, var(--error) 20%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--error) 78%, transparent);
 }
-.lp-control input::placeholder{ color: color-mix(in oklab, var(--muted) 70%, transparent); }
+.pill input{
+  flex:1 1 auto; min-width:0;
+  border:0; outline:none; background:transparent;
+  color:var(--text);
+  font-size:16px; /* iOS zoom 방지 */
+  line-height:1.4; padding:2px;
+}
+.pill input::placeholder{ color:color-mix(in oklab, var(--muted) 70%, transparent); }
 
-/* 비번 보기 토글 */
-.lp-ghost{
+/* Show/Hide button */
+.pill-action{
   border:0; background:transparent; color:var(--brand);
-  font-weight:700; font-size:13px; padding:6px 8px; border-radius:8px; cursor:pointer;
-  transition:transform 150ms ease, background-color 150ms ease;
+  font-weight:700; font-size:13px; padding:6px 8px; border-radius:8px;
+  cursor:pointer; transition: transform .15s ease, background-color .15s ease;
 }
-.lp-ghost:hover{ background: color-mix(in oklab, var(--brand) 12%, transparent); transform: translateY(-1px); }
-.lp-ghost:active{ transform: translateY(0); }
+.pill-action:hover{ background:color-mix(in oklab, var(--brand) 12%, transparent); transform:translateY(-1px); }
+.pill-action:active{ transform:translateY(0); }
 
-/* 도움 텍스트 */
-.lp-assist{ margin-top:6px; font-size:12.5px; }
-.lp-warn{ color:var(--warning); }
+/* Autofill (Chrome/Edge) → input과 동일 배경/텍스트 유지 */
+.pill input:-webkit-autofill,
+.pill input:-webkit-autofill:hover,
+.pill input:-webkit-autofill:focus{
+  -webkit-text-fill-color:var(--text);
+  box-shadow:0 0 0 1000px var(--surface-1) inset !important;
+  transition:background-color 9999s ease-in-out 0s;
+  caret-color:var(--text);
+}
 
-/* 버튼 */
-.lp-primary{
+/* Password strength */
+.pw-strength{ height:6px; background:color-mix(in oklab, var(--border) 70%, transparent);
+  border-radius:999px; overflow:hidden; margin-top:6px; }
+.pw-strength.slim{ height:4px; }
+.pw-strength .bar{ height:100%; width:0%; background:linear-gradient(90deg, #ef4444, #f59e0b 40%, var(--ok)); transition:width .26s ease; }
+
+/* Errors */
+.pw-errors.compact{
+  margin-top:8px; padding-left:18px; color:var(--muted);
+  font-size:12.5px; line-height:1.5; list-style:disc;
+}
+.pw-error-text{ margin-top:6px; font-size:12.5px; color:var(--error); }
+
+/* CTA */
+.btn-teal{
   display:inline-flex; align-items:center; justify-content:center; gap:10px;
   width:100%; border:0; border-radius:12px; padding:12px 16px;
-  background:var(--brand); color:#fff; font-weight:800; font-size:15px; letter-spacing:.02em; cursor:pointer;
-  box-shadow:0 10px 20px color-mix(in oklab, var(--brand) 30%, transparent);
-  transition:transform 160ms ease, filter 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  background:var(--brand); color:#fff; font-weight:800; font-size:15px; letter-spacing:.02em;
+  cursor:pointer; box-shadow:0 10px 20px color-mix(in oklab, var(--brand) 30%, transparent);
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease, background-color .16s ease;
 }
-.lp-primary:hover{ transform:translateY(-1px); background:var(--brand-600); box-shadow:0 14px 28px color-mix(in oklab, var(--brand) 34%, transparent); }
-.lp-primary:active{ transform:translateY(0); background:var(--brand-700); }
-.lp-primary:disabled{ opacity:.65; cursor:not-allowed; filter:grayscale(.15); transform:none; box-shadow:none; }
+.btn-teal:hover{ transform:translateY(-1px); background:var(--brand-600);
+  box-shadow:0 14px 28px color-mix(in oklab, var(--brand) 34%, transparent); }
+.btn-teal:active{ transform:translateY(0); background:var(--brand-700); }
+.btn-teal:disabled{ opacity:.65; cursor:not-allowed; filter:grayscale(.15); transform:none; box-shadow:none; }
 
-/* 스피너 */
-.lp-spinner{
-  --s:18px; width:var(--s); height:var(--s); border-radius:50%;
-  border:2.5px solid rgba(255,255,255,.45); border-top-color:#fff;
-  animation: lp-spin .8s linear infinite;
-}
-@keyframes lp-spin{ to{ transform:rotate(360deg); } }
+/* Spinner */
+.spinner{ --s:18px; width:var(--s); height:var(--s);
+  border-radius:50%; border:2.5px solid rgba(255,255,255,.45); border-top-color:#fff;
+  animation:spin .8s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg) } }
 
-/* 에러/풋터 */
-.lp-alert{
-  margin-top:6px; font-size:13px; color:var(--danger);
-  background: color-mix(in oklab, var(--danger) 12%, transparent);
-  border:1px solid color-mix(in oklab, var(--danger) 40%, transparent);
-  padding:10px 12px; border-radius:12px;
-}
-.lp-foot{ color:var(--muted); font-size:13px; text-align:center; }
-.lp-foot a{ color:var(--brand); font-weight:800; text-decoration:none; }
-.lp-foot a:hover{ text-decoration:underline; }
-.lp-card-foot{ margin-top:6px; text-align:center; }
+/* Foot */
+.foot{ color:var(--muted); font-size:13px; text-align:center; }
+.foot a{ color:var(--brand); font-weight:800; text-decoration:none; }
+.foot a:hover{ text-decoration:underline; }
+.mt8{ margin-top:8px; }
 
-/* 포커스 접근성 */
+/* Focus accessibility (only ring; no extra border) */
 :where(button,[role="button"],a,input){ outline:none; }
 :where(button,[role="button"],a,input):focus-visible{
-  box-shadow:0 0 0 4px color-mix(in oklab, var(--focus) 20%, transparent),
-             0 0 0 1.5px color-mix(in oklab, var(--focus) 70%, transparent);
+  box-shadow:0 0 0 4px var(--ring-weak), 0 0 0 1.5px color-mix(in oklab, var(--ring) 70%, transparent);
   border-radius:10px;
 }
 
-/* 반응형 */
+/* ===== Responsive ===== */
 @media (max-width:1024px){
-  .lp-illustration{ display:none; }
-  .lp-card{ margin-top: clamp(20px, 8vw, 40px); }
+  .auth-inner{ grid-template-columns:1fr; align-items:start;
+    padding-top:clamp(28px, 6vw, 56px); padding-bottom:clamp(28px, 6vw, 56px); }
+  .art-pad{ display:none; }
+  .auth-panel{ margin-inline:auto; width:min(640px, 92vw); }
 }
-@media (prefers-reduced-motion:reduce){ *{ animation:none !important; transition:none !important; } }
+@media (max-width:480px){
+  .auth-card{ padding:16px; }
+}
+
+/* Motion reduce */
+@media (prefers-reduced-motion: reduce){
+  *{ animation:none !important; transition:none !important; }
+}

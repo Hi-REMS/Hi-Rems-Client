@@ -535,7 +535,7 @@ const DUMMY_CAP_KW = 3;
 const SKY_LABEL = { '1':'맑음', '3':'구름많음', '4':'흐림' };
 const PTY_LABEL = { '0':'없음','1':'비','2':'비/눈','3':'눈','5':'빗방울','6':'빗방울/눈날림','7':'눈날림' };
 
-const DEFAULT_IMEI = '03-58-48-00-70-54-06-06';
+const DEFAULT_IMEI = '';
 const round2 = v => Math.round(v * 100) / 100;
 
 export default {
@@ -940,7 +940,7 @@ watch: {
       }})
 
       try{
-        // 1) 주간(차트용) + 2) 오늘 시간대별(표/일간 KPI용)
+        //  주간(차트용) +  오늘 시간대별(표/일간 KPI용)
         const [weekly, hourly] = await Promise.all([
           this.fetchRange('weekly', false),
           this.fetchHourlyLikeAT()
@@ -965,7 +965,7 @@ watch: {
         this.summary.today_kwh = round2(todaySum)
         this.avgEff=13.9
 
-        // 3) 시간대별 날씨 병합
+        // 시간대별 날씨 병합
         const wx = await this.fetchWeatherHourlyByImei()
         if (wx.hourly.length){
           const wmap = new Map(wx.hourly.map(h => [ this.toHH(h.hour), h ]))
@@ -976,7 +976,7 @@ watch: {
           })
         }
 
-        // 4) 월간(일별) / 연간(YTD)
+        // 월간(일별) / 연간(YTD)
         const now=new Date(); const y=now.getFullYear(); const m=String(now.getMonth()+1).padStart(2,'0'); const ym=`${y}-${m}`
         const [monthly,yearly]=await Promise.all([ this.fetchRange('monthly'), this.fetchRange('yearly') ])
 
@@ -1033,7 +1033,6 @@ watch: {
       this.$router?.replace({ query:{} })
     },
 
-    /* 툴팁 */
     onBarEnter(chart, idx, evt){ this.updateTip(chart, idx, evt); this.tip.show = true },
     onBarMove(chart, idx, evt){ this.updateTip(chart, idx, evt) },
     onBarLeave(){ this.tip.show = false },

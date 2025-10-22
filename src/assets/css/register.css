@@ -7,7 +7,6 @@
 
 /* ========== 리셋 & 토큰 ========== */
 :root {
-  /* 색상 토큰 (라이트 기본) */
   --bg: #f6f7f9;
   --text: #0f172a;
   --muted: #606a75;
@@ -16,11 +15,11 @@
   --card-bg: rgba(255, 255, 255, 0.82);
   --card-blur: 14px;
 
-  --pill-bg: #f2f4f7;
+  --pill-bg: var(--card-bg);
   --pill-text: #0f172a;
   --pill-border: #e6e8ec;
 
-  --brand: #10b981;         /* teal-500 */
+  --brand: #10b981;
   --brand-600: #059669;
   --brand-700: #047857;
 
@@ -28,7 +27,7 @@
   --warning: #f59e0b;
   --ok: #22c55e;
 
-  --focus: #4f46e5;         /* indigo focus ring */
+  --focus: #4f46e5;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.12);
   --radius-lg: 16px;
@@ -50,11 +49,11 @@
     --card-bg: rgba(20, 26, 36, 0.66);
     --card-blur: 18px;
 
-    --pill-bg: #121821;
+    --pill-bg: var(--card-bg);
     --pill-text: #e6eaf2;
     --pill-border: #1e2633;
 
-    --brand: #14b8a6;       /* teal-500 a bit brighter */
+    --brand: #14b8a6;
     --brand-600: #0ea5a0;
     --brand-700: #0b8f8a;
 
@@ -68,7 +67,6 @@
   }
 }
 
-/* ========== 레이아웃 ========== */
 
 .auth {
   --hero-w: min(720px, 46vw);
@@ -119,19 +117,15 @@
   padding: clamp(20px, 4vw, 36px);
 }
 
-/* 왼쪽 아트 공간 (지구본 등 비주얼을 가정) */
 .art-pad {
   min-height: 40vh;
 }
-
-/* ========== 우측 패널 ========== */
 
 .auth-panel {
   display: grid;
   gap: 18px;
 }
 
-/* 플랫폼 헤더 (브랜드, 제목, 서브) */
 .platform-head {
   display: grid;
   gap: 12px;
@@ -174,7 +168,6 @@
   line-height: 1.6;
 }
 
-/* ========== 카드 (글라스) ========== */
 
 .auth-card {
   position: relative;
@@ -203,7 +196,6 @@
   line-height: 1.6;
 }
 
-/* ========== 폼 ========== */
 
 .cardc-form {
   display: grid;
@@ -222,7 +214,6 @@
   color: var(--muted);
 }
 
-/* 입력 컨테이너(필) */
 .pill {
   display: flex;
   align-items: center;
@@ -239,7 +230,6 @@
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 16%, transparent);
 }
 
-/* 에러 상태 */
 .pill.error {
   border-color: color-mix(in oklab, var(--danger) 70%, transparent);
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--danger) 16%, transparent);
@@ -261,7 +251,6 @@
   color: color-mix(in oklab, var(--muted) 70%, transparent);
 }
 
-/* 비밀번호 표시 버튼 */
 .pill-action {
   border: 0;
   background: transparent;
@@ -280,7 +269,6 @@
 }
 .pill-action:active { transform: translateY(0); }
 
-/* 비밀번호 강도 바 */
 .pw-strength {
   height: 6px;
   background: color-mix(in oklab, var(--border) 70%, transparent);
@@ -298,7 +286,6 @@
   transition: width 260ms ease;
 }
 
-/* 에러 메시지 */
 .pw-errors.compact {
   margin-top: 8px;
   padding-left: 18px;
@@ -313,7 +300,6 @@
   color: var(--danger);
 }
 
-/* 체크/링크/행 */
 .row-between {
   display: flex;
   align-items: center;
@@ -339,7 +325,6 @@
 }
 .link:hover { text-decoration: underline; }
 
-/* 제출 버튼 */
 .btn-teal {
   display: inline-flex;
   align-items: center;
@@ -376,7 +361,6 @@
   box-shadow: none;
 }
 
-/* 로딩 스피너 (버튼 내부) */
 .spinner {
   --s: 18px;
   width: var(--s); height: var(--s);
@@ -387,7 +371,6 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* 푸터 텍스트 */
 .foot {
   color: var(--muted);
   font-size: 13px;
@@ -402,7 +385,6 @@
 
 .mt8 { margin-top: 8px; }
 
-/* ========== 포커스 접근성 ========== */
 
 :where(button, [role="button"], a, input) {
   outline: none;
@@ -413,7 +395,6 @@
   border-radius: 10px;
 }
 
-/* ========== 반응형 ========== */
 
 @media (max-width: 1024px) {
   .auth-inner {
@@ -432,7 +413,34 @@
   .auth-card { padding: 16px; }
 }
 
-/* ========== 모션 제어 ========== */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+}
+
+.auth-card .pill input,
+.auth-card .pill select,
+.auth-card .pill textarea {
+  border: 0 !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+
+.auth-card .pill:focus-within {
+  border-color: color-mix(in oklab, var(--focus) 70%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--focus) 16%, transparent);
+}
+
+.auth-card .pill input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--pill-bg) inset !important;
+  -webkit-text-fill-color: var(--pill-text) !important;
+  caret-color: var(--pill-text) !important;
+}
+
+.auth-card .pill input::-webkit-contacts-auto-fill-button,
+.auth-card .pill input::-webkit-credentials-auto-fill-button {
+  visibility: hidden; pointer-events: none; position: absolute; right: 0;
 }

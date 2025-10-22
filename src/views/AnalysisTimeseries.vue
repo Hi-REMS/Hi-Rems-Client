@@ -181,7 +181,22 @@
 
       <!-- ▼ 설비정보 -->
       <article class="card col-3">
-        <div class="card-hd"><h3>설비정보</h3></div>
+        <div class="card-hd">
+          <h3>설비정보</h3>
+          <div class="card-actions">
+            <button
+              v-if="imeiUse && !hasFacility"
+              class="btn primary sm"
+              @click="openFacilityEditor(false)"
+            >설비정보 등록</button>
+            <button
+              v-if="imeiUse && hasFacility"
+              class="btn ghost sm"
+              @click="openFacilityEditor(true)"
+            >수정</button>
+          </div>
+        </div>
+
         <div class="facility-card">
           <div v-if="facilityInfo.image" class="facility-img">
             <img :src="facilityInfo.image" :alt="facilityInfo.projectName || '설비 이미지'"/>
@@ -200,7 +215,6 @@
 
     <!-- BOTTOM GRID -->
     <section class="row">
-      <!-- 운전이력 -->
       <article class="card col-9">
         <div class="card-hd">
           <h3>운전이력</h3>
@@ -272,7 +286,6 @@
         </div>
       </article>
 
-      <!-- ▼ 효율지표 -->
       <article class="card col-3">
         <div class="card-hd"><h3>효율지표</h3></div>
         <div class="gauges">
@@ -310,8 +323,16 @@
         </ul>
       </article>
 
+      <!-- ▼ 유지보수 -->
       <article class="card col-3">
-        <div class="card-hd"><h3>유지보수</h3></div>
+        <div class="card-hd">
+          <h3>유지보수</h3>
+          <div class="card-actions">
+            <button class="btn ghost sm" :disabled="!imeiUse" @click="openMaintModal">
+              수정
+            </button>
+          </div>
+        </div>
         <ul class="kv">
           <li>
             <span>마지막 점검</span>
@@ -325,14 +346,14 @@
       </article>
 
       <article class="card col-3">
-<router-link class="qa-card" :to="dashboardTo" :aria-disabled="!imeiForLink">
-  <div class="qa-icon">⚡</div>
-  <div class="qa-main">
-    <div class="qa-title">발전량 모니터링</div>
-    <div class="qa-desc">누적 · 일간 · 주간 · 연간 데이터</div>
-  </div>
-  <span class="qa-arrow">›</span>
-</router-link>
+        <router-link class="qa-card" :to="dashboardTo" :aria-disabled="!imeiForLink">
+          <div class="qa-icon">⚡</div>
+          <div class="qa-main">
+            <div class="qa-title">발전량 모니터링</div>
+            <div class="qa-desc">누적 · 일간 · 주간 · 연간 데이터</div>
+          </div>
+          <span class="qa-arrow">›</span>
+        </router-link>
       </article>
     </section>
 
@@ -341,13 +362,121 @@
       <div class="spinner-neo"></div>
       <div class="loading-text">불러오는 중…</div>
     </div>
+
+    <!-- 설비정보 입력/수정 모달 -->
+    <div
+      v-if="showFacilityEditor"
+      class="ats-modal"
+      role="dialog"
+      aria-modal="true"
+      @keydown.esc.prevent.stop="closeFacilityEditor"
+    >
+      <div class="ats-modal__backdrop" @click="closeFacilityEditor"></div>
+      <div class="ats-modal__panel" role="document" @click.stop>
+        <header class="ats-modal__hd">
+          <h3>{{ editingFacility ? '설비정보 수정' : '설비정보 등록' }}</h3>
+          <button class="btn ghost sm" @click="closeFacilityEditor">닫기</button>
+        </header>
+
+        <form class="ats-form" @submit.prevent="saveFacility">
+          <label class="ats-field">
+            <span>RTU IMEI</span>
+            <input class="input" type="text" :value="imeiUse" disabled />
+          </label>
+
+          <label class="ats-field">
+            <span>모듈 용량</span>
+            <input class="input" v-model.trim="facilityForm.module_capacity" placeholder="예) 100 kWp" />
+          </label>
+
+          <label class="ats-field">
+            <span>설치일</span>
+            <input class="input" v-model.trim="facilityForm.install_date" placeholder="YYYY-MM-DD" />
+          </label>
+
+          <label class="ats-field">
+            <span>모니터링 시작</span>
+            <input class="input" v-model.trim="facilityForm.monitor_start" placeholder="YYYY-MM-DD" />
+          </label>
+
+          <label class="ats-field">
+            <span>사업명</span>
+            <input class="input" v-model.trim="facilityForm.project_name" />
+          </label>
+
+          <label class="ats-field">
+            <span>시공사</span>
+            <input class="input" v-model.trim="facilityForm.contractor" />
+          </label>
+
+          <label class="ats-field">
+            <span>A/S 연락처</span>
+            <input class="input" v-model.trim="facilityForm.as_contact" placeholder="예) 010-1234-5678" />
+          </label>
+
+          <label class="ats-field">
+            <span>이미지 URL</span>
+            <input class="input" v-model.trim="facilityForm.image_url" placeholder="https://..." />
+          </label>
+
+          <div class="ats-modal__actions">
+            <button type="button" class="btn ghost" @click="closeFacilityEditor">취소</button>
+            <button type="submit" class="btn primary" :disabled="savingFacility">
+              <span v-if="!savingFacility">저장</span>
+              <span v-else class="btn-spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 유지보수 입력/수정 모달 -->
+    <div
+      v-if="maintModal.open"
+      class="ats-modal"
+      role="dialog"
+      aria-modal="true"
+      @keydown.esc.prevent.stop="closeMaintModal"
+    >
+      <div class="ats-modal__backdrop" @click="closeMaintModal"></div>
+      <div class="ats-modal__panel" role="document" @click.stop>
+        <header class="ats-modal__hd">
+          <h3>유지보수 정보</h3>
+          <button class="btn ghost sm" @click="closeMaintModal">닫기</button>
+        </header>
+
+        <form class="ats-form" @submit.prevent="saveMaintenance">
+          <label class="ats-field">
+            <span>RTU IMEI</span>
+            <input class="input" type="text" :value="imeiUse" disabled />
+          </label>
+
+          <label class="ats-field">
+            <span>마지막 점검</span>
+            <input class="input" type="date" v-model="maintForm.lastInspection" />
+          </label>
+
+          <label class="ats-field" style="grid-column:1 / -1;">
+            <span>A/S 특이사항</span>
+            <textarea class="input" rows="5" v-model.trim="maintForm.asNotes" placeholder="메모/특이사항을 입력하세요."></textarea>
+          </label>
+
+          <div class="ats-modal__actions">
+            <button type="button" class="btn ghost" @click="closeMaintModal">취소</button>
+            <button type="submit" class="btn primary" :disabled="maintModal.saving">
+              <span v-if="!maintModal.saving">저장</span>
+              <span v-else class="btn-spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { api } from '@/api'
 import '@/assets/css/analysis-timeseries.css';
-import facilitySample from '@/assets/sampleimage.jpg';
 
 const DEFAULT_IMEI = '';
 
@@ -391,7 +520,7 @@ export default {
       latestCollectedAt: null,
 
       loading: false,
-      controllers: { kpis:null, latest:null, hourly:null, driver:null, weather:null },
+      controllers: { kpis:null, latest:null, hourly:null, driver:null, weather:null, facility:null, maintenance:null },
 
       currentReqId: 0,
 
@@ -407,6 +536,7 @@ export default {
       envWindMs: null,
 
       maintenance: { lastInspection: null, asNotes: null },
+
       facilityInfo: {
         moduleCapacity: null,
         installDate: null,
@@ -416,6 +546,23 @@ export default {
         asContact: null,
         image: null,
       },
+
+      showFacilityEditor: false,
+      editingFacility: false,
+      savingFacility: false,
+      facilityForm: {
+        module_capacity: '',
+        install_date: '',
+        monitor_start: '',
+        project_name: '',
+        contractor: '',
+        as_contact: '',
+        image_url: '',
+      },
+
+      // 유지보수 모달/폼
+      maintModal: { open: false, saving: false },
+      maintForm: { lastInspection: '', asNotes: '' },
     }
   },
   computed: {
@@ -455,18 +602,16 @@ export default {
       return arr;
     },
     bars () {
-      const res = [];
-      if (!this.series.length) return res;
-      for (let i = 0; i < this.series.length; i++) {
-        const item = this.series[i];
+      if (!this.series.length) return [];
+      return this.series.map((item, i) => {
         const kw = item.kw || 0;
         const xCenter = this.pad.l + i * this.stepW + this.stepW / 2;
-        const w = this.barW, x = xCenter - w / 2;
+        const w = this.barW;
+        const x = xCenter - w / 2;
         const y = this.yKwToY(kw);
         const h = (this.pad.t + this.inner.h) - y;
-        res.push({ x, y, w, h, kw, xCenter, rawNull: item.rawNull });
-      }
-      return res;
+        return { x, y, w, h, kw, xCenter, rawNull: item.rawNull };
+      });
     },
     linePath () {
       if (!this.bars.length) return '';
@@ -554,20 +699,22 @@ export default {
       if (typeof m.systemVoltage === 'number') return Math.round(m.systemVoltage);
       return null;
     },
-      imeiForLink () {
-    // 검색해서 확정된 값(imeiUse)이 있으면 우선, 없으면 입력/쿼리 값 사용
-    const qImei = (this.$route?.query?.imei || '').trim()
-    return (this.imeiUse || this.imeiField || qImei || '').trim()
-  },
-  dashboardTo () {
-    const imei = this.imeiForLink
-    const q = {}
-    if (imei) q.imei = imei
-    if (this.energyField) q.energy = this.energyField      // 예: '01'
-    if (this.typeField)   q.type   = this.typeField        // '01' | '02'
-    if (this.selectedMulti) q.multi = this.selectedMulti   // 선택된 멀티가 있으면
-    return { name: 'EnergyDashboard', query: q }
-  }
+    imeiForLink () {
+      const qImei = (this.$route?.query?.imei || '').trim()
+      return (this.imeiUse || this.imeiField || qImei || '').trim()
+    },
+    dashboardTo () {
+      const imei = this.imeiForLink
+      const q = {}
+      if (imei) q.imei = imei
+      if (this.energyField) q.energy = this.energyField
+      if (this.typeField)   q.type   = this.typeField
+      if (this.selectedMulti) q.multi = this.selectedMulti
+      return { name: 'EnergyDashboard', query: q }
+    },
+    hasFacility () {
+      return !!(this.facilityInfo.moduleCapacity || this.facilityInfo.projectName || this.facilityInfo.contractor || this.facilityInfo.asContact || this.facilityInfo.image)
+    }
   },
 
   watch: {
@@ -667,15 +814,7 @@ export default {
       this.envWindMs = null;
 
       this.maintenance = { lastInspection: null, asNotes: null };
-      this.facilityInfo = {
-        moduleCapacity: null,
-        installDate: null,
-        monitorStart: null,
-        projectName: null,
-        contractor: null,
-        asContact: null,
-        image: null,
-      };
+      this.facilityInfo = this.emptyFacilityInfo();
     },
 
     resetAll () {
@@ -728,8 +867,6 @@ export default {
       }
 
       this.clearForLoading();
-      this.maintenance  = this.genDummyMaintenance(imei);
-      this.facilityInfo = this.genDummyFacility();
       this.loadAll();
     },
 
@@ -747,6 +884,8 @@ export default {
       this.loadLatest(myReq).catch(() => {});
       this.loadDriverUnits(myReq).catch(() => {});
       this.loadWeather(myReq).catch(() => {});
+      this.loadFacility(myReq).catch(() => {});
+      this.loadMaintenance(myReq).catch(() => {});
     },
 
     // KPI
@@ -896,6 +1035,153 @@ export default {
       }
     },
 
+    // 설비정보
+    async loadFacility (reqId) {
+      if (!this.imeiUse) return;
+      const url = `/api/facility?rtuImei=${encodeURIComponent(this.imeiUse)}`;
+      const r = await fetch(url, this.fopts('facility'));
+      if (!r.ok) { this.facilityInfo = this.emptyFacilityInfo(); return; }
+      if (reqId && reqId !== this.currentReqId) return;
+      const j = await r.json();
+      const it = j?.item || null;
+      if (!it) { this.facilityInfo = this.emptyFacilityInfo(); return; }
+
+      this.facilityInfo = {
+        moduleCapacity: it.module_capacity || null,
+        installDate: it.install_date ? this.toDateStr(it.install_date) : null,
+        monitorStart: it.monitor_start ? this.toDateStr(it.monitor_start) : null,
+        projectName: it.project_name || null,
+        contractor: it.contractor || null,
+        asContact: it.as_contact || null,
+        image: it.image_url || null,
+      };
+    },
+    emptyFacilityInfo() {
+      return {
+        moduleCapacity: null,
+        installDate: null,
+        monitorStart: null,
+        projectName: null,
+        contractor: null,
+        asContact: null,
+        image: null,
+      };
+    },
+    toDateStr (v) {
+      try {
+        const d = new Date(v);
+        if (isNaN(d.getTime())) return null;
+        return d.toISOString().slice(0,10);
+      } catch { return null; }
+    },
+
+    openFacilityEditor (isEdit) {
+      this.editingFacility = !!isEdit;
+      this.facilityForm = {
+        module_capacity: this.facilityInfo.moduleCapacity || '',
+        install_date: this.facilityInfo.installDate || '',
+        monitor_start: this.facilityInfo.monitorStart || '',
+        project_name: this.facilityInfo.projectName || '',
+        contractor: this.facilityInfo.contractor || '',
+        as_contact: this.facilityInfo.asContact || '',
+        image_url: this.facilityInfo.image || '',
+      };
+      this.showFacilityEditor = true;
+      this.$nextTick(() => {
+        const el = document.querySelector('.ats-modal__panel input:not([disabled])');
+        el && el.focus();
+      });
+    },
+    closeFacilityEditor () {
+      if (this.savingFacility) return;
+      this.showFacilityEditor = false;
+    },
+    async saveFacility () {
+      if (!this.imeiUse) return;
+      try {
+        this.savingFacility = true;
+        const url = `/api/facility/${encodeURIComponent(this.imeiUse)}`;
+        const r = await fetch(url, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(this.facilityForm),
+        });
+        if (!r.ok) {
+          const msg = (await r.json().catch(()=>({message:''}))).message || '저장 실패';
+          alert(msg);
+          return;
+        }
+        this.showFacilityEditor = false;
+        await this.loadFacility(this.currentReqId);
+        alert('저장되었습니다.');
+      } catch (e) {
+        alert('저장 중 오류가 발생했습니다.');
+      } finally {
+        this.savingFacility = false;
+      }
+    },
+
+    // 유지보수: 조회/모달/저장
+    async loadMaintenance (reqId) {
+      if (!this.imeiUse) return;
+      try {
+        const url = `/api/maintenance?rtuImei=${encodeURIComponent(this.imeiUse)}`;
+        const r = await fetch(url, this.fopts('maintenance'));
+        if (!r.ok) return;
+        if (reqId && reqId !== this.currentReqId) return;
+        const j = await r.json();
+        const it = j?.item || {};
+        this.maintenance = {
+          lastInspection: it?.lastInspection || null,
+          asNotes: it?.asNotes || null
+        };
+      } catch (_) {}
+    },
+    openMaintModal () {
+      if (!this.imeiUse) return;
+      this.maintForm.lastInspection = this.maintenance.lastInspection || '';
+      this.maintForm.asNotes = this.maintenance.asNotes || '';
+      this.maintModal.open = true;
+      this.$nextTick(()=> {
+        const el = document.querySelector('.ats-modal__panel input[type="date"]');
+        el && el.focus();
+      });
+    },
+    closeMaintModal () {
+      if (this.maintModal.saving) return;
+      this.maintModal.open = false;
+    },
+    async saveMaintenance () {
+      if (!this.imeiUse || this.maintModal.saving) return;
+      this.maintModal.saving = true;
+      try {
+        const body = {
+          lastInspection: this.maintForm.lastInspection || null,
+          asNotes: this.maintForm.asNotes || null,
+        };
+        const r = await fetch(`/api/maintenance/${encodeURIComponent(this.imeiUse)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(body)
+        });
+        if (!r.ok) {
+          const t = await r.text().catch(()=> '');
+          throw new Error(t || 'save failed');
+        }
+        // 화면 갱신
+        this.maintenance.lastInspection = body.lastInspection || null;
+        this.maintenance.asNotes = body.asNotes || null;
+        this.maintModal.open = false;
+        alert('유지보수 정보가 저장되었습니다.');
+      } catch (e) {
+        alert('유지보수 저장 실패: ' + (e?.message || e));
+      } finally {
+        this.maintModal.saving = false;
+      }
+    },
+
     onSelectUnit (multiHex) {
       this.selectedMulti = (this.selectedMulti === multiHex) ? null : multiHex;
       this.loadHourly(this.currentReqId).catch(()=>{});
@@ -987,40 +1273,6 @@ export default {
       }
       return row?.weather || row?.condition || null;
     },
-
-    genDummyMaintenance(imei) {
-      const seed = (imei || 'NA').split('')
-        .reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 0);
-      const rand = (n) => {
-        let x = (seed || 1) + n * 101;
-        x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
-        return (x >>> 0) / 0xffffffff;
-      };
-      const daysAgo = Math.floor(rand(1) * 90);
-      const d = new Date();
-      d.setDate(d.getDate() - daysAgo);
-      const lastInspection = d.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
-
-      const notesPool = [
-        '이상 없음','인버터 팬 청소','DC 단자 체결 재점검','인버터 내부 먼지 제거',
-        'PV 스트링 절연 점검','펌웨어 점검 및 업데이트','통신 모뎀 재부팅 조치','누설전류 감지 센서 확인',
-      ];
-      const idx = Math.floor(rand(2) * notesPool.length);
-      const asNotes = notesPool[idx];
-      return { lastInspection, asNotes };
-    },
-
-    genDummyFacility() {
-      return {
-        moduleCapacity: '3kW',
-        installDate: '2024-05-23',
-        monitorStart: '2024-12-31',
-        projectName: '2024 양산시 융복합지원사업',
-        contractor: '(주)선한이엔지',
-        asContact: '1800-5133',
-        image: facilitySample,
-      };
-    },
   },
 
   mounted () {
@@ -1035,3 +1287,36 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+/* ====== 모달(네임스페이스: ats-) ====== */
+.ats-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999}
+.ats-modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:saturate(120%) blur(2px)}
+.ats-modal__panel{
+  position:relative;
+  width:min(680px, 92vw);
+  max-height:calc(100vh - 10vh);
+  overflow:auto;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 20px 44px rgba(0,0,0,.22);
+  padding:16px 16px 12px;
+  z-index:1;
+}
+.ats-modal__hd{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 10px}
+.ats-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ats-field{display:flex;flex-direction:column;gap:6px}
+.ats-field > span{font-size:12px;color:#666}
+.input{border:1px solid #e3e6ea;border-radius:10px;padding:10px 12px;font-size:14px}
+.ats-modal__actions{grid-column:1 / -1;display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+
+.btn{cursor:pointer}
+.btn.primary{background:#00b3a4;color:#fff;border:none;padding:8px 14px;border-radius:10px}
+.btn.ghost{background:transparent;border:1px solid #d7dbe1;color:#333;padding:8px 14px;border-radius:10px}
+.btn.sm{font-size:12px;padding:6px 10px}
+.btn-spinner{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .9s linear infinite;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ====== 페이지 기타(기존 스타일 유지 가정) ====== */
+.loading-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.35);z-index:8000}
+</style>

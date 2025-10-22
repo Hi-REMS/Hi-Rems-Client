@@ -570,3 +570,34 @@ html.dark .qa-card {
 html.dark .qa-card:hover {
   box-shadow: 0 10px 24px rgba(0,0,0,0.45);
 }
+
+/* ====== 모달(네임스페이스: ats-) ====== */
+.ats-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999}
+.ats-modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.45);backdrop-filter:saturate(120%) blur(2px)}
+.ats-modal__panel{
+  position:relative;
+  width:min(680px, 92vw);
+  max-height:calc(100vh - 10vh);
+  overflow:auto;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 20px 44px rgba(0,0,0,.22);
+  padding:16px 16px 12px;
+  z-index:1;
+}
+.ats-modal__hd{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 10px}
+.ats-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ats-field{display:flex;flex-direction:column;gap:6px}
+.ats-field > span{font-size:12px;color:#666}
+.input{border:1px solid #e3e6ea;border-radius:10px;padding:10px 12px;font-size:14px}
+.ats-modal__actions{grid-column:1 / -1;display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+
+.btn{cursor:pointer}
+.btn.primary{background:#00b3a4;color:#fff;border:none;padding:8px 14px;border-radius:10px}
+.btn.ghost{background:transparent;border:1px solid #d7dbe1;color:#333;padding:8px 14px;border-radius:10px}
+.btn.sm{font-size:12px;padding:6px 10px}
+.btn-spinner{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .9s linear infinite;vertical-align:-3px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ====== 페이지 기타(기존 스타일 유지 가정) ====== */
+.loading-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.35);z-index:8000}
