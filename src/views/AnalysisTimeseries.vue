@@ -59,7 +59,6 @@
         <div class="card-hd">
           <h3>시간대별 그래프</h3>
 
-          <!-- 우측 액션: 선택 멀티 배지 + 전체보기 버튼 -->
           <div class="card-actions">
             <div v-if="selectedMulti" class="chip">
               {{ multiLabel(selectedMulti) }} 보기
@@ -122,7 +121,7 @@
                 <rect v-for="(b, i) in bars" :key="'b'+i" class="bar" :x="b.x" :y="b.y" :width="b.w" :height="b.h" rx="4"/>
               </g>
 
-              <!-- bar labels (데이터 없으면 라벨 숨김) -->
+              <!-- bar labels -->
               <g class="bar-labels">
                 <text
                   v-for="(b, i) in bars"
@@ -136,7 +135,7 @@
                 </text>
               </g>
 
-              <!-- line (시간대 꼭짓점 연결선) -->
+              <!-- line -->
               <path v-if="bars.length" :d="linePath" class="line"/>
               <g class="line-dots" v-if="bars.length">
                 <circle v-for="(b,i) in bars" :key="'dot'+i" class="line-dot" :cx="b.xCenter" :cy="b.y" r="3"/>
@@ -205,8 +204,7 @@
       <article class="card col-9">
         <div class="card-hd">
           <h3>운전이력</h3>
-          <div class="card-actions">
-          </div>
+          <div class="card-actions"></div>
         </div>
 
         <div class="table-wrap thin-scroll">
@@ -326,20 +324,18 @@
         </ul>
       </article>
 
-<article class="card col-3">
-  <router-link class="qa-card" :to="{ name:'EnergyDashboard' }">
-    <div class="qa-icon">⚡</div>
-    <div class="qa-main">
-      <div class="qa-title">발전량 모니터링</div>
-      <div class="qa-desc">누적 · 일간 · 주간 · 연간 데이터</div>
-    </div>
-    <span class="qa-arrow">›</span>
-  </router-link>
-</article>
-
-
+      <article class="card col-3">
+<router-link class="qa-card" :to="dashboardTo" :aria-disabled="!imeiForLink">
+  <div class="qa-icon">⚡</div>
+  <div class="qa-main">
+    <div class="qa-title">발전량 모니터링</div>
+    <div class="qa-desc">누적 · 일간 · 주간 · 연간 데이터</div>
+  </div>
+  <span class="qa-arrow">›</span>
+</router-link>
+      </article>
     </section>
-    
+
     <!-- 로딩 오버레이 -->
     <div v-if="loading" class="loading-overlay" role="status" aria-live="polite">
       <div class="spinner-neo"></div>
@@ -349,10 +345,11 @@
 </template>
 
 <script>
+import { api } from '@/api'
 import '@/assets/css/analysis-timeseries.css';
 import facilitySample from '@/assets/sampleimage.jpg';
 
-const DEFAULT_IMEI = '03-58-48-00-70-54-06-06';
+const DEFAULT_IMEI = '';
 
 export default {
   name: 'AnalysisTimeseries',
@@ -365,7 +362,7 @@ export default {
       onlyOk: true,
       lastRouterErr: '',
       imeiUse: '',
-      selectedMulti: null,     // 선택된 멀티 (null = 합산)
+      selectedMulti: null,
 
       driverUnits: [],
 
@@ -382,7 +379,6 @@ export default {
         co2_ton: null, last_month_avg_kw: null,
         inverter_efficiency_pct: null, _updatedAt: null
       },
-      // 시간대별 kWh (그래프 소스)
       hourly: [],
 
       mets: {
@@ -404,14 +400,12 @@ export default {
       hoverIdx: null,
       tt: { w: 180, h: 50 },
 
-      // 환경 데이터
       envTempC: null,
       envCond: null,
       envPopPct: null,
       envHumidityPct: null,
       envWindMs: null,
 
-      // 더미
       maintenance: { lastInspection: null, asNotes: null },
       facilityInfo: {
         moduleCapacity: null,
@@ -426,8 +420,6 @@ export default {
   },
   computed: {
     inner () { return { w: this.vb.w - this.pad.l - this.pad.r, h: this.vb.h - this.pad.t - this.pad.b }; },
-
-    // 시간대별 시리즈
     series () {
       if (!Array.isArray(this.hourly) || !this.hourly.length) return [];
       return this.hourly.map(h => {
@@ -436,15 +428,12 @@ export default {
         return { hour: String(h.hour).padStart(2,'0'), kw, rawNull };
       });
     },
-
     maxKw () {
       const vals = this.series.map(p => p.kw || 0);
       return Math.max(...vals, 0.01);
     },
-
     stepW () { return this.series.length ? this.inner.w / this.series.length : 0; },
     barW () { return Math.max(10, this.stepW * 0.6); },
-
     xTicks () {
       const out = []; const n = this.series.length;
       if (!n) return out;
@@ -456,7 +445,6 @@ export default {
       }
       return out;
     },
-
     yTicks () {
       const max = this.maxKw, step = max / 4, arr = [];
       for (let i = 0; i <= 4; i++) {
@@ -466,7 +454,6 @@ export default {
       }
       return arr;
     },
-
     bars () {
       const res = [];
       if (!this.series.length) return res;
@@ -481,14 +468,12 @@ export default {
       }
       return res;
     },
-
     linePath () {
       if (!this.bars.length) return '';
       let d = `M${this.bars[0].xCenter},${this.bars[0].y}`;
       for (let i = 1; i < this.bars.length; i++) d += ` L${this.bars[i].xCenter},${this.bars[i].y}`;
       return d;
     },
-
     hoverX () { if (this.hoverIdx === null || !this.bars.length) return 0; return this.bars[this.hoverIdx].xCenter; },
     hoverKw () { if (this.hoverIdx === null) return null; return this.series[this.hoverIdx]?.rawNull ? null : (this.bars[this.hoverIdx].kw || 0); },
     hoverLineY () { if (this.hoverIdx === null || !this.bars.length) return 0; return this.bars[this.hoverIdx].y; },
@@ -497,18 +482,15 @@ export default {
       const s = this.series[this.hoverIdx];
       return s ? `${s.hour}시` : `${this.hoverIdx + 1}`;
     },
-
     tooltipTransform () {
       const x = Math.min(Math.max(this.hoverX - this.tt.w / 2, this.pad.l), this.vb.w - this.pad.r - this.tt.w);
       const y = Math.max(this.pad.t + 6, this.hoverLineY - this.tt.h - 10);
       return `translate(${x},${y})`;
     },
-
     statusText () {
       if (!this.mets || !this.mets.statusList) return '—';
       return this.mets.statusList.length ? this.mets.statusList.join(' · ') : '알람 없음';
     },
-
     driverRows () {
       if (Array.isArray(this.driverUnits) && this.driverUnits.length) {
         return this.driverUnits
@@ -563,7 +545,6 @@ export default {
         totalKwh: totalK
       }];
     },
-
     gridVoltageRaw () {
       const m = this.mets || {};
       if (m.systemR_V || m.systemS_V || m.systemT_V) {
@@ -572,9 +553,69 @@ export default {
       }
       if (typeof m.systemVoltage === 'number') return Math.round(m.systemVoltage);
       return null;
+    },
+      imeiForLink () {
+    // 검색해서 확정된 값(imeiUse)이 있으면 우선, 없으면 입력/쿼리 값 사용
+    const qImei = (this.$route?.query?.imei || '').trim()
+    return (this.imeiUse || this.imeiField || qImei || '').trim()
+  },
+  dashboardTo () {
+    const imei = this.imeiForLink
+    const q = {}
+    if (imei) q.imei = imei
+    if (this.energyField) q.energy = this.energyField      // 예: '01'
+    if (this.typeField)   q.type   = this.typeField        // '01' | '02'
+    if (this.selectedMulti) q.multi = this.selectedMulti   // 선택된 멀티가 있으면
+    return { name: 'EnergyDashboard', query: q }
+  }
+  },
+
+  watch: {
+    '$route.query.imei'(v) {
+      if (typeof v === 'string' && v.trim()) {
+        this.imeiField = v.trim()
+        this.onSearch()
+      }
     }
   },
+
   methods: {
+    // fetch 옵션(쿠키 포함)
+    fopts (key) {
+      return { signal: this.newController(key), credentials: 'include' }
+    },
+
+    // 초기 IMEI 결정
+    async initImeiFlow () {
+      const qImei = (this.$route?.query?.imei || '').toString().trim()
+      if (qImei) {
+        this.imeiField = qImei
+        this.onSearch()
+        return
+      }
+      try {
+        this.loading = true
+        const { data } = await api.get('/user/imeis')
+        const def = data?.defaultImei || (Array.isArray(data?.items) && data.items[0]?.rtuImei) || ''
+        if (def) {
+          this.imeiField = def
+          const q = { ...(this.$route?.query || {}), imei: def }
+          if (this.energyField) q.energy = this.energyField
+          if (this.typeField)   q.type   = this.typeField
+          this.$router?.replace({ query: q }).catch(()=>{})
+          this.onSearch()
+        } else {
+          this.imeiField = ''
+          this.imeiUse = ''
+        }
+      } catch (_e) {
+        this.imeiField = ''
+        this.imeiUse = ''
+      } finally {
+        this.loading = false
+      }
+    },
+
     formatKwh1(v) {
       if (v == null || Number.isNaN(Number(v))) return '—';
       if (Number(v) === 0) return '0';
@@ -646,12 +687,8 @@ export default {
       this.clearForLoading();
       this.abortAll();
       this.currentReqId += 1;
-
-      try {
-        this.$router?.replace({ query: {} });
-      } catch (e) {
-        this.lastRouterErr = (e && e.message) ? e.message : 'router';
-      }
+      try { this.$router?.replace({ query: {} }); }
+      catch (e) { this.lastRouterErr = (e && e.message) ? e.message : 'router'; }
     },
 
     yKwToY (kw) {
@@ -691,10 +728,8 @@ export default {
       }
 
       this.clearForLoading();
-
       this.maintenance  = this.genDummyMaintenance(imei);
       this.facilityInfo = this.genDummyFacility();
-
       this.loadAll();
     },
 
@@ -704,10 +739,7 @@ export default {
 
       this.loading = true;
       try {
-        await Promise.all([
-          this.loadHourly(myReq),
-          this.loadKpis(myReq),
-        ]);
+        await Promise.all([ this.loadHourly(myReq), this.loadKpis(myReq) ]);
       } finally {
         this.loading = false;
       }
@@ -719,11 +751,15 @@ export default {
 
     // KPI
     async loadKpis (reqId) {
-      const params = new URLSearchParams({ rtuImei: this.imeiUse, energy: this.energyField || '01' });
+      const params = new URLSearchParams({
+        rtuImei: this.imeiUse,
+        imei: this.imeiUse,
+        energy: this.energyField || '01'
+      });
       if (this.typeField) params.set('type', this.typeField);
       const url = `/api/energy/electric?${params.toString()}`;
 
-      const r = await fetch(url, { signal: this.newController('kpis') });
+      const r = await fetch(url, this.fopts('kpis'));
       if (!r.ok) return;
       if (reqId && reqId !== this.currentReqId) return;
       const j = await r.json();
@@ -741,8 +777,8 @@ export default {
 
     // 최신 프레임 디버그
     async loadLatest (reqId) {
-      const url = `/api/energy/electric/debug?rtuImei=${encodeURIComponent(this.imeiUse)}&limit=1`;
-      const r = await fetch(url, { signal: this.newController('latest') });
+      const url = `/api/energy/electric/debug?rtuImei=${encodeURIComponent(this.imeiUse)}&imei=${encodeURIComponent(this.imeiUse)}&limit=1`;
+      const r = await fetch(url, this.fopts('latest'));
       if (!r.ok) return;
       if (reqId && reqId !== this.currentReqId) return;
       const arr = await r.json();
@@ -752,16 +788,20 @@ export default {
       this.latestCollectedAt = row?.time || row?.createdAt || row?.ts || null;
     },
 
-    // 시간대별 발전량 (kWh) — 선택 멀티면 series(detail=hourly), 아니면 기존 hourly
+    // 시간대별 발전량 (kWh)
     async loadHourly (reqId) {
       const hasMulti = !!this.selectedMulti;
 
       if (!hasMulti) {
-        const params = new URLSearchParams({ rtuImei: this.imeiUse, energy: this.energyField || '01' });
+        const params = new URLSearchParams({
+          rtuImei: this.imeiUse,
+          imei: this.imeiUse,
+          energy: this.energyField || '01'
+        });
         if (this.typeField) params.set('type', this.typeField);
         const url = `/api/energy/electric/hourly?${params.toString()}`;
 
-        const r = await fetch(url, { signal: this.newController('hourly') });
+        const r = await fetch(url, this.fopts('hourly'));
         if (!r.ok) return;
         if (reqId && reqId !== this.currentReqId) return;
         const j = await r.json();
@@ -775,9 +815,10 @@ export default {
         return;
       }
 
-      // 멀티 선택 시: series(detail=hourly) 사용
+      // 멀티 선택 시
       const params = new URLSearchParams({
         rtuImei: this.imeiUse,
+        imei: this.imeiUse,
         range: 'weekly',
         detail: 'hourly',
         energy: this.energyField || '01',
@@ -786,7 +827,7 @@ export default {
       if (this.typeField) params.set('type', this.typeField);
       const url = `/api/energy/electric/series?${params.toString()}`;
 
-      const r = await fetch(url, { signal: this.newController('hourly') });
+      const r = await fetch(url, this.fopts('hourly'));
       if (!r.ok) return;
       if (reqId && reqId !== this.currentReqId) return;
       const j = await r.json();
@@ -801,11 +842,15 @@ export default {
     },
 
     async loadDriverUnits (reqId) {
-      const params = new URLSearchParams({ imei: this.imeiUse, energy: this.energyField || '01' });
+      const params = new URLSearchParams({
+        imei: this.imeiUse,
+        rtuImei: this.imeiUse,
+        energy: this.energyField || '01'
+      });
       if (this.typeField) params.set('type', this.typeField);
       const url = `/api/energy/electric/instant/multi?${params.toString()}`;
 
-      const r = await fetch(url, { signal: this.newController('driver') });
+      const r = await fetch(url, this.fopts('driver'));
       if (!r.ok) { this.driverUnits = []; return; }
       if (reqId && reqId !== this.currentReqId) return;
       const j = await r.json();
@@ -814,12 +859,12 @@ export default {
       if (units.length) this.latestCollectedAt = units[0]?.ts || this.latestCollectedAt;
     },
 
-    // ===== 날씨 로더 =====
+    // 날씨
     async loadWeather (reqId) {
       try {
         if (!this.imeiUse) return;
-        const url = `/api/weather/vilageFcst/by-imei?imei=${encodeURIComponent(this.imeiUse)}`;
-        const r = await fetch(url, { signal: this.newController('weather') });
+        const url = `/api/weather/vilageFcst/by-imei?imei=${encodeURIComponent(this.imeiUse)}&rtuImei=${encodeURIComponent(this.imeiUse)}`;
+        const r = await fetch(url, this.fopts('weather'));
         if (!r.ok) return;
         if (reqId && reqId !== this.currentReqId) return;
         const j = await r.json();
@@ -851,7 +896,6 @@ export default {
       }
     },
 
-    // === 멀티 선택/해제 ===
     onSelectUnit (multiHex) {
       this.selectedMulti = (this.selectedMulti === multiHex) ? null : multiHex;
       this.loadHourly(this.currentReqId).catch(()=>{});
@@ -958,18 +1002,11 @@ export default {
       const lastInspection = d.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
 
       const notesPool = [
-        '이상 없음',
-        '인버터 팬 청소',
-        'DC 단자 체결 재점검',
-        '인버터 내부 먼지 제거',
-        'PV 스트링 절연 점검',
-        '펌웨어 점검 및 업데이트',
-        '통신 모뎀 재부팅 조치',
-        '누설전류 감지 센서 확인',
+        '이상 없음','인버터 팬 청소','DC 단자 체결 재점검','인버터 내부 먼지 제거',
+        'PV 스트링 절연 점검','펌웨어 점검 및 업데이트','통신 모뎀 재부팅 조치','누설전류 감지 센서 확인',
       ];
       const idx = Math.floor(rand(2) * notesPool.length);
       const asNotes = notesPool[idx];
-
       return { lastInspection, asNotes };
     },
 
@@ -979,22 +1016,22 @@ export default {
         installDate: '2024-05-23',
         monitorStart: '2024-12-31',
         projectName: '2024 양산시 융복합지원사업',
-        contractor: '(주)선한이엔지',  // 오타 수정
+        contractor: '(주)선한이엔지',
         asContact: '1800-5133',
         image: facilitySample,
       };
     },
   },
+
   mounted () {
     const q = this.$route?.query || {};
-    const initImei   = this.imei || q.imei || DEFAULT_IMEI;
     const initEnergy = q.energy || '01';
-    const initType   = q.type || '';
+    const initType   = q.type   || '';
 
-    this.imeiField   = typeof initImei === 'string' ? initImei : DEFAULT_IMEI;
     this.energyField = typeof initEnergy === 'string' ? initEnergy : '01';
-    this.typeField   = typeof initType === 'string' ? initType : '';
-    this.imeiUse     = '';
+    this.typeField   = typeof initType   === 'string' ? initType   : '';
+
+    this.initImeiFlow();
   }
 }
 </script>

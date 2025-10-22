@@ -90,7 +90,7 @@
 import { api } from '@/api'
 import '@/assets/css/register.css'
 
-const ADMIN_EMAILS = ['admin@company.com']  // ✅ 이메일로 관리자 식별
+const ADMIN_EMAILS = ['admin@company.com']
 
 function normalize (v) {
   return (typeof v === 'string' ? v : '').trim().toLowerCase()
@@ -116,48 +116,74 @@ export default {
     checkCaps (e) {
       this.capsOn = e.getModifierState && e.getModifierState('CapsLock')
     },
+
     async login () {
       if (this.loading) return
       try {
         this.loading = true
         this.error = ''
 
-        await api.post('/auth/login', {
+        // 1) 로그인
+        const { data: loginRes } = await api.post('/auth/login', {
           username: this.username,
           password: this.password
         })
+        const loginUser = loginRes?.user || {}
 
-        const { data } = await api.get('/auth/me')
-        const user = data?.user || {}
-        const admin = isAdminUser(user)
+        const admin = isAdminUser(loginUser)
 
-        // 세션 기준으로 localStorage 갱신
+        // 기본 정보 저장
         try {
           localStorage.setItem('isAdmin', String(!!admin))
-          localStorage.setItem('username', user.username || '')
-          localStorage.setItem('email', user.email || '')
+          localStorage.setItem('username', loginUser.username || '')
+          localStorage.setItem('worker', loginUser.worker || '')
+          localStorage.setItem('phoneNumber', loginUser.phoneNumber || '')
+          if (loginUser.email) localStorage.setItem('email', loginUser.email)
         } catch {}
 
         if (admin) {
-          // admin@company.com(또는 is_admin=true)이면 /home
           this.$router.replace('/home')
           return
         }
 
-        // 일반 사용자만 redirect 처리 (안전한 내부 경로만)
+        // 2) 내 IMEI 조회
+        let defaultImei = ''
+        try {
+          const { data: imeiRes } = await api.get('/user/imeis') // 쿠키 인증
+          defaultImei = imeiRes?.defaultImei || ''
+          if (defaultImei) {
+            localStorage.setItem('defaultImei', defaultImei)
+          } else {
+            // ❗️IMEI가 없으면 이전 값 제거
+            localStorage.removeItem('defaultImei')
+            sessionStorage.removeItem('defaultImei')
+          }
+        } catch (e) {
+          // 조용히 실패 허용 (IMEI가 아직 없거나 매칭 실패)
+          localStorage.removeItem('defaultImei')
+          sessionStorage.removeItem('defaultImei')
+        }
+
+        // 3) redirect 파라미터가 안전하면 우선
         const raw = this.$route.query.redirect
         let to = ''
         try { to = raw ? decodeURIComponent(String(raw)) : '' } catch { to = '' }
 
         const BLOCKED = ['/login', '/register', '/reset', '/forgot', '/findpassword']
         const isUnsafe = !to || !to.startsWith('/') || BLOCKED.some(p => to.startsWith(p))
+
         if (!isUnsafe) {
           this.$router.replace(to)
           return
         }
 
-        // 기본 목적지 (일반 사용자)
-        this.$router.replace('/analysis/timeseries')
+        // 4) 기본 목적지
+        if (defaultImei) {
+          this.$router.replace(`/analysis/timeseries?imei=${encodeURIComponent(defaultImei)}`)
+        } else {
+          // ❗️IMEI가 없으면 깨끗한 경로로
+          this.$router.replace({ path: '/analysis/timeseries', query: {} })
+        }
       } catch (err) {
         const msg = err?.response?.data?.message || err.message || '로그인 실패'
         if (

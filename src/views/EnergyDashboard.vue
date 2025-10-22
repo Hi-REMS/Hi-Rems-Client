@@ -743,6 +743,18 @@ detailRowsVisible() {
       return this.hasSearched && !!this.hasAnyData;
     },
   },
+  // <script> 안에 추가 (watch)
+watch: {
+  '$route.query'(q) {
+    const imei = (q.imei || '').toString().trim()
+    if (imei && imei !== this.imeiField) {
+      this.imeiField = imei
+      this.typeField  = typeof q.type  === 'string' ? q.type  : ''
+      this.multiField = typeof q.multi === 'string' ? q.multi : ''
+      this.onSearch()
+    }
+  }
+},
   methods: {
     fmt(v,d=0){ return v==null?'—':Number(v).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}) },
     dash(v){ return (v==null||v==='')?'-':`${v}` },

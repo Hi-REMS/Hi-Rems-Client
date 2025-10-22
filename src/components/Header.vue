@@ -27,18 +27,6 @@
         </i>
       </button>
 
-      <!-- 뒤로가기 -->
-      <button
-        v-if="!isAuthPage"
-        class="hdr-btn hdr-back hdr-btn--pill"
-        type="button"
-        :disabled="isHome"
-        @click="goBack"
-        title="뒤로가기"
-      >
-        <span class="hdr-label hdr-label--back">뒤로가기</span>
-      </button>
-
       <!-- 프로필 -->
       <div
         v-if="requiresAuthRoute"
@@ -172,11 +160,8 @@ export default {
   },
   watch: {
     menuOpen (v) {
-      // 모바일일 때만 바디 스크롤 잠금
       const isMobile = window.matchMedia('(max-width: 520px)').matches
-      if (isMobile) {
-        document.body.classList.toggle('no-scroll', v)
-      }
+      if (isMobile) document.body.classList.toggle('no-scroll', v)
     }
   },
   computed: {
@@ -187,12 +172,8 @@ export default {
       const p = this.$route?.path || ''
       return p === '/login' || p === '/register'
     },
-    isHome () {
-      return this.$route && (this.$route.path === '/home')
-    },
-    displayName () {
-      return this.email || this.username
-    },
+    isHome () { return this.$route && (this.$route.path === '/home') },
+    displayName () { return this.email || this.username },
     initials () {
       const id = String(this.email || this.username || '')
       const head = id.replace(/@.*$/, '').trim()
@@ -280,14 +261,22 @@ export default {
       this.menuOpen = false
       this.$router.push('/change-password')
     },
-    async logout () {
-      this.menuOpen = false
-      try { await api.post('/auth/logout') } catch (e) {}
-      finally {
-        if (this.$router) this.$router.replace('/login')
-        else window.location.href = '/#/login'
-      }
-    }
+
+async logout () {
+  this.menuOpen = false
+  try { await api.post('/auth/logout') } catch (e) {}
+
+  try {
+    // 잔여 상태/IMEI 흔적 제거
+    const keys = ['defaultImei','isAdmin','username','email','worker','phoneNumber']
+    keys.forEach(k => localStorage.removeItem(k))
+    sessionStorage.clear()
+  } catch {}
+
+  // 라우터를 타지 말고 주소 자체를 교체 (뒤로가기에도 안 남게)
+  const base = `${location.origin}${location.pathname}`
+  window.location.replace(`${base}#/login`)
+}
   }
 }
 </script>
