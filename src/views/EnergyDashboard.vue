@@ -873,17 +873,17 @@ export default {
       return out
     },
 
-    async fetchRange(range, withHourly=false){
-      const imei=this.imeiField?.trim()
-      const params=new URLSearchParams({ rtuImei: imei, range })
-      if(this.energyField) params.set('energy', this.energyField)
-      if(this.typeField)   params.set('type', this.typeField)
-      if(this.multiField)  params.set('multi', this.multiField)
-      if(withHourly)       params.set('detail', 'hourly')
-      const r=await fetch(`/api/energy/electric/series?${params.toString()}`)
-      if(!r.ok) throw new Error('데이터를 가져오지 못했습니다.')
-      return r.json()
-    },
+async fetchRange(range, withHourly = false, imeiOverride = null) {
+  const imei = imeiOverride || this.imeiField?.trim()
+  const params = new URLSearchParams({ rtuImei: imei, range })
+  if (this.energyField) params.set('energy', this.energyField)
+  if (this.typeField)   params.set('type', this.typeField)
+  if (this.multiField)  params.set('multi', this.multiField)
+  if (withHourly)       params.set('detail', 'hourly')
+  const r = await fetch(`/api/energy/electric/series?${params.toString()}`)
+  if (!r.ok) throw new Error('데이터를 가져오지 못했습니다.')
+  return r.json()
+},
 
     // 오늘 시간대별: /series(detail=hourly)로 통일
     async fetchHourlyLikeAT(){
@@ -937,116 +937,162 @@ export default {
       return label || '—';
     },
 
-    async onSearch(){
-      const imei=this.imeiField?.trim(); if(!imei || this.searching) return
-      this.searching = true
-      this.loading=true; this.errorMsg=''
-      this.hasSearched = false;
-      const myReq = ++this.currentReqId
+async onSearch(options = {}) {
+  const loadDefault = options.loadDefault === true
+  const imei = this.imeiField?.trim()
+  // IMEI 없고 기본 로드도 아니면 중단
+  if (!imei && !loadDefault) return
+  if (this.searching) return
 
-      // 초기화
-      this.bars=[]; this.totalKwh=0; this.detailDay=''; this.detailRows=[]
-      this.monthSeries=[]; this.yearSeries=[]; this.monthRangeUtc=null; this.yearRangeUtc=null; this.weekRangeUtc=null
-      this.summary={capacity_kw:DUMMY_CAP_KW,today_kwh:0,month_kwh:0,year_kwh:0,co2_kg:0,trees:0,install_date:null,monitor_start:null}
-      this.kpis={ totalKwh:0,totalCo2:0,totalTrees:0 }
-      this.avgEff=null
+  this.searching = true
+  this.loading = true
+  this.errorMsg = ''
+  this.hasSearched = false
+  const myReq = ++this.currentReqId
 
-      // 라우터 쿼리: 변경 있을 때만 replace
-      try {
-        const cur = this.$route?.query || {}
-        const next = {
-          imei,
-          ...(this.energyField ? { energy: this.energyField } : {}),
-          ...(this.typeField   ? { type:   this.typeField   } : {}),
-          ...(this.multiField  ? { multi:  this.multiField  } : {}),
-        }
-        if (JSON.stringify(cur) !== JSON.stringify(next)) {
-          await this.$router.replace({ query: next })
-        }
-      } catch { /* no-op */ }
+  // IMEI 없을 경우 전체 데이터용으로 요청
+  const imeiParam = imei || 'ALL'
 
-      try{
-        //  주간(차트용) +  오늘 시간대별(표/일간 KPI용)
-        const [weekly, hourly] = await Promise.all([
-          this.fetchRange('weekly', false),
-          this.fetchHourlyLikeAT()
-        ])
-        if (myReq !== this.currentReqId) return
+  // 초기화
+  this.bars = []
+  this.totalKwh = 0
+  this.detailDay = ''
+  this.detailRows = []
+  this.monthSeries = []
+  this.yearSeries = []
+  this.monthRangeUtc = null
+  this.yearRangeUtc = null
+  this.weekRangeUtc = null
+  this.summary = {
+    capacity_kw: DUMMY_CAP_KW,
+    today_kwh: 0,
+    month_kwh: 0,
+    year_kwh: 0,
+    co2_kg: 0,
+    trees: 0,
+    install_date: null,
+    monitor_start: null
+  }
+  this.kpis = { totalKwh: 0, totalCo2: 0, totalTrees: 0 }
+  this.avgEff = null
 
-        // 주간 차트
-        this.bars=(weekly.series||[]).map(s=>({x:s.bucket,y:s.kwh}))
-        this.totalKwh=round2(weekly.summary?.total_kwh ?? this.bars.reduce((a,c)=>a+(c.y||0),0))
-        this.weekRangeUtc=weekly.range_utc||null
+  // 라우터 쿼리 동기화
+  try {
+    const cur = this.$route?.query || {}
+    const next = {
+      ...(imei ? { imei } : {}),
+      ...(this.energyField ? { energy: this.energyField } : {}),
+      ...(this.typeField ? { type: this.typeField } : {}),
+      ...(this.multiField ? { multi: this.multiField } : {})
+    }
+    if (JSON.stringify(cur) !== JSON.stringify(next)) {
+      await this.$router.replace({ query: next })
+    }
+  } catch { /* no-op */ }
 
-        // 시간대별 상세정보
-        const kstToday = new Date().toLocaleDateString('sv-SE', { timeZone:'Asia/Seoul' }).replace(/\./g,'-')
-        this.detailDay = kstToday
-        this.detailRows = (hourly||[]).map(h => ({
-          hour: `${h.hour}:00`,
-          kwh: (h.kwh==null ? null : round2(h.kwh)),
-          co2_kg: (h.kwh==null ? null : round2(this.co2(h.kwh))),
-          weather: '—'
-        }))
-        // 금일 합계
-        const todaySum = (hourly||[]).reduce((s,x)=> (Number.isFinite(x.kwh) ? s + x.kwh : s), 0)
-        this.summary.today_kwh = round2(todaySum)
-        this.avgEff=13.9
+  try {
+    // 주간 + 시간별(일간) 동시 요청
+    const [weekly, hourly] = await Promise.all([
+      this.fetchRange('weekly', false, imeiParam),
+      this.fetchHourlyLikeAT(imeiParam)
+    ])
+    if (myReq !== this.currentReqId) return
 
-        // 시간대별 날씨 병합
-        const wx = await this.fetchWeatherHourlyByImei()
-        if (myReq !== this.currentReqId) return
-        if (wx.hourly.length){
-          const wmap = new Map(wx.hourly.map(h => [ this.toHH(h.hour), h ]))
-          this.detailRows = this.detailRows.map(r => {
-            const key = this.toHH(r.hour)
-            const w = key ? wmap.get(key) : null
-            return w ? { ...r, weather: this.makeWeatherLabel(w) } : r
-          })
-        }
+    // 주간 차트
+    this.bars = (weekly.series || []).map(s => ({ x: s.bucket, y: s.kwh }))
+    this.totalKwh = round2(
+      weekly.summary?.total_kwh ?? this.bars.reduce((a, c) => a + (c.y || 0), 0)
+    )
+    this.weekRangeUtc = weekly.range_utc || null
 
-        // 월간(일별) / 연간(YTD)
-        const now=new Date(); const y=now.getFullYear(); const m=String(now.getMonth()+1).padStart(2,'0'); const ym=`${y}-${m}`
-        const [monthly,yearly]=await Promise.all([ this.fetchRange('monthly'), this.fetchRange('yearly') ])
-        if (myReq !== this.currentReqId) return
+    // 시간대별 상세
+    const kstToday = new Date()
+      .toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+      .replace(/\./g, '-')
+    this.detailDay = kstToday
+    this.detailRows = (hourly || []).map(h => ({
+      hour: `${h.hour}:00`,
+      kwh: h.kwh == null ? null : round2(h.kwh),
+      co2_kg: h.kwh == null ? null : round2(this.co2(h.kwh)),
+      weather: '—'
+    }))
+    // 금일 합계
+    const todaySum = (hourly || []).reduce(
+      (s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s),
+      0
+    )
+    this.summary.today_kwh = round2(todaySum)
+    this.avgEff = 13.9
 
-        // 월간: 주차 집계
-        this.monthRangeUtc=monthly.range_utc||null
-        const monthAgg = this.aggregateWeeksFromDaily(monthly.series || [])
-        this.monthSeries = monthAgg.series
-        this.summary.month_kwh = round2((monthly.series||[])
-          .filter(r => String(r.bucket||'').startsWith(ym))
-          .reduce((s,r)=>s+(r.kwh||0),0))
+    // 시간대별 날씨 병합
+    const wx = await this.fetchWeatherHourlyByImei()
+    if (myReq !== this.currentReqId) return
+    if (wx.hourly.length) {
+      const wmap = new Map(wx.hourly.map(h => [this.toHH(h.hour), h]))
+      this.detailRows = this.detailRows.map(r => {
+        const key = this.toHH(r.hour)
+        const w = key ? wmap.get(key) : null
+        return w ? { ...r, weather: this.makeWeatherLabel(w) } : r
+      })
+    }
 
-        // 연간: 월 보정
-        this.yearSeries = this.ensureYearMonths(yearly.series || [], y)
-        this.yearRangeUtc=yearly.range_utc||null
-        this.summary.year_kwh = round2(this.yearSeries.reduce((s,r)=>s+(r.y||0),0))
+    // 월간, 연간
+    const now = new Date()
+    const y = now.getFullYear()
+    const m = String(now.getMonth() + 1).padStart(2, '0')
+    const ym = `${y}-${m}`
 
-        // KPI 캐시
-        this.kpis.totalKwh  = this.summary.year_kwh
-        this.kpis.totalCo2  = this.co2(this.kpis.totalKwh)
-        this.kpis.totalTrees= this.treesFromKwh(this.kpis.totalKwh)
+    const [monthly, yearly] = await Promise.all([
+      this.fetchRange('monthly', false, imeiParam),
+      this.fetchRange('yearly', false, imeiParam)
+    ])
+    if (myReq !== this.currentReqId) return
 
-        // 주간 환경 KPIs
-        this.summary.co2_kg = this.co2(this.totalKwh)
-        this.summary.trees  = this.treesFromKwh(this.totalKwh)
+    // 월간 주차 집계
+    this.monthRangeUtc = monthly.range_utc || null
+    const monthAgg = this.aggregateWeeksFromDaily(monthly.series || [])
+    this.monthSeries = monthAgg.series
+    this.summary.month_kwh = round2(
+      (monthly.series || [])
+        .filter(r => String(r.bucket || '').startsWith(ym))
+        .reduce((s, r) => s + (r.kwh || 0), 0)
+    )
 
-        if(!this.bars.length && !this.monthSeries.length && !this.yearSeries.length){
-          this.errorMsg='선택한 조건에 해당하는 데이터가 없습니다.'
-        }
+    // 연간 월별 보정
+    this.yearSeries = this.ensureYearMonths(yearly.series || [], y)
+    this.yearRangeUtc = yearly.range_utc || null
+    this.summary.year_kwh = round2(
+      this.yearSeries.reduce((s, r) => s + (r.y || 0), 0)
+    )
 
-        this.hasSearched = true
-        this.$nextTick(this.updateAxisFonts)
+    // KPI 캐시
+    this.kpis.totalKwh = this.summary.year_kwh
+    this.kpis.totalCo2 = this.co2(this.kpis.totalKwh)
+    this.kpis.totalTrees = this.treesFromKwh(this.kpis.totalKwh)
 
-        this.assertAggregateOrder()
-      } catch(e){
-        this.errorMsg=e?.message||'오류가 발생했습니다.'
-        console.error('[EnergyDashboard:onSearch]', e)
-      } finally{
-        this.searching = false
-        this.loading=false
-      }
-    },
+    // 주간 환경 KPI
+    this.summary.co2_kg = this.co2(this.totalKwh)
+    this.summary.trees = this.treesFromKwh(this.totalKwh)
+
+    if (
+      !this.bars.length &&
+      !this.monthSeries.length &&
+      !this.yearSeries.length
+    ) {
+      this.errorMsg = '선택한 조건에 해당하는 데이터가 없습니다.'
+    }
+
+    this.hasSearched = true
+    this.$nextTick(this.updateAxisFonts)
+    this.assertAggregateOrder()
+  } catch (e) {
+    this.errorMsg = e?.message || '오류가 발생했습니다.'
+    console.error('[EnergyDashboard:onSearch]', e)
+  } finally {
+    this.searching = false
+    this.loading = false
+  }
+},
 
     reset(){
       if (this.searching) return
@@ -1169,23 +1215,22 @@ export default {
       }
     }
   },
-  mounted(){
-    const q = this.$route?.query || {}
-    this.imeiField = (typeof q.imei === 'string' && q.imei.trim()) ? q.imei.trim() : DEFAULT_IMEI
-    this.energyField = '01'
-    this.typeField   = typeof q.type === 'string' ? q.type : ''
-    this.multiField  = typeof q.multi === 'string' ? q.multi : ''
+mounted() {
+  const q = this.$route?.query || {}
+  this.imeiField = (typeof q.imei === 'string' && q.imei.trim()) ? q.imei.trim() : DEFAULT_IMEI
+  this.energyField = '01'
+  this.typeField   = typeof q.type === 'string' ? q.type : ''
+  this.multiField  = typeof q.multi === 'string' ? q.multi : ''
 
-    if ('ResizeObserver' in window) {
-      this.resizeObserver = new ResizeObserver(() => this.updateAxisFonts())
-      this.resizeObserver.observe(this.$el)
-    } else {
-      window.addEventListener('resize', this.updateAxisFonts)
-    }
-    this.$nextTick(this.updateAxisFonts)
-
-    if (q.imei && String(q.imei).trim()) this.onSearch()
-  },
+  if ('ResizeObserver' in window) {
+    this.resizeObserver = new ResizeObserver(() => this.updateAxisFonts())
+    this.resizeObserver.observe(this.$el)
+  } else {
+    window.addEventListener('resize', this.updateAxisFonts)
+  }
+  this.$nextTick(this.updateAxisFonts)
+  this.onSearch({ loadDefault: true })
+},
   beforeDestroy(){
     if(this.resizeObserver) this.resizeObserver.disconnect()
     else window.removeEventListener('resize', this.updateAxisFonts)

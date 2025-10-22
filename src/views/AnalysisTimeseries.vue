@@ -492,6 +492,7 @@ export default {
       lastRouterErr: '',
       imeiUse: '',
       selectedMulti: null,
+      chartTodaySum: null,
 
       // ★ 추가: 중복 호출/초기화 가드
       searching: false,
@@ -972,7 +973,7 @@ export default {
         .sort((a,b) => a.hour.localeCompare(b.hour));
 
       const sum = this.hourly.reduce((s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s), 0);
-      this.kpi.today_kwh = Number.isFinite(sum) ? Math.round(sum*1000)/1000 : null;
+      this.chartTodaySum = Number.isFinite(sum) ? Math.round(sum * 1000) / 1000 : null;
     },
 
     async loadDriverUnits (reqId) {
@@ -1197,17 +1198,31 @@ export default {
       return (v === null || v === undefined) ? '—'
         : `${this.number(v, digits)}${suffix ? suffix : ''}`;
     },
-    valueFor (key) {
-      switch (key) {
-        case 'now':   return this.fmt(this.kpi.now_kw, 2);
-        case 'today': return this.formatKwh1(this.kpi.today_kwh);
-        case 'co2':   return this.fmt(this.kpi.co2_ton, 2);
-        case 'avg':   return this.fmt(this.kpi.last_month_avg_kw, 2);
-        case 'total': return this.fmt(this.kpi.total_kwh, 2);
-        case 'status': return this.mets.statusList?.length ? '주의' : '정상';
-        default: return '—';
-      }
-    },
+valueFor (key) {
+  switch (key) {
+    case 'now':
+      return this.fmt(this.kpi.now_kw, 2);
+
+case 'today': {
+  const v = this.chartTodaySum != null
+    ? this.chartTodaySum
+    : this.kpi.today_kwh;
+  return this.formatKwh1(v);
+}
+
+
+    case 'co2':
+      return this.fmt(this.kpi.co2_ton, 2);
+    case 'avg':
+      return this.fmt(this.kpi.last_month_avg_kw, 2);
+    case 'total':
+      return this.fmt(this.kpi.total_kwh, 2);
+    case 'status':
+      return this.mets.statusList?.length ? '주의' : '정상';
+    default:
+      return '—';
+  }
+},
     subFor (key) {
       if (key === 'status') return this.statusText;
       const t = this.kpi._updatedAt ? new Date(this.kpi._updatedAt) : null;
