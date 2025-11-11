@@ -3,8 +3,11 @@
   <main class="edb-page">
     <div class="edb-inner">
       <!-- SEARCH BAR -->
-      <section class="edb-toolbar edb-card edb-card--soft">
-        <div class="edb-tool-left">
+
+      <!--
+      <section class="edb-toolbar edb-card edb-card--soft" v-if="isAdmin">
+        <div class="edb-tool-left" v-if="isAdmin">
+          <!-- IMEI: 항상 표시 -->
           <label class="edb-label">IMEI</label>
           <div class="edb-input-wrap">
             <input
@@ -16,26 +19,39 @@
             <span class="edb-input-ico">⌕</span>
           </div>
 
-          <label class="edb-label">지역</label>
-          <select v-model="regionField" class="edb-select edb-select--sm">
-            <option value="yesan">예정</option>
-          </select>
+          <!-- 지역/에너지/타입: 관리자만 표시 -->
+          <template v-if="isAdmin">
+            <label class="edb-label">에너지</label>
+            <select v-model="energyField" class="edb-select edb-select--sm">
+              <option value="01">태양광(0x01)</option>
+              <option value="02">태양열(0x02)</option>
+              <option value="03">지열(0x03)</option>
+              <option value="04">풍력(0x04)</option>
+              <option value="06">연료전지(0x06)</option>
+              <option value="07">ESS(0x07)</option>
+            </select>
 
-          <label class="edb-label">에너지</label>
-          <select v-model="energyField" class="edb-select edb-select--sm" disabled>
-            <option value="01">태양광(0x01)</option>
-          </select>
+            <label class="edb-label">타입</label>
+            <select
+              v-model="typeField"
+              class="edb-select edb-select--sm"
+              :disabled="energyField!=='01'"
+              :title="energyField==='01' ? '태양광 단상/삼상' : '태양광에서만 사용'"
+            >
+              <option disabled value="">선택</option>
+              <option value="01">단상(0x01)</option>
+              <option value="02">삼상(0x02)</option>
+            </select>
+          </template>
 
-          <label class="edb-label">타입</label>
-          <select v-model="typeField" class="edb-select edb-select--sm">
-            <option disabled value="">선택</option>
-            <option value="01">단상(0x01)</option>
-            <option value="02">삼상(0x02)</option>
-          </select>
-
-          <!-- ▼ 설비(멀티) 선택 -->
+          <!-- 멀티: 문서상 태양광만 지원 -->
           <label class="edb-label">멀티</label>
-          <select v-model="multiField" class="edb-select edb-select--sm" :title="multiLabel">
+          <select
+            v-model="multiField"
+            class="edb-select edb-select--sm"
+            :title="multiLabel"
+            :disabled="energyField!=='01'"
+          >
             <option value="">전체</option>
             <option value="00">0</option>
             <option value="01">1</option>
@@ -44,15 +60,16 @@
           </select>
         </div>
 
-        <div class="edb-tool-right">
+        <div class="edb-tool-right" v-if="isAdmin">
           <button class="edb-btn edb-btn--ghost" @click="reset">초기화</button>
           <button class="edb-btn edb-btn--primary" :disabled="loading || !imeiField" @click="onSearch">
             <span v-if="!loading">조회</span>
             <span v-else class="edb-spinner"></span>
           </button>
+
         </div>
       </section>
-
+ -->
       <!-- TOP KPIs: 주간 · 월간 · 연간 -->
       <section class="edb-stat-row edb-center edb-stat-row--triple">
         <!-- 주간 -->
@@ -436,42 +453,61 @@
         </section>
 
         <!-- 날짜별 상세 -->
-        <section class="edb-card edb-detail" aria-live="polite">
-          <div class="edb-detail-hd">
-            <h3 class="edb-detail__title">시간별 상세정보</h3>
-            <div class="edb-detail-meta" v-if="detailDay">
-              <span class="edb-meta">기준 날짜: <b>{{ detailDay }}</b></span>
-            </div>
-          </div>
+ <section class="edb-card edb-detail" aria-live="polite">
+    <div class="edb-detail-hd">
+      <!-- 왼쪽: 제목 + 메타 -->
+      <div class="edb-detail-hgroup">
+        <h3 class="edb-detail__title">시간별 상세정보</h3>
+        <div class="edb-detail-meta" v-if="detailDay">
+          <span class="edb-meta">기준 날짜: <b>{{ detailDay }}</b></span>
+        </div>
+      </div>
+      <!-- 오른쪽: 액션(주간예보 버튼) -->
+      <div class="edb-detail-actions">
+        <button
+          class="edb-btn edb-btn--tint edb-btn--sm"
+          :disabled="!imeiField || wxLoading"
+          @click="openWxModal"
+          title="이번주(7일) 날씨 예보 보기"
+        >
+          <span v-if="!wxLoading">주간예보</span>
+          <span v-else class="edb-spinner"></span>
+        </button>
+      </div>
+    </div> <!-- /.edb-detail-hd -->
 
-          <div class="edb-detail-body">
-            <div v-if="!detailRows.length && loading" class="edb-detail-empty">
-              <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
-            </div>
+    <div class="edb-detail-body">
+      <div v-if="!detailRows.length && loading" class="edb-detail-empty">
+        <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
+      </div>
 
-            <div v-else class="edb-table-wrap edb-thin-scroll">
-              <table class="edb-tbl">
-                <thead>
-                  <tr>
-                    <th style="width:62px">시</th>
-                    <th>발전량(kWh)</th>
-                    <th>날씨/기온</th>
-                    <th>CO₂저감량(kg)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- 보이는 시간대만, 뒤쪽 불필요한 null 꼬리 제거 -->
-                  <tr v-for="(r, i) in detailRowsVisible" :key="'hr'+i">
-                    <td>{{ r.hour.replace(':00','시') }}</td>
-                    <td class="edb-num">{{ fmt(r.kwh, 1) }}</td>
-                    <td class="edb-num">{{ r.weather || '—' }}</td>
-                    <td class="edb-num">{{ r.co2_kg==null ? '—' : fmt(r.co2_kg, 2) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+      <div v-else class="edb-table-wrap edb-thin-scroll">
+        <table class="edb-tbl">
+          <thead>
+            <tr>
+              <th style="width:62px">시</th>
+              <th>발전량(kWh)</th>
+              <th>날씨/기온</th>
+              <th>CO₂저감량(kg)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(r, i) in detailRowsVisible" :key="'hr'+i">
+              <td>{{ r.hour.replace(':00','시') }}</td>
+              <td class="edb-num">{{ fmt(r.kwh, 1) }}</td>
+              <td class="edb-num">{{ r.weather || '—' }}</td>
+              <td class="edb-num">{{ r.co2_kg==null ? '—' : fmt(r.co2_kg, 2) }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p v-if="isWind && !hasAnyGeneration(detailRows)"
+           class="edb-muted" style="margin-top:8px;">
+          * 풍력 장비가 하트비트(상태 보고)만 보내는 경우 시간대 발전량이 0으로 표시될 수 있습니다.
+        </p>
+      </div>
+    </div> <!-- /.edb-detail-body -->
+  </section>
       </section>
 
       <!-- 로딩 오버레이 -->
@@ -520,15 +556,174 @@
         </footer>
       </div>
     </div>
+
+    <!-- ✅ 이번주 날씨 예보 모달 -->
+    <div v-if="showWx" class="edb-modal-backdrop" @click.self="closeWxModal">
+      <div class="edb-modal edb-modal--forecast">
+        <header class="edb-modal-hd">
+          <div class="edb-modal-ico">🌦</div>
+          <div class="edb-modal-title">이번주 날씨 예보</div>
+          <button class="edb-modal-x" @click="closeWxModal">✕</button>
+        </header>
+
+        <div class="edb-modal-body">
+          <p class="edb-modal-desc">최저/최고 기온 추세와 강수확률을 함께 확인하세요.</p>
+
+          <div v-if="wxLoading" class="edb-loading" style="min-height:180px;">
+            <span class="edb-spinner edb-spinner--lg"></span> 예보 불러오는 중…
+          </div>
+
+          <template v-else>
+            <div v-if="wxErr" class="edb-empty-msg">{{ wxErr }}</div>
+
+            <!-- 차트 -->
+            <div v-else-if="wxWeek.length" class="edb-chart__body" ref="wxWrap">
+              <svg
+                :viewBox="`0 0 ${wxVb.w} ${wxVb.h}`"
+                class="edb-svg-chart"
+                :style="axisStyle"
+                aria-hidden="true"
+              >
+                <!-- 격자 & 축 -->
+                <g class="grid">
+                  <line v-for="(t,i) in wxYTicks" :key="'wgy'+i"
+                        :x1="wxPad.l" :x2="wxVb.w-wxPad.r" :y1="t.y" :y2="t.y"/>
+                </g>
+                <g class="axis axis-left">
+                  <line :x1="wxPad.l" :x2="wxPad.l" :y1="wxPad.t" :y2="wxVb.h-wxPad.b"/>
+                  <g v-for="(t,i) in wxYTicks" :key="'wyl'+i">
+                    <text :x="wxPad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
+                  </g>
+                </g>
+                <g class="axis axis-bottom">
+                  <line :x1="wxPad.l" :x2="wxVb.w-wxPad.r" :y1="wxVb.h-wxPad.b" :y2="wxVb.h-wxPad.b"/>
+                  <g v-for="(x,i) in wxXTicks" :key="'wxt'+i">
+                    <line :x1="x.x" :x2="x.x" :y1="wxVb.h-wxPad.b" :y2="wxVb.h-wxPad.b+5"/>
+                    <text :x="x.x" :y="wxVb.h-wxPad.b+28" text-anchor="middle">{{ x.label }}</text>
+                  </g>
+                </g>
+
+                <!-- 최고/최저 polyline -->
+                <defs>
+                  <filter id="wxShadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.25"/>
+                  </filter>
+                </defs>
+
+                <!-- 최고 (상단 라인) -->
+                <polyline
+                  :points="wxPointsMax"
+                  fill="none"
+                  stroke="#ef4444"
+                  stroke-width="3"
+                  filter="url(#wxShadow)"
+                />
+                <!-- 최저 (하단 라인) -->
+                <polyline
+                  :points="wxPointsMin"
+                  fill="none"
+                  stroke="#3b82f6"
+                  stroke-width="3"
+                  filter="url(#wxShadow)"
+                />
+
+                <!-- 점 -->
+                <g>
+                  <circle v-for="(p,i) in wxGeom" :key="'dot-max'+i"
+                          :cx="p.x" :cy="p.yMax" r="4" fill="#ef4444"/>
+                  <circle v-for="(p,i) in wxGeom" :key="'dot-min'+i"
+                          :cx="p.x" :cy="p.yMin" r="4" fill="#3b82f6"/>
+                </g>
+                <!-- 점 -->
+<g>
+  <circle v-for="(p,i) in wxGeom" :key="'dot-max'+i"
+          :cx="p.x" :cy="p.yMax" r="4" fill="#ef4444"/>
+  <circle v-for="(p,i) in wxGeom" :key="'dot-min'+i"
+          :cx="p.x" :cy="p.yMin" r="4" fill="#3b82f6"/>
+</g>
+
+<!-- ★ 온도 라벨 (항상 표시) -->
+<g class="wx-point-labels">
+  <!-- 최고기온 라벨 -->
+  <text v-for="(p,i) in wxGeom" :key="'lbl-max'+i"
+        :x="p.x" :y="p.yMax - 8" text-anchor="middle"
+        class="wx-label wx-label--hi">
+    {{ fmt(wxWeek[i].tmax, 1) }}℃
+  </text>
+
+  <!-- 최저기온 라벨 -->
+  <text v-for="(p,i) in wxGeom" :key="'lbl-min'+i"
+        :x="p.x" :y="p.yMin + 18" text-anchor="middle"
+        class="wx-label wx-label--lo">
+    {{ fmt(wxWeek[i].tmin, 1) }}℃
+  </text>
+</g>
+
+              </svg>
+<ul class="wx-popband" role="list">
+  <li v-for="(d,i) in wxWeek" :key="'pop-'+i">
+    <span class="wx-popband__date">{{ d.label }}</span>
+    <span class="wx-popband__chip">{{ d.pop ?? '—' }}%</span>
+  </li>
+</ul>
+              <!-- 범례 -->
+              <div class="edb-legend" style="display:flex; gap:16px; margin-top:8px;">
+                <span style="display:inline-flex; align-items:center; gap:6px;">
+                  <i style="width:10px; height:10px; background:#ef4444; border-radius:2px; display:inline-block;"></i>
+                  최고기온
+                </span>
+                <span style="display:inline-flex; align-items:center; gap:6px;">
+                  <i style="width:10px; height:10px; background:#3b82f6; border-radius:2px; display:inline-block;"></i>
+                  최저기온
+                </span>
+                <span style="display:inline-flex; align-items:center; gap:6px;">
+                  <i style="width:10px; height:10px; background:rgba(0,0,0,.25); border-radius:2px; display:inline-block;"></i>
+                  강수확률(%)
+                </span>
+              </div>
+            </div>
+
+            <!-- 폴백: 테이블 -->
+            <div v-else class="edb-table-wrap edb-thin-scroll">
+              <table class="edb-tbl">
+                <thead>
+                  <tr>
+                    <th>날짜</th>
+                    <th class="ar">최저(℃)</th>
+                    <th class="ar">최고(℃)</th>
+                    <th class="ar">강수확률(%)</th>
+                    <th>상태</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(d, i) in wxWeek" :key="'wrow'+i">
+                    <td>{{ d.label }}</td>
+                    <td class="edb-num">{{ fmt(d.tmin, 1) }}</td>
+                    <td class="edb-num">{{ fmt(d.tmax, 1) }}</td>
+                    <td class="edb-num">{{ d.pop ?? '—' }}</td>
+                    <td>{{ d.cond || '—' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
+        </div>
+
+        <footer class="edb-modal-ftr">
+          <button class="edb-btn edb-btn--ghost" @click="closeWxModal">닫기</button>
+        </footer>
+      </div>
+    </div>
   </main>
 </template>
 
 <script>
 import '@/assets/css/energy-dashboard.css'
 
-// 계산 상수
-const CO2_FACTOR = 0.4747; // kg/kWh
-const TREE_KG = 6.6;       // 1그루가 연간 흡수하는 CO₂(kg) 가정
+// 계산 상수 (전기/열원 분리)
+const CO2_ELECTRIC = 0.4747;  // kg/kWh (태양광/풍력/연료전지/ESS=전력)
+const CO2_THERMAL  = 0.198;   // kg/kWh (태양열/지열=열원)
+const TREE_KG = 6.6;          // 1그루 연간 CO₂(kg) 가정
 const DUMMY_CAP_KW = 3;
 
 const SKY_LABEL = { '1':'맑음', '3':'구름많음', '4':'흐림' };
@@ -536,6 +731,8 @@ const PTY_LABEL = { '0':'없음','1':'비','2':'비/눈','3':'눈','5':'빗방�
 
 const DEFAULT_IMEI = '';
 const round2 = v => Math.round(v * 100) / 100;
+
+const WEEKDAY = ['일','월','화','수','목','금','토'];
 
 export default {
   name: 'EnergyDashboard',
@@ -545,9 +742,11 @@ export default {
     const m = now.getMonth() + 1;
 
     return {
+      // 관리자 여부
+      isAdmin: false,
+
       imeiField: DEFAULT_IMEI,
-      regionField: 'yesan',
-      energyField: '01',
+      energyField: '01', // 기본 태양광
       typeField: '',
       multiField: '', // '' | '00'|'01'|'02'|'03'
 
@@ -591,30 +790,40 @@ export default {
       // 레이스 방지
       searching: false,
       currentReqId: 0,
+
+      showWx: false,
+      wxLoading: false,
+      wxErr: '',
+      wxWeek: [],
+
+      // 날씨 차트 뷰박스
+      wxVb: { w: 1200, h: 380 },wxPad: { t: 28, r: 36, b: 72, l: 56 },
     }
   },
   computed: {
+    currentKstHour(){
+      const kst = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
+      return new Date(kst).getHours() // 0~23
+    },
     detailRowsVisible() {
-      const rows = Array.isArray(this.detailRows) ? this.detailRows : [];
+      const rows = Array.isArray(this.detailRows) ? this.detailRows : []
+      const startHour = (this.energyField === '01') ? 6 : 0
 
-      const inWindow = rows.filter(r => {
-        const hh = this.toHH(r.hour);
-        if (hh == null) return false;
-        const n = Number(hh);
-        return n >= 6 && n <= 18;
-      });
+      const filtered = rows.filter(r => {
+        const hh = this.toHH(r.hour)
+        if (hh == null) return false
+        const n = Number(hh)
+        return n >= startHour && n <= this.currentKstHour
+      })
 
-      let last = -1;
-      for (let i = inWindow.length - 1; i >= 0; i--) {
-        const v = inWindow[i]?.kwh;
-        if (v != null && Number.isFinite(Number(v))) { last = i; break; }
+      let last = filtered.length - 1
+      for (; last >= 0; last--) {
+        const v = filtered[last]?.kwh
+        if (v != null && Number.isFinite(Number(v))) break
       }
-      return last >= 0 ? inWindow.slice(0, last + 1) : inWindow;
+      return last >= 0 ? filtered.slice(0, last + 1) : filtered
     },
-    trendDay(){
-      const base = this.summary.today_kwh || 0;
-      return Math.min(99, Math.max(0, Math.round(base * 1.2)));
-    },
+    isWind(){ return this.energyField === '04'; },
 
     /* ===== 주간 ===== */
     maxY(){ return Math.max(...this.bars.map(b => b.y || 0), 1) },
@@ -715,6 +924,13 @@ export default {
 
     axisStyle(){ return {'--axis-x-font': this.axisXFontPx+'px','--axis-y-font': this.axisYFontPx+'px'} },
 
+    // ===== 에너지별 CO₂ 계수 =====
+    co2Factor(){
+      return (this.energyField === '02' || this.energyField === '03')
+        ? CO2_THERMAL   // 태양열/지열
+        : CO2_ELECTRIC; // 태양광/풍력/연료전지/ESS
+    },
+
     // ===== KPI (차트 집계에 100% 일치) =====
     kpiWeek(){
       const kwh = this.totalKwh || 0;
@@ -745,33 +961,99 @@ export default {
     canDownload(){
       return this.hasSearched && !!this.hasAnyData;
     },
+
+    /* ===== 이번주 날씨 차트 계산 ===== */
+    wxInner(){ return { w: this.wxVb.w - this.wxPad.l - this.wxPad.r, h: this.wxVb.h - this.wxPad.t - this.wxPad.b } },
+    wxXStep(){ return this.wxWeek.length ? this.wxInner.w / this.wxWeek.length : 0 },
+    wxTempMin(){
+      const mins = this.wxWeek.map(d => Number(d.tmin)).filter(n => Number.isFinite(n))
+      return mins.length ? Math.min(...mins) : 0
+    },
+    wxTempMax(){
+      const maxs = this.wxWeek.map(d => Number(d.tmax)).filter(n => Number.isFinite(n))
+      return maxs.length ? Math.max(...maxs) : 1
+    },
+    wxYTicks(){
+      const min = Math.floor(this.wxTempMin - 1)
+      const max = Math.ceil(this.wxTempMax + 1)
+      const step = Math.max(1, Math.round((max-min)/4))
+      const ticks = []
+      for(let v=min; v<=max; v+=step){
+        const y = this.wxPad.t + (1 - (v - min)/(max - min || 1)) * this.wxInner.h
+        ticks.push({ y, label: `${v}` })
+      }
+      return ticks
+    },
+    wxXTicks(){
+      const out=[]
+      for(let i=0;i<this.wxWeek.length;i++){
+        const x = this.wxPad.l + i*this.wxXStep + this.wxXStep/2
+        out.push({ x, label: this.wxWeek[i].label })
+      }
+      return out
+    },
+    wxGeom(){
+      const min = Math.floor(this.wxTempMin - 1)
+      const max = Math.ceil(this.wxTempMax + 1)
+      const arr=[]
+      for (let i=0;i<this.wxWeek.length;i++){
+        const d = this.wxWeek[i]
+        const cx = this.wxPad.l + i*this.wxXStep + this.wxXStep/2
+        const yMax = this.wxPad.t + (1 - (d.tmax - min)/(max - min || 1)) * this.wxInner.h
+        const yMin = this.wxPad.t + (1 - (d.tmin - min)/(max - min || 1)) * this.wxInner.h
+        arr.push({ x: cx, yMax, yMin, pop: d.pop ?? 0 })
+      }
+      return arr
+    },
+    wxPointsMax(){ return this.wxGeom.map(p => `${p.x},${p.yMax}`).join(' ') },
+    wxPointsMin(){ return this.wxGeom.map(p => `${p.x},${p.yMin}`).join(' ') },
   },
   watch: {
-    // 쿼리 변화로 진입했을 때(IMEI/type/multi) 재조회
+    // 에너지 변경 시 타입/멀티 초기화(태양광만 사용)
+    energyField(nv){
+      if (nv !== '01') {
+        this.typeField = ''
+        this.multiField = ''
+      }
+    },
     '$route.query'(q) {
       const nextImei  = (q.imei || '').toString().trim()
+      const nextEnergy= typeof q.energy === 'string' ? q.energy : this.energyField
       const nextType  = typeof q.type  === 'string' ? q.type  : ''
       const nextMulti = typeof q.multi === 'string' ? q.multi : ''
       const shouldReload =
         (nextImei && nextImei !== this.imeiField) ||
+        (nextEnergy !== this.energyField) ||
         (nextType  !== this.typeField) ||
         (nextMulti !== this.multiField)
 
       if (shouldReload) {
-        if (nextImei) this.imeiField = nextImei
-        this.typeField  = nextType
-        this.multiField = nextMulti
+        if (nextImei)   this.imeiField = nextImei
+        this.energyField = nextEnergy
+        this.typeField   = nextType
+        this.multiField  = nextMulti
         this.onSearch()
       }
     }
   },
   methods: {
+    // === 관리자 동기화 ===
+    syncAdminFromStorage(){
+      try{
+        const flag  = (localStorage.getItem('isAdmin') === 'true')
+        const email = (localStorage.getItem('email') || '').trim().toLowerCase()
+        this.isAdmin = flag || (email === 'admin@company.com')
+      }catch{ this.isAdmin = false }
+    },
+
     fmt(v,d=0){ return v==null?'—':Number(v).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}) },
     dash(v){ return (v==null||v==='')?'-':`${v}` },
     formatDay(ymd){ const m=ymd?.match?.(/^(\d{4})-(\d{2})-(\d{2})$/); return m?`${Number(m[3])}일`:(ymd||'') },
     rangeText(r){ if(!r?.start||!r?.end) return ''; const f=(iso)=>new Date(iso).toLocaleDateString('ko-KR',{timeZone:'Asia/Seoul'}); return `${f(r.start)} ~ ${f(r.end)}`; },
-    co2(kwh){ return round2(kwh * CO2_FACTOR) },
-    treesFromKwh(kwh){ const co2 = kwh * CO2_FACTOR; return Math.round(co2 / TREE_KG) },
+
+    //  에너지별 계수 사용
+    co2(kwh){ return round2((Number(kwh) || 0) * this.co2Factor) },
+    treesFromKwh(kwh){ return Math.round(this.co2(kwh) / TREE_KG) },
 
     updateAxisFonts(){
       const wrap=this.$refs.monthWrap||this.$refs.yearWrap, w=wrap?wrap.clientWidth:0
@@ -873,48 +1155,110 @@ export default {
       return out
     },
 
-async fetchRange(range, withHourly = false, imeiOverride = null) {
-  const imei = imeiOverride || this.imeiField?.trim()
-  const params = new URLSearchParams({ rtuImei: imei, range })
-  if (this.energyField) params.set('energy', this.energyField)
-  if (this.typeField)   params.set('type', this.typeField)
-  if (this.multiField)  params.set('multi', this.multiField)
-  if (withHourly)       params.set('detail', 'hourly')
-  const r = await fetch(`/api/energy/electric/series?${params.toString()}`)
-  if (!r.ok) throw new Error('데이터를 가져오지 못했습니다.')
-  return r.json()
-},
-
-    // 오늘 시간대별: /series(detail=hourly)로 통일
-    async fetchHourlyLikeAT(){
-      const imei=this.imeiField?.trim()
-      if(!imei) return []
-      const params=new URLSearchParams({
-        rtuImei: imei,
-        energy: this.energyField || '01',
-        range: 'weekly',
-        detail: 'hourly'
-      })
-      if (this.typeField)  params.set('type',  this.typeField)
-      if (this.multiField) params.set('multi', this.multiField)
-
-      const r = await fetch(`/api/energy/electric/series?${params.toString()}`)
-      if(!r.ok) return []
-      const j = await r.json()
-      const rows = j?.detail_hourly?.rows || []
-      return rows
-        .map(h => ({ hour: String(h.hour).slice(0,2).padStart(2,'0'), kwh: (h.kwh==null?null:Number(h.kwh)) }))
-        .sort((a,b) => a.hour.localeCompare(b.hour))
+    // 공통: energy에 따라 시리즈 엔드포인트 (집계용은 공용 라우터를 사용한다고 가정)
+    _seriesEndpoint() {
+      return '/api/energy/series'
     },
 
-    async fetchWeatherHourlyByImei(){
+    // 시간별 라우트: 백엔드와 1:1 매핑
+    _hourlyEndpoint() {
+      switch (this.energyField) {
+        case '01': return '/api/energy/electric/hourly'
+        case '02': return '/api/energy/thermal/hourly'
+        case '03': return '/api/energy/geothermal/hourly'
+        case '04': return '/api/energy/wind/hourly'
+        case '06': return '/api/energy/fuelcell/hourly'
+        case '07': return '/api/energy/ess/hourly'
+        default:   return '/api/energy/electric/hourly'
+      }
+    },
+
+    /* ===== API ===== */
+    async fetchRange(range, withHourly = false, imeiOverride = null) {
+      const imei = imeiOverride || this.imeiField?.trim()
+      const params = new URLSearchParams({ rtuImei: imei, imei, range })
+      if (this.energyField) params.set('energy', this.energyField)
+      if (this.typeField && this.energyField === '01') params.set('type', this.typeField)
+      if (this.multiField && this.energyField === '01')  params.set('multi', this.multiField)
+      if (withHourly)       params.set('detail', 'hourly')
+
+      const r = await fetch(`${this._seriesEndpoint()}?${params.toString()}`)
+      if (!r.ok) throw new Error('데이터를 가져오지 못했습니다.')
+      return r.json()
+    },
+
+    // 시간별(오늘)
+    async fetchHourlyForToday () {
       const imei = this.imeiField?.trim()
-      if(!imei) return { base_date:null, base_time:null, hourly: [] }
-      const r = await fetch(`/api/weather/vilageFcst/by-imei?imei=${encodeURIComponent(imei)}`)
-      if(!r.ok) return { base_date:null, base_time:null, hourly: [] }
-      const j = await r.json()
-      return { base_date: j.base_date || null, base_time: j.base_time || null, hourly: Array.isArray(j.hourly)? j.hourly: [] }
+      if (!imei) return []
+      const today = this.todayKstYmd()
+
+      const p = new URLSearchParams({ imei, rtuImei: imei, date: today })
+      if (this.energyField) p.set('energy', this.energyField)
+      if (this.typeField && this.energyField === '01') p.set('type', this.typeField)
+      if (this.multiField && this.energyField === '01')  p.set('multi', this.multiField)
+
+      try {
+        const r = await fetch(`${this._hourlyEndpoint()}?${p.toString()}`)
+        if (!r.ok) return []
+        const j = await r.json()
+        const hours = Array.isArray(j?.hours) ? j.hours : []
+        return hours.map(h => ({
+          hour: String(h.hour).padStart(2, '0'),
+          kwh: (h.kwh == null ? null : Number(h.kwh))
+        }))
+      } catch {
+        return []
+      }
     },
+
+    // 기존: 시간대별 날씨(오늘)
+    async fetchWeatherHourlyByImei(){
+      const imei = this.imeiField?.trim();
+      if(!imei) return { base_date:null, base_time:null, hourly: [] };
+
+      const lat = 35.362999;
+      const lon = 129.04677;
+      const url = `/api/weather/openmeteo/by-imei?imei=${encodeURIComponent(imei)}&rtuImei=${encodeURIComponent(imei)}&lat=${lat}&lon=${lon}`;
+
+      try {
+        const r = await fetch(url);
+        if(!r.ok) return { base_date:null, base_time:null, hourly: [] };
+        const j = await r.json();
+        return {
+          base_date: j.base_date || null,
+          base_time: j.base_time || null,
+          hourly: Array.isArray(j.hourly) ? j.hourly : []
+        };
+      } catch {
+        return { base_date:null, base_time:null, hourly: [] };
+      }
+    },
+
+    // 7일 예보 (우선 daily=1 엔드포인트 시도, 실패 시 폴백 메시지)
+async fetchWeatherWeek(){
+  const imei = this.imeiField?.trim()
+  if (!imei) return []
+
+  const url = `/api/weather/openmeteo/by-imei/daily?imei=${encodeURIComponent(imei)}&days=7`
+  try {
+    const r = await fetch(url)
+    const j = await r.json()
+    if (!r.ok || !j.ok) return []
+
+    // j.daily = [{ date:'YYYYMMDD', tmin, tmax, pop_max, wind_max, sky, pty, summary, ... }]
+    return (j.daily || []).map(d => ({
+      date: d.date,                           // '20251103'
+      label: this.kDateLabel?.(d.date) ?? d.date,
+      tmin: d.tmin, tmax: d.tmax,
+      pop:  d.pop_max,                        // ← 이름 주의(pop_max)
+      wind: d.wind_max,
+      cond: [d.sky, d.pty !== '없음' ? d.pty : null].filter(Boolean).join(' ')
+    }))
+  } catch {
+    return []
+  }
+},
 
     toHH(h) {
       if (h == null) return null;
@@ -936,168 +1280,210 @@ async fetchRange(range, withHourly = false, imeiOverride = null) {
       const label = [cond, ta].filter(Boolean).join(' / ');
       return label || '—';
     },
+    todayKstYmd(){
+      return new Date().toLocaleDateString('sv-SE',{ timeZone:'Asia/Seoul' }).replace(/\./g,'-')
+    },
 
-async onSearch(options = {}) {
-  const loadDefault = options.loadDefault === true
-  const imei = this.imeiField?.trim()
-  // IMEI 없고 기본 로드도 아니면 중단
-  if (!imei && !loadDefault) return
-  if (this.searching) return
+kDateLabel(iso){
+  if (!iso) return '';
+  let s = String(iso).trim();
 
-  this.searching = true
-  this.loading = true
-  this.errorMsg = ''
-  this.hasSearched = false
-  const myReq = ++this.currentReqId
-
-  // IMEI 없을 경우 전체 데이터용으로 요청
-  const imeiParam = imei || 'ALL'
-
-  // 초기화
-  this.bars = []
-  this.totalKwh = 0
-  this.detailDay = ''
-  this.detailRows = []
-  this.monthSeries = []
-  this.yearSeries = []
-  this.monthRangeUtc = null
-  this.yearRangeUtc = null
-  this.weekRangeUtc = null
-  this.summary = {
-    capacity_kw: DUMMY_CAP_KW,
-    today_kwh: 0,
-    month_kwh: 0,
-    year_kwh: 0,
-    co2_kg: 0,
-    trees: 0,
-    install_date: null,
-    monitor_start: null
+  // 1) YYYYMMDD → YYYY-MM-DD 로 보정
+  if (/^\d{8}$/.test(s)) {
+    s = `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
   }
-  this.kpis = { totalKwh: 0, totalCo2: 0, totalTrees: 0 }
-  this.avgEff = null
 
-  // 라우터 쿼리 동기화
-  try {
-    const cur = this.$route?.query || {}
-    const next = {
-      ...(imei ? { imei } : {}),
-      ...(this.energyField ? { energy: this.energyField } : {}),
-      ...(this.typeField ? { type: this.typeField } : {}),
-      ...(this.multiField ? { multi: this.multiField } : {})
-    }
-    if (JSON.stringify(cur) !== JSON.stringify(next)) {
-      await this.$router.replace({ query: next })
-    }
-  } catch { /* no-op */ }
-
-  try {
-    // 주간 + 시간별(일간) 동시 요청
-    const [weekly, hourly] = await Promise.all([
-      this.fetchRange('weekly', false, imeiParam),
-      this.fetchHourlyLikeAT(imeiParam)
-    ])
-    if (myReq !== this.currentReqId) return
-
-    // 주간 차트
-    this.bars = (weekly.series || []).map(s => ({ x: s.bucket, y: s.kwh }))
-    this.totalKwh = round2(
-      weekly.summary?.total_kwh ?? this.bars.reduce((a, c) => a + (c.y || 0), 0)
-    )
-    this.weekRangeUtc = weekly.range_utc || null
-
-    // 시간대별 상세
-    const kstToday = new Date()
-      .toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
-      .replace(/\./g, '-')
-    this.detailDay = kstToday
-    this.detailRows = (hourly || []).map(h => ({
-      hour: `${h.hour}:00`,
-      kwh: h.kwh == null ? null : round2(h.kwh),
-      co2_kg: h.kwh == null ? null : round2(this.co2(h.kwh)),
-      weather: '—'
-    }))
-    // 금일 합계
-    const todaySum = (hourly || []).reduce(
-      (s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s),
-      0
-    )
-    this.summary.today_kwh = round2(todaySum)
-    this.avgEff = 13.9
-
-    // 시간대별 날씨 병합
-    const wx = await this.fetchWeatherHourlyByImei()
-    if (myReq !== this.currentReqId) return
-    if (wx.hourly.length) {
-      const wmap = new Map(wx.hourly.map(h => [this.toHH(h.hour), h]))
-      this.detailRows = this.detailRows.map(r => {
-        const key = this.toHH(r.hour)
-        const w = key ? wmap.get(key) : null
-        return w ? { ...r, weather: this.makeWeatherLabel(w) } : r
-      })
-    }
-
-    // 월간, 연간
-    const now = new Date()
-    const y = now.getFullYear()
-    const m = String(now.getMonth() + 1).padStart(2, '0')
-    const ym = `${y}-${m}`
-
-    const [monthly, yearly] = await Promise.all([
-      this.fetchRange('monthly', false, imeiParam),
-      this.fetchRange('yearly', false, imeiParam)
-    ])
-    if (myReq !== this.currentReqId) return
-
-    // 월간 주차 집계
-    this.monthRangeUtc = monthly.range_utc || null
-    const monthAgg = this.aggregateWeeksFromDaily(monthly.series || [])
-    this.monthSeries = monthAgg.series
-    this.summary.month_kwh = round2(
-      (monthly.series || [])
-        .filter(r => String(r.bucket || '').startsWith(ym))
-        .reduce((s, r) => s + (r.kwh || 0), 0)
-    )
-
-    // 연간 월별 보정
-    this.yearSeries = this.ensureYearMonths(yearly.series || [], y)
-    this.yearRangeUtc = yearly.range_utc || null
-    this.summary.year_kwh = round2(
-      this.yearSeries.reduce((s, r) => s + (r.y || 0), 0)
-    )
-
-    // KPI 캐시
-    this.kpis.totalKwh = this.summary.year_kwh
-    this.kpis.totalCo2 = this.co2(this.kpis.totalKwh)
-    this.kpis.totalTrees = this.treesFromKwh(this.kpis.totalKwh)
-
-    // 주간 환경 KPI
-    this.summary.co2_kg = this.co2(this.totalKwh)
-    this.summary.trees = this.treesFromKwh(this.totalKwh)
-
-    if (
-      !this.bars.length &&
-      !this.monthSeries.length &&
-      !this.yearSeries.length
-    ) {
-      this.errorMsg = '선택한 조건에 해당하는 데이터가 없습니다.'
-    }
-
-    this.hasSearched = true
-    this.$nextTick(this.updateAxisFonts)
-    this.assertAggregateOrder()
-  } catch (e) {
-    this.errorMsg = e?.message || '오류가 발생했습니다.'
-    console.error('[EnergyDashboard:onSearch]', e)
-  } finally {
-    this.searching = false
-    this.loading = false
+  // 2) 유효성 체크
+  const d = new Date(`${s}T00:00:00+09:00`);
+  if (isNaN(d.getTime())) {
+    // 그래도 파싱 안되면 원문을 그대로 라벨로 사용
+    return iso;
   }
+
+  const md = `${d.getMonth()+1}/${d.getDate()}`;
+  const wd = WEEKDAY[d.getDay()];
+  return `${md}(${wd})`;
 },
+    wxCodeToText(code){
+      // 간단 매핑(원한다면 확장 가능)
+      const c = Number(code)
+      if ([0,1].includes(c)) return '맑음'
+      if ([2,3].includes(c)) return '구름'
+      if ([45,48].includes(c)) return '안개'
+      if ([51,53,55,61,63,65,80,81,82].includes(c)) return '비'
+      if ([56,57,66,67].includes(c)) return '얼음비'
+      if ([71,73,75,77,85,86].includes(c)) return '눈'
+      if ([95,96,99].includes(c)) return '뇌우'
+      return ''
+    },
+
+    /* ===== 메인 플로우 ===== */
+    async onSearch(options = {}) {
+      const loadDefault = options.loadDefault === true
+      const imei = this.imeiField?.trim()
+      if (!imei && !loadDefault) return
+      if (this.searching) return
+
+      this.searching = true
+      this.loading = true
+      this.errorMsg = ''
+      this.hasSearched = false
+      const myReq = ++this.currentReqId
+
+      // 초기화
+      this.bars = []
+      this.totalKwh = 0
+      this.detailDay = ''
+      this.detailRows = []
+      this.monthSeries = []
+      this.yearSeries = []
+      this.monthRangeUtc = null
+      this.yearRangeUtc = null
+      this.weekRangeUtc = null
+      this.summary = {
+        capacity_kw: DUMMY_CAP_KW,
+        today_kwh: 0,
+        month_kwh: 0,
+        year_kwh: 0,
+        co2_kg: 0,
+        trees: 0,
+        install_date: null,
+        monitor_start: null
+      }
+      this.kpis = { totalKwh: 0, totalCo2: 0, totalTrees: 0 }
+      this.avgEff = null
+
+      // 라우터 쿼리 동기화
+      try {
+        const cur = this.$route?.query || {}
+        const next = {
+          ...(imei ? { imei } : {}),
+          ...(this.energyField ? { energy: this.energyField } : {}),
+          ...(this.typeField && this.energyField==='01' ? { type: this.typeField } : {}),
+          ...(this.multiField && this.energyField==='01' ? { multi: this.multiField } : {})
+        }
+        if (JSON.stringify(cur) !== JSON.stringify(next)) {
+          await this.$router.replace({ query: next })
+        }
+      } catch { /* no-op */ }
+
+      try {
+        // 주간 + 시간별(일간) 동시 요청
+        const [weekly, hourly] = await Promise.all([
+          this.fetchRange('weekly', false, imei),
+          this.fetchHourlyForToday()
+        ])
+        if (myReq !== this.currentReqId) return
+
+        // ===== 주간 차트 정규화 =====
+        const wSeries = Array.isArray(weekly?.series) ? weekly.series
+                        : Array.isArray(weekly?.data?.series) ? weekly.data.series
+                        : []
+        this.bars = wSeries.map(s => ({
+          x: s.bucket || s.date || s.x,
+          y: Number(s.kwh ?? s.y ?? 0)
+        })).filter(r => r.x != null)
+
+        // 합계 & 범위
+        const wSum = Number(weekly?.summary?.total_kwh)
+          || this.bars.reduce((a,c)=>a+(c.y||0),0)
+        this.totalKwh = round2(wSum)
+        const r = weekly?.range_utc || weekly?.range || null
+        this.weekRangeUtc = r && r.start && r.end ? r : null
+
+        // ===== “시간별 상세정보” =====
+        const kstToday = this.todayKstYmd()
+        this.detailDay = kstToday
+        this.detailRows = (hourly || []).map(h => ({
+          hour: `${h.hour}:00`,
+          kwh: h.kwh == null ? null : round2(h.kwh),
+          co2_kg: h.kwh == null ? null : round2(this.co2(h.kwh)),
+          weather: '—'
+        }))
+        const todaySum = (hourly || []).reduce(
+          (s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s), 0
+        )
+        this.summary.today_kwh = round2(todaySum)
+        this.avgEff = 13.9
+
+        // 시간대별 날씨 병합
+        const wx = await this.fetchWeatherHourlyByImei()
+        if (myReq !== this.currentReqId) return
+        if (wx.hourly.length) {
+          const wmap = new Map(wx.hourly.map(h => [this.toHH(h.hour), h]))
+          this.detailRows = this.detailRows.map(r => {
+            const key = this.toHH(r.hour)
+            const w = key ? wmap.get(key) : null
+            return w ? { ...r, weather: this.makeWeatherLabel(w) } : r
+          })
+        }
+
+        // ===== 월간, 연간 =====
+        const now = new Date()
+        const y = now.getFullYear()
+        const m = String(now.getMonth() + 1).padStart(2, '0')
+        const ym = `${y}-${m}`
+
+        const [monthly, yearly] = await Promise.all([
+          this.fetchRange('monthly', false, imei),
+          this.fetchRange('yearly',  false, imei)
+        ])
+        if (myReq !== this.currentReqId) return
+
+        // 월간(일단위 원시 → 주차 집계)
+        const mSeries = Array.isArray(monthly?.series) ? monthly.series
+                        : Array.isArray(monthly?.data?.series) ? monthly.data.series
+                        : []
+        this.monthRangeUtc = monthly?.range_utc || monthly?.range || null
+        const monthAgg = this.aggregateWeeksFromDaily(
+          mSeries.map(r => ({ bucket: r.bucket || r.date || r.x, kwh: Number(r.kwh ?? r.y ?? 0) }))
+        )
+        this.monthSeries = monthAgg.series
+        this.summary.month_kwh = round2(
+          mSeries
+            .filter(r => String(r.bucket || r.date || r.x || '').startsWith(ym))
+            .reduce((s, r) => s + Number(r.kwh ?? r.y ?? 0), 0)
+        )
+
+        // 연간(YTD) 보정
+        const ySeries = Array.isArray(yearly?.series) ? yearly.series
+                        : Array.isArray(yearly?.data?.series) ? yearly.data.series
+                        : []
+        this.yearSeries = this.ensureYearMonths(
+          ySeries.map(r => ({ bucket: r.bucket || r.date || r.x, kwh: Number(r.kwh ?? r.y ?? 0) })),
+          y
+        )
+        this.yearRangeUtc = yearly?.range_utc || yearly?.range || null
+        this.summary.year_kwh = round2(this.yearSeries.reduce((s, r) => s + (r.y || 0), 0))
+
+        // KPI 캐시
+        this.kpis.totalKwh = this.summary.year_kwh
+        this.kpis.totalCo2 = this.co2(this.kpis.totalKwh)
+        this.kpis.totalTrees = this.treesFromKwh(this.kpis.totalKwh)
+
+        // 주간 환경 KPI
+        this.summary.co2_kg = this.co2(this.totalKwh)
+        this.summary.trees = this.treesFromKwh(this.totalKwh)
+
+        if (!this.bars.length && !this.monthSeries.length && !this.yearSeries.length) {
+          this.errorMsg = '선택한 조건에 해당하는 데이터가 없습니다.'
+        }
+
+        this.hasSearched = true
+        this.$nextTick(this.updateAxisFonts)
+        this.assertAggregateOrder()
+      } catch (e) {
+        this.errorMsg = e?.message || '오류가 발생했습니다.'
+        console.error('[EnergyDashboard:onSearch]', e)
+      } finally {
+        this.searching = false
+        this.loading = false
+      }
+    },
 
     reset(){
       if (this.searching) return
       this.imeiField=''
-      this.regionField='yesan'
       this.energyField='01'
       this.typeField=''
       this.multiField=''
@@ -1132,6 +1518,10 @@ async onSearch(options = {}) {
       this.tip = { show:true, x, y, chart, label, value }
     },
 
+    hasAnyGeneration(rows){
+      return Array.isArray(rows) && rows.some(r => Number(r?.kwh) > 0)
+    },
+
     /* CSV 다운로드 */
     openDownloadModal(){
       if(!this.canDownload){
@@ -1164,9 +1554,10 @@ async onSearch(options = {}) {
           year: String(this.dlYear),
           month: String(this.dlMonth)
         })
-        if (this.multiField) qs.set('multi', this.multiField)
+        if (this.energyField) qs.set('energy', this.energyField)
+        if (this.multiField && this.energyField==='01')  qs.set('multi', this.multiField)
 
-        const url = `/api/export/month-csv?${qs.toString()}`
+        const url = `/api/export/monthCsv?${qs.toString()}`
         const resp = await fetch(url)
 
         if (!resp.ok) {
@@ -1181,7 +1572,8 @@ async onSearch(options = {}) {
         const blob = await resp.blob()
 
         let filename = `월별_${imei}_${this.dlYear}-${String(this.dlMonth).padStart(2,'0')}`
-        if (this.multiField) filename += `_multi-${this.multiField}`
+        if (this.energyField) filename += `_energy-${this.energyField}`
+        if (this.multiField && this.energyField==='01')  filename += `_multi-${this.multiField}`
         filename += `.csv`
 
         const cd = resp.headers.get('Content-Disposition') || ''
@@ -1213,27 +1605,61 @@ async onSearch(options = {}) {
       if (y + 1e-6 < m || m + 1e-6 < w) {
         console.warn('[EnergyDashboard] Aggregate order broke (Y<M or M<W)', { w, m, y });
       }
-    }
-  },
-mounted() {
-  const q = this.$route?.query || {}
-  this.imeiField = (typeof q.imei === 'string' && q.imei.trim()) ? q.imei.trim() : DEFAULT_IMEI
-  this.energyField = '01'
-  this.typeField   = typeof q.type === 'string' ? q.type : ''
-  this.multiField  = typeof q.multi === 'string' ? q.multi : ''
+    },
 
-  if ('ResizeObserver' in window) {
-    this.resizeObserver = new ResizeObserver(() => this.updateAxisFonts())
-    this.resizeObserver.observe(this.$el)
-  } else {
-    window.addEventListener('resize', this.updateAxisFonts)
-  }
-  this.$nextTick(this.updateAxisFonts)
-  this.onSearch({ loadDefault: true })
-},
+    /* ===== 이번주 날씨 모달 제어 ===== */
+    async openWxModal(){
+      if (!this.imeiField?.trim()) {
+        alert('IMEI를 먼저 입력해주세요.')
+        return
+      }
+      this.showWx = true
+      this.wxLoading = true
+      this.wxErr = ''
+      this.wxWeek = []
+
+      try{
+        const days = await this.fetchWeatherWeek()
+        if (!days.length) {
+          this.wxErr = '7일 예보 데이터를 불러올 수 없습니다. (서버의 daily 예보 지원 필요)'
+        } else {
+          this.wxWeek = days.slice(0, 7)
+        }
+      }catch(e){
+        this.wxErr = e?.message || '예보 로딩 중 오류가 발생했습니다.'
+      }finally{
+        this.wxLoading = false
+      }
+    },
+    closeWxModal(){ this.showWx = false },
+  },
+  mounted() {
+    // 관리자 동기화 + 스토리지 변경 반영
+    this.syncAdminFromStorage()
+    this._storageHandler = (e) => {
+      if (e.key === 'isAdmin' || e.key === 'email') this.syncAdminFromStorage()
+    }
+    window.addEventListener('storage', this._storageHandler)
+
+    const q = this.$route?.query || {}
+    this.imeiField   = (typeof q.imei === 'string' && q.imei.trim()) ? q.imei.trim() : DEFAULT_IMEI
+    this.energyField = (typeof q.energy === 'string' && q.energy.trim()) ? q.energy.trim() : '01'
+    this.typeField   = (typeof q.type === 'string'  && q.type.trim())  ? q.type.trim()  : ''
+    this.multiField  = (typeof q.multi === 'string' && q.multi.trim()) ? q.multi.trim() : ''
+
+    if ('ResizeObserver' in window) {
+      this.resizeObserver = new ResizeObserver(() => this.updateAxisFonts())
+      this.resizeObserver.observe(this.$el)
+    } else {
+      window.addEventListener('resize', this.updateAxisFonts)
+    }
+    this.$nextTick(this.updateAxisFonts)
+    this.onSearch({ loadDefault: true })
+  },
   beforeDestroy(){
     if(this.resizeObserver) this.resizeObserver.disconnect()
     else window.removeEventListener('resize', this.updateAxisFonts)
+    if (this._storageHandler) window.removeEventListener('storage', this._storageHandler)
   }
 }
 </script>

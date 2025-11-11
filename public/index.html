@@ -9,9 +9,19 @@
   </head>
   <body>
     <noscript>
-      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong>
+        We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled.
+        Please enable it to continue.
+      </strong>
     </noscript>
+
+    <!-- Vue 앱이 마운트될 루트 -->
     <div id="app"></div>
+
+    <!-- ✅ 서버(app.js)에서 정상 발전소 데이터를 여기에 인라인 삽입함 -->
+    <!--__PRELOAD_NORMAL_POINTS__-->
+
+    <!-- Vue CLI가 JS/CSS 번들을 자동으로 삽입 -->
     <!-- built files will be auto injected -->
   </body>
 </html>

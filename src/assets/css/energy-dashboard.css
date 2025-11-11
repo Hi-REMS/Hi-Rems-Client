@@ -1012,5 +1012,315 @@ html[data-theme="dark"] .edb-table--summary .subhead th{
 }
 .edb-stat-sub.edb-muted { color: rgba(255,255,255,.5); }
 
-/* ✅ y축 라벨이 뷰박스 바깥으로 나가도 보이도록 */
 .edb-svg-chart { overflow: visible; }
+
+/* =========================================
+   PRIMARY 버튼: 테마와 무관하게 '한 가지' 색상 유지
+   (파일 맨 아래에 붙여 기존 정의를 덮어쓰세요)
+   ========================================= */
+:root{
+  --btn-primary-top:    #0e6f8f;  /* 위쪽(살짝 밝은 파랑-청록) */
+  --btn-primary-bot:    #084b61;  /* 아래쪽(조금 더 진하게) */
+  --btn-primary-border: #073b4d;  /* 테두리 */
+  --btn-primary-text:   #ffffff;  /* 텍스트 */
+  --btn-primary-hover-t:#1181a6;
+  --btn-primary-hover-b:#0a5670;
+  --btn-primary-active-t:#0d6683;
+  --btn-primary-active-b:#074158;
+}
+
+/* 공통 스타일(다크/라이트 동일) */
+.edb-btn--primary{
+  background: linear-gradient(180deg, var(--btn-primary-top), var(--btn-primary-bot));
+  border: 1px solid var(--btn-primary-border) !important;
+  color: var(--btn-primary-text) !important;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(0,0,0,.18);
+  box-shadow: 0 6px 18px rgba(0,0,0,.18);
+}
+.edb-btn--primary:hover:not([disabled]){
+  background: linear-gradient(180deg, var(--btn-primary-hover-t), var(--btn-primary-hover-b));
+  border-color: color-mix(in srgb, var(--btn-primary-border) 70%, #0aa9d6 30%);
+}
+.edb-btn--primary:active:not([disabled]){
+  background: linear-gradient(180deg, var(--btn-primary-active-t), var(--btn-primary-active-b));
+  box-shadow: 0 4px 12px rgba(0,0,0,.16);
+}
+
+/* 작은 버튼(다운로드 등)도 동일 톤 */
+.edb-btn--primary.edb-btn--sm{
+  background: linear-gradient(180deg, var(--btn-primary-top), var(--btn-primary-bot));
+  color: var(--btn-primary-text) !important;
+  border: 1px solid var(--btn-primary-border) !important;
+}
+
+/* 라이트 모드에서 바꾸던 규칙 무력화(항상 같은 배경을 쓰기 위해) */
+html[data-theme="light"] .edb-btn--primary{
+  background: linear-gradient(180deg, var(--btn-primary-top), var(--btn-primary-bot)) !important;
+  border-color: var(--btn-primary-border) !important;
+  color: var(--btn-primary-text) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,.16) !important;
+}
+html[data-theme="light"] .edb-btn--primary:hover:not([disabled]){
+  background: linear-gradient(180deg, var(--btn-primary-hover-t), var(--btn-primary-hover-b)) !important;
+}
+html[data-theme="light"] .edb-btn--primary:active:not([disabled]){
+  background: linear-gradient(180deg, var(--btn-primary-active-t), var(--btn-primary-active-b)) !important;
+}
+
+/* ===== Forecast Modal polish ===== */
+.edb-modal--wide {
+  width: clamp(760px, 86vw, 1200px);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: var(--edb-surface, #0f1a26);
+  box-shadow:
+    0 30px 70px rgba(0,0,0,.45),
+    0 2px 0 rgba(255,255,255,.02) inset;
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.edb-modal-hd {
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.edb-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.edb-modal-body {
+  padding: 18px 22px 10px;
+}
+
+.edb-modal-desc {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  opacity: .85;
+}
+
+/* 차트 캔버스 여백/축 타이포 살짝 키우기 */
+.edb-svg-chart {
+  --axis-x-font: 16px;
+  --axis-y-font: 15px;
+}
+
+/* 범례 정돈 */
+.edb-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 13.5px;
+  opacity: .9;
+}
+
+/* ===== POP 밴드 (날짜/강수확률) ===== */
+.wx-popband {
+  margin: 12px 4px 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.wx-popband > li {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 6px;
+  align-items: center;
+  justify-items: center;
+}
+.wx-popband__date {
+  font-size: 12.5px;
+  opacity: .85;
+}
+.wx-popband__chip {
+  font-size: 12px;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(2px);
+}
+
+/* 더 진한 배경 & 부드러운 스크롤 */
+.edb-modal-backdrop {
+  background: rgba(6, 11, 18, 0.72);
+  backdrop-filter: blur(6px) saturate(120%);
+}
+
+/* 모바일 대응 */
+@media (max-width: 720px) {
+  .edb-modal--wide { width: 96vw; }
+  .edb-svg-chart  { --axis-x-font: 13px; --axis-y-font: 12px; }
+  .wx-popband__date { font-size: 11.5px; }
+  .wx-popband__chip { font-size: 11px; padding: 5px 7px; }
+}
+
+.edb-modal--forecast{
+  /* 폭을 확 늘림 */
+  width: clamp(820px, 78vw, 1160px);
+  max-height: 86vh;
+}
+
+.edb-modal--forecast .edb-modal-body{
+  padding: 18px 24px 6px;
+}
+
+/* 차트 영역 자체도 키워주기 */
+.edb-modal--forecast .edb-chart__body{
+  min-height: 380px; /* 기존보다 +100~140px 정도 */
+}
+
+/* 날짜/강수 확률 밴드 여백 */
+.wx-popband{
+  margin-top: 8px;
+}
+
+.wx-point-labels .wx-label{
+  font-size: 12px;
+  paint-order: stroke fill;            /* 외곽선 먼저 */
+  stroke: rgba(0,0,0,.45); stroke-width: 3px; /* 어두운 외곽선 */
+}
+
+.wx-label--hi{ fill:#ef4444; }
+.wx-label--lo{ fill:#3b82f6; }
+
+/* 공통: 폰트 굵게 + 외곽선 우선 렌더링으로 번짐 방지 */
+.wx-label{
+  font-weight: 600;
+  paint-order: stroke fill;     /* 먼저 stroke(외곽선), 다음 fill */
+  stroke-linejoin: round;
+  stroke-miterlimit: 2;
+}
+
+/* 다크 모드: 밝은 글자 + 어두운 얇은 halo */
+html[data-theme="dark"] .wx-label{
+  fill: #e5e7eb;                /* 텍스트 색 */
+  stroke: rgba(0,0,0,.45);      /* 외곽선(halo) */
+  stroke-width: .8px;
+  filter: none;                 /* 혹시 남아있는 SVG filter 제거 */
+  text-shadow: none;            /* 브라우저가 text-shadow 지원해도 끔 */
+}
+
+/* 라이트 모드: 진한 글자 + 그림자 제거(흐림 원인) */
+html[data-theme="light"] .wx-label{
+  fill: #334155;                /* 좀 더 진한 슬레이트 */
+  stroke: rgba(0,0,0,.12);      /* 아주 얇은 테두리로 배경 위 가독성 보강 */
+  stroke-width: .6px;
+  filter: none;
+  text-shadow: none;
+}
+
+/* (선택) 라이트 모드에서 차트 그리드가 연하면 라벨만 살짝 키우기 */
+html[data-theme="light"] .wx-label{ font-size: 14px; }
+
+/* ===== 주간예보 버튼 ===== */
+.wx-forecast-btn{
+  display:inline-flex; align-items:center; gap:.5rem;
+  height:34px; padding:0 .95rem;
+  border:0; border-radius:999px;
+  font-weight:700; letter-spacing:.02em;
+  cursor:pointer; user-select:none;
+  background: linear-gradient(180deg, #22d3ee, #06b6d4);
+  color:#042026;
+  box-shadow:0 6px 18px rgba(6,182,212,.28), 0 2px 6px rgba(6,182,212,.22);
+  transition:transform .08s ease, box-shadow .15s ease, background .2s ease, opacity .2s ease;
+}
+.wx-forecast-btn .ico{ font-size:1rem; line-height:1; }
+.wx-forecast-btn .txt{ font-size:.95rem; }
+.wx-forecast-btn:hover{ transform:translateY(-1px); }
+.wx-forecast-btn:active{ transform:translateY(0); }
+.wx-forecast-btn:disabled{ opacity:.55; cursor:not-allowed; }
+.wx-forecast-btn:focus-visible{
+  outline:3px solid rgba(34,211,238,.55);
+  outline-offset:2px;
+}
+
+/* 다크 모드: 살짝 더 진한 톤 */
+html[data-theme="dark"] .wx-forecast-btn{
+  background: linear-gradient(180deg, #1dd6e9, #09b0db);
+  color:#001a1e;
+  box-shadow:0 8px 22px rgba(0, 204, 255, .25), 0 2px 8px rgba(0, 204, 255, .22);
+}
+
+/* 좁은 화면: 버튼을 풀폭으로 */
+@media (max-width: 900px){
+  .wx-forecast-btn{ width:100%; justify-content:center; height:40px; }
+}
+
+/* ====== 날짜별 상세 헤더 레이아웃 ====== */
+.edb-detail-hd{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px 0;
+}
+.edb-detail-hgroup{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  min-width:0;
+}
+.edb-detail-actions{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.edb-btn--tint{
+  --tint-bg: #eef3fb;      /* 라이트 기본 배경 */
+  --tint-border: #d6deea;  /* 라이트 테두리 */
+  --tint-fg: #0f1a2a;      /* 라이트 텍스트 */
+  background: var(--tint-bg);
+  color: var(--tint-fg);
+  border: 1px solid var(--tint-border);
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+  transition: background .15s ease, border-color .15s ease, transform .03s ease;
+}
+.edb-btn--tint:hover{ background:#e6edf8; border-color:#c9d4e5; }
+.edb-btn--tint:active{ transform: translateY(1px); }
+.edb-btn--tint:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* 작게 */
+.edb-btn--sm{ padding:8px 12px; font-size:13px; border-radius:10px; }
+
+/* ====== 다크 모드용 보정 ======
+   (사이트 다크 테마 클래스명이 다르면 맞춰서 바꿔주세요) */
+:root.dark .edb-btn--tint,
+.theme-dark .edb-btn--tint{
+  --tint-bg: rgba(255,255,255,0.06);
+  --tint-border: rgba(255,255,255,0.12);
+  --tint-fg: #e7efff;
+}
+:root.dark .edb-btn--tint:hover,
+.theme-dark .edb-btn--tint:hover{
+  background: rgba(255,255,255,0.09);
+  border-color: rgba(255,255,255,0.18);
+}
+.rems-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 🔹 각 카드의 내부 여백 줄이기 */
+.rems-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+/* 🔹 그래프, 표 카드 높이 자동화 */
+.rems-card .chart,
+.rems-card .table {
+  height: auto;
+}
+

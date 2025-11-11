@@ -1,7 +1,7 @@
 /* vue.config.js */
 module.exports = {
   publicPath: '/hirems/',   // ← ★ 배포 경로 추가
-
+  lintOnSave: false,
   productionSourceMap: false,
   parallel: false,
   css: { sourceMap: false },
