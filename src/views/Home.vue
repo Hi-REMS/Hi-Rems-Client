@@ -395,17 +395,6 @@
               OPMODE
               <span class="seg-count">{{ nFmt(abn.summary.OPMODE_ABNORMAL) }}</span>
             </button>
-
-            <button
-              class="seg-pill"
-              :class="{active: reasonFilter==='FAULT_BIT'}"
-              @click="reasonFilter='FAULT_BIT'"
-              role="tab"
-              :aria-selected="reasonFilter==='FAULT_BIT'">
-              <span class="seg-dot seg-fault"></span>
-              FAULT
-              <span class="seg-count">{{ nFmt(abn.summary.FAULT_BIT) }}</span>
-            </button>
           </div>
 
           <!-- IMEI 빠른 필터 -->
@@ -422,12 +411,11 @@
         <div class="rems-abn-summaryline modal__summary">
           <span class="abn-chip danger"><i aria-hidden="true">●</i> OFFLINE <b>{{ nFmt(abn.summary.OFFLINE) }}</b></span>
           <span class="abn-chip warn"><i aria-hidden="true">●</i> OPMODE_ABNORMAL <b>{{ nFmt(abn.summary.OPMODE_ABNORMAL) }}</b></span>
-          <span class="abn-chip slate"><i aria-hidden="true">●</i> FAULT_BIT <b>{{ nFmt(abn.summary.FAULT_BIT) }}</b></span>
           <span class="abn-total">
             <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M3 5h18v2H3zm4 6h10v2H7zm-4 6h18v2H3z"/>
             </svg>
-            <b>{{ nFmt(abn.summary.OFFLINE + abn.summary.OPMODE_ABNORMAL + abn.summary.FAULT_BIT) }}</b>
+            <b>{{ nFmt(abn.summary.OFFLINE + abn.summary.OPMODE_ABNORMAL) }}</b>
             <span class="label">이상 합계</span>
           </span>
         </div>
@@ -562,7 +550,7 @@ data () {
       loading: false,
       offlineMin: 90,
       limit: 50,
-      summary: { FAULT_BIT: 0, OFFLINE: 0, OPMODE_ABNORMAL: 0 },
+      summary: { OFFLINE: 0, OPMODE_ABNORMAL: 0 },
       items: [],
       msgs24hMax: 1,
     },
@@ -988,7 +976,6 @@ reasonColor (reason) {
   if (!reason) return '#22c55e' // 기본: 초록 (정상)
   const R = String(reason).toUpperCase()
   if (R === 'OFFLINE') return '#ef4444'             // 🔴 빨간색
-  if (R === 'FAULT_BIT') return '#f59e0b'           // 주황색 (고장)
   if (R === 'OPMODE_ABNORMAL' || R === 'OPMODE') return '#64748b' // 회색 (대기 등)
   return '#22c55e'                                  // NORMAL 초록색
 },

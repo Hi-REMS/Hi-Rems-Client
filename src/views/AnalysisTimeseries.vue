@@ -62,23 +62,37 @@
       </div>
     </section>
 
-    <!-- KPI ROW -->
-    <section class="kpi-row">
-      <div v-for="k in kpisShown" :key="k.key" class="kpi">
-        <div class="kpi-hd">
-          <span class="kpi-title">{{ k.title }}</span>
-          <span class="kpi-ico">⋯</span>
-        </div>
-        <div class="kpi-main">
-          <span class="kpi-value">{{ valueFor(k.key) }}</span>
-          <span class="kpi-unit">{{ k.unit }}</span>
-        </div>
-        <div class="kpi-sub">{{ subFor(k.key) }}</div>
-      </div>
-    </section>
+<section class="kpi-row">
 
-<section class="sub-dashboard">
-  <EnergyDashboard :imei="imeiUse" :is-admin="isAdmin" />
+  <!-- 🔵 로딩 상태: 스켈레톤 6개 표시 -->
+  <template v-if="loadingKpis">
+    <div v-for="n in 6" :key="'sk-'+n" class="kpi kpi-skeleton">
+      <div class="kpi-hd">
+        <span class="kpi-title skeleton-line"></span>
+        <span class="kpi-ico skeleton-ico"></span>
+      </div>
+      <div class="kpi-main">
+        <span class="skeleton-value"></span>
+      </div>
+      <div class="kpi-sub skeleton-line"></div>
+    </div>
+  </template>
+
+  <!-- 🔵 실제 데이터 -->
+  <template v-else>
+    <div v-for="k in kpisShown" :key="k.key" class="kpi">
+      <div class="kpi-hd">
+        <span class="kpi-title">{{ k.title }}</span>
+        <span class="kpi-ico">⋯</span>
+      </div>
+      <div class="kpi-main">
+        <span class="kpi-value">{{ valueFor(k.key) }}</span>
+        <span class="kpi-unit">{{ k.unit }}</span>
+      </div>
+      <div class="kpi-sub">{{ subFor(k.key) }}</div>
+    </div>
+  </template>
+
 </section>
 
     <!-- CHART + (우측) 설비정보  -->
@@ -101,104 +115,155 @@
           </div>
         </div>
 
-        <!-- 조회 후 -->
-        <template v-if="imeiUse">
-          <div class="chart-placeholder" v-if="bars.length">
-            <svg
-              ref="svg"
-              viewBox="0 0 1000 360"
-              class="svg-chart"
-              aria-hidden="true"
-            >
-              <defs>
-                <linearGradient id="barGrad" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%"  stop-color="#34f5e5" stop-opacity="1"/>
-                  <stop offset="100%" stop-color="#34f5e5" stop-opacity=".38"/>
-                </linearGradient>
-                <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.28"/>
-                </filter>
-              </defs>
+<!-- 조회 후 -->
+<template v-if="imeiUse">
 
-              <!-- grid -->
-              <g class="grid">
-                <line v-for="(t, i) in yTicks" :key="'gy'+i" :x1="pad.l" :x2="vb.w-pad.r" :y1="t.y" :y2="t.y"/>
-              </g>
+  <!-- 🔵 로딩 상태 -->
+  <template v-if="loadingHourly">
+    <div class="chart-loading-skel">
+      <div class="chart-skel-bar" v-for="n in 24" :key="'hb'+n"></div>
+    </div>
+  </template>
 
-              <!-- left axis -->
-              <g class="axis axis-left">
-                <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
-                <g v-for="(t,i) in yTicks" :key="'yl'+i">
-                  <text :x="pad.l-6" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
-                </g>
-                <text :x="pad.l-6" :y="pad.t-6" text-anchor="end" class="axis-title">{{ unitEnergy }}</text>
-              </g>
+  <!-- 🔵 실제 차트 -->
+  <template v-else>
+    <div class="chart-placeholder" v-if="bars.length">
 
-              <!-- bottom axis -->
-              <g class="axis axis-bottom">
-                <line :x1="pad.l" :x2="vb.w-pad.r" :y1="vb.h-pad.b" :y2="vb.h-pad.b"/>
-                <g v-for="(x,i) in xTicks" :key="'xt'+i">
-                  <line :x1="x.x" :x2="x.x" :y1="vb.h-pad.b" :y2="vb.h-pad.b+5"/>
-                  <text :x="x.x" :y="vb.h-pad.b+18" text-anchor="middle">{{ x.label }}</text>
-                </g>
-              </g>
+      <!-- ★★★ SVG 전체 복구 ★★★ -->
+      <svg
+        ref="svg"
+        viewBox="0 0 1000 360"
+        class="svg-chart"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="barGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#34f5e5" stop-opacity="1" />
+            <stop offset="100%" stop-color="#34f5e5" stop-opacity=".38" />
+          </linearGradient>
+          <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.28" />
+          </filter>
+        </defs>
 
-              <!-- bars -->
-              <g fill="url(#barGrad)" filter="url(#dropShadow)">
-                <rect v-for="(b, i) in bars" :key="'b'+i" class="bar" :x="b.x" :y="b.y" :width="b.w" :height="b.h" rx="4"/>
-              </g>
+        <!-- grid -->
+        <g class="grid">
+          <line v-for="(t, i) in yTicks" :key="'gy'+i"
+                :x1="pad.l" :x2="vb.w-pad.r"
+                :y1="t.y" :y2="t.y" />
+        </g>
 
-              <!-- bar labels -->
-              <g class="bar-labels">
-                <text
-                  v-for="(b, i) in bars"
-                  :key="'lbl'+i"
-                  class="bar-label"
-                  :x="b.xCenter"
-                  :y="Math.max(8, b.y-6)"
-                  text-anchor="middle"
-                >
-                  {{ b.rawNull ? '' : formatKwh1(b.kw) }}
-                </text>
-              </g>
+        <!-- left axis -->
+        <g class="axis axis-left">
+          <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
+          <g v-for="(t,i) in yTicks" :key="'yl'+i">
+            <text :x="pad.l-6" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
+          </g>
+          <text :x="pad.l-6" :y="pad.t-6" text-anchor="end" class="axis-title">
+            {{ unitEnergy }}
+          </text>
+        </g>
 
-              <!-- line -->
-              <path v-if="bars.length" :d="linePath" class="line"/>
-              <g class="line-dots" v-if="bars.length">
-                <circle v-for="(b,i) in bars" :key="'dot'+i" class="line-dot" :cx="b.xCenter" :cy="b.y" r="3"/>
-              </g>
+        <!-- bottom axis -->
+        <g class="axis axis-bottom">
+          <line :x1="pad.l" :x2="vb.w-pad.r" :y1="vb.h-pad.b" :y2="vb.h-pad.b"/>
+          <g v-for="(x,i) in xTicks" :key="'xt'+i">
+            <line :x1="x.x" :x2="x.x"
+                  :y1="vb.h-pad.b" :y2="vb.h-pad.b+5"/>
+            <text :x="x.x" :y="vb.h-pad.b+18"
+                  text-anchor="middle">{{ x.label }}</text>
+          </g>
+        </g>
 
-              <!-- interaction -->
-              <g v-if="hoverIdx !== null">
-                <line class="hover-line" :x1="hoverX" :x2="hoverX" :y1="pad.t" :y2="vb.h-pad.b"/>
-                <circle class="dot" :cx="hoverX" :cy="hoverLineY" r="4"/>
-                <g :transform="tooltipTransform">
-                  <rect class="tt" :width="tt.w" :height="tt.h" rx="8"/>
-                  <text class="tt-text" x="10" y="18">시간: {{ hoverLabel }}</text>
-                  <text class="tt-text" x="10" y="36">{{ labelEnergy }}: {{ hoverKw === null ? '—' : formatKwh1(hoverKw) }} {{ unitEnergy }}</text>
-                </g>
-              </g>
+        <!-- bars -->
+        <g fill="url(#barGrad)" filter="url(#dropShadow)">
+          <rect v-for="(b, i) in bars" :key="'b'+i"
+                class="bar"
+                :x="b.x" :y="b.y"
+                :width="b.w" :height="b.h"
+                rx="4" />
+        </g>
 
-              <rect class="hit" :x="pad.l" :y="pad.t" :width="inner.w" :height="inner.h"
-                    @mousemove="onMove" @mouseleave="onLeave"/>
-            </svg>
+        <!-- bar labels -->
+        <g class="bar-labels">
+          <text
+            v-for="(b, i) in bars"
+            :key="'lbl'+i"
+            class="bar-label"
+            :x="b.xCenter"
+            :y="Math.max(8, b.y-6)"
+            text-anchor="middle"
+          >
+            {{ b.rawNull ? '' : formatKwh1(b.kw) }}
+          </text>
+        </g>
 
-            <div class="legend">
-              <span class="dot"></span>
-              {{ selectedMulti ? `선택 설비 ${labelEnergy}(${unitEnergy})` : `합산 ${labelEnergy}(${unitEnergy})` }}
-              <span class="sep">•</span>
-              <span class="linekey"></span> 꼭짓점 연결선
-            </div>
-          </div>
+        <!-- line -->
+        <path v-if="bars.length" :d="linePath" class="line" />
+        <g class="line-dots" v-if="bars.length">
+          <circle v-for="(b,i) in bars" :key="'dot'+i"
+                  class="line-dot"
+                  :cx="b.xCenter" :cy="b.y" r="3" />
+        </g>
 
-          <div class="chart-placeholder" v-else>
-            <div class="legend">
-              <span class="dot"></span> {{ labelEnergy }}({{ unitEnergy }})
-              <span class="sep">•</span>
-              <span class="linekey"></span> 꼭짓점 연결선
-            </div>
-          </div>
-        </template>
+        <!-- hover tooltip -->
+        <g v-if="hoverIdx !== null">
+          <line class="hover-line"
+                :x1="hoverX" :x2="hoverX" :y1="pad.t" :y2="vb.h-pad.b" />
+          <circle class="dot"
+                  :cx="hoverX" :cy="hoverLineY" r="4" />
+
+          <g :transform="tooltipTransform">
+            <rect class="tt" :width="tt.w" :height="tt.h" rx="8" />
+            <text class="tt-text" x="10" y="18">시간: {{ hoverLabel }}</text>
+            <text class="tt-text" x="10" y="36">
+              {{ labelEnergy }}:
+              {{ hoverKw === null ? '—' : formatKwh1(hoverKw) }}
+              {{ unitEnergy }}
+            </text>
+          </g>
+        </g>
+
+        <!-- hit area -->
+        <rect
+          class="hit"
+          :x="pad.l"
+          :y="pad.t"
+          :width="inner.w"
+          :height="inner.h"
+          @mousemove="onMove"
+          @mouseleave="onLeave"
+        />
+      </svg>
+
+      <!-- legend -->
+      <div class="legend">
+        <span class="dot"></span>
+        {{ selectedMulti ? `선택 설비 ${labelEnergy}(${unitEnergy})`
+                         : `합산 ${labelEnergy}(${unitEnergy})` }}
+        <span class="sep">•</span>
+        <span class="linekey"></span> 꼭짓점 연결선
+      </div>
+
+    </div>
+
+    <!-- bars 없음 -->
+    <div class="chart-placeholder" v-else>
+      <div class="legend">
+        <span class="dot"></span> {{ labelEnergy }}({{ unitEnergy }})
+        <span class="sep">•</span>
+        <span class="linekey"></span> 꼭짓점 연결선
+      </div>
+    </div>
+
+  </template>
+</template>
+
+<!-- 조회 전 -->
+<template v-else>
+  <div class="chart-placeholder" style="height:360px;"></div>
+</template>
+
 
         <!-- 조회 전 -->
         <template v-else>
@@ -226,19 +291,40 @@
           </div>
         </div>
 
-        <div class="facility-card">
-          <div v-if="facilityInfo.image" class="facility-img">
-            <img :src="facilityInfo.image" :alt="facilityInfo.projectName || '설비 이미지'"/>
-          </div>
-          <ul class="kv">
-            <li><span>모듈 용량</span><strong>{{ facilityInfo.moduleCapacity || '—' }}</strong></li>
-            <li><span>설치일</span><strong>{{ facilityInfo.installDate || '—' }}</strong></li>
-            <li><span>모니터링 시작</span><strong>{{ facilityInfo.monitorStart || '—' }}</strong></li>
-            <li><span>사업명</span><strong>{{ facilityInfo.projectName || '—' }}</strong></li>
-            <li><span>시공사</span><strong>{{ facilityInfo.contractor || '—' }}</strong></li>
-            <li><span>A/S연락처</span><strong>{{ facilityInfo.asContact || '—' }}</strong></li>
-          </ul>
-        </div>
+<div class="facility-card">
+
+  <!-- 🔵 로딩 상태 -->
+  <template v-if="loadingFacility">
+    <div class="fac-skel">
+      <div class="fac-img-skel"></div>
+      <ul class="kv">
+        <li v-for="n in 6" :key="'fsk'+n">
+          <span class="sk-line"></span>
+          <strong class="sk-line"></strong>
+        </li>
+      </ul>
+    </div>
+  </template>
+
+  <!-- 🔵 로딩 완료 -->
+  <template v-else>
+    <div v-if="facilityInfo.image" class="facility-img">
+      <img :src="resolveImg(facilityInfo.image)"
+           :alt="facilityInfo.projectName || '설비 이미지'" />
+    </div>
+
+    <ul class="kv">
+      <li><span>모듈 용량</span><strong>{{ facilityInfo.moduleCapacity || '—' }}</strong></li>
+      <li><span>설치일</span><strong>{{ facilityInfo.installDate || '—' }}</strong></li>
+      <li><span>모니터링 시작</span><strong>{{ facilityInfo.monitorStart || '—' }}</strong></li>
+      <li><span>사업명</span><strong>{{ facilityInfo.projectName || '—' }}</strong></li>
+      <li><span>시공사</span><strong>{{ facilityInfo.contractor || '—' }}</strong></li>
+      <li><span>A/S연락처</span><strong>{{ facilityInfo.asContact || '—' }}</strong></li>
+    </ul>
+  </template>
+
+</div>
+
       </article>
     </section>
 
@@ -275,28 +361,40 @@
                 </th>
               </tr>
             </thead>
-            <tbody>
-              <tr
-                v-for="(r,i) in driverRows"
-                :key="'drv'+i"
-                class="row-click"
-                :title="r.multiId ? (multiLabel(r.multiId)+' 차트 보기') : '합산 보기'"
-                @click="onRowClick(r)"
-              >
-                <td class="mono">{{ i+1 }}</td>
-                <td class="mono">{{ r.imei }}</td>
-                <td class="mono">{{ r.multiId || '—' }}</td>
-                <td class="mono">{{ r.collectedAt || '—' }}</td>
+ <tbody>
 
-                <td
-                  v-for="(c, ci) in tableCols"
-                  :key="'td' + i + '-' + ci"
-                  :class="c.num ? 'num' : ''"
-                >
-                  {{ c.format ? c.format(r[c.key]) : (c.num ? fmt(r[c.key], c.digits || 0) : (r[c.key] ?? '—')) }}
-                </td>
-              </tr>
-            </tbody>
+  <!-- 🔵 운전이력 로딩 -->
+  <template v-if="loadingDriver">
+    <tr v-for="n in 5" :key="'drvsk'+n">
+      <td colspan="999" class="tbl-skel"></td>
+    </tr>
+  </template>
+
+  <!-- 🔵 실제 데이터 -->
+  <template v-else>
+    <tr
+      v-for="(r,i) in driverRows"
+      :key="'drv'+i"
+      class="row-click"
+      :title="r.multiId ? (multiLabel(r.multiId)+' 차트 보기') : '합산 보기'"
+      @click="onRowClick(r)"
+    >
+      <td class="mono">{{ i+1 }}</td>
+      <td class="mono">{{ r.imei }}</td>
+      <td class="mono">{{ r.multiId || '—' }}</td>
+      <td class="mono">{{ r.collectedAt || '—' }}</td>
+
+      <td
+        v-for="(c, ci) in tableCols"
+        :key="'td' + i + '-' + ci"
+        :class="c.num ? 'num' : ''"
+      >
+        {{ c.format ? c.format(r[c.key]) :
+           (c.num ? fmt(r[c.key], c.digits || 0) : (r[c.key] ?? '—')) }}
+      </td>
+    </tr>
+  </template>
+</tbody>
           </table>
         </div>
       </article>
@@ -346,7 +444,6 @@
         <div v-if="effNotes" class="eff-note">{{ effNotes }}</div>
       </article>
     </section>
-
     <section class="row">
       <!-- ▼ 추가 정보 -->
       <article class="card col-3">
@@ -359,6 +456,16 @@
 
       <!-- ▼ 날씨 데이터 (새 디자인) -->
       <article class="card col-3 weather-card">
+   <template v-if="loadingWeather">
+    <div class="weather-skel">
+      <div class="wx-temp-skel"></div>
+      <div class="wx-pills-skel"></div>
+      <div class="wx-strip-skel"></div>
+    </div>
+  </template>
+
+<!-- 🔵 완료 후 -->
+  <template v-else>
         <div class="card-hd">
           <h3>환경 데이터</h3>
           <small class="muted" v-if="envHourly && envHourly.length">
@@ -463,7 +570,7 @@
         <div v-else class="wx-empty">
           <span class="pill muted">날씨 데이터 수집 중</span>
         </div>
-
+  </template>
       </article>
 
       <!-- ▼ 유지보수 -->
@@ -481,35 +588,41 @@
             </button>
           </div>
         </div>
-        <ul class="kv">
-          <li>
-            <span>마지막 점검</span>
-            <strong>{{ maintenance.lastInspection || '—' }}</strong>
-          </li>
-          <li>
-            <span>AS 특이사항</span>
-            <strong>{{ maintenance.asNotes || '—' }}</strong>
-          </li>
-        </ul>
+<ul class="kv">
+  <template v-if="loadingMaint">
+    <li><span>마지막 점검</span><strong class="sk-line"></strong></li>
+    <li><span>AS 특이사항</span><strong class="sk-line"></strong></li>
+  </template>
+
+  <template v-else>
+    <li>
+      <span>마지막 점검</span>
+      <strong>{{ maintenance.lastInspection || '—' }}</strong>
+    </li>
+    <li>
+      <span>AS 특이사항</span>
+      <strong>{{ maintenance.asNotes || '—' }}</strong>
+    </li>
+  </template>
+</ul>
       </article>
 
-      <article class="card col-3">
-        <router-link class="qa-card" :to="dashboardTo" :aria-disabled="!imeiForLink">
-          <div class="qa-icon">⚡</div>
+            <article class="card col-3">
           <div class="qa-main">
-            <div class="qa-title">{{ isHeat ? '열량 모니터링' : '발전량 모니터링' }}</div>
-            <div class="qa-desc">누적 · 일간 · 주간 · 연간 데이터</div>
+            <div class="qa-title"></div>
+            <div class="qa-desc"></div>
           </div>
-          <span class="qa-arrow">›</span>
-        </router-link>
       </article>
     </section>
-
-    <!-- 로딩 오버레이 -->
-    <div v-if="loading" class="loading-overlay" role="status" aria-live="polite">
-      <div class="spinner-neo"></div>
-      <div class="loading-text">불러오는 중…</div>
-    </div>
+    
+<section class="sub-dashboard">
+  <EnergyDashboard
+    class="sub-dashboard-inner"
+    :imei="imeiUse"
+    :is-admin="isAdmin"
+    :multi="selectedMulti"
+  />
+</section>
 
     <!-- 설비정보 등록/수정 모달 -->
     <div v-if="showFacilityEditor" class="ats-modal" role="dialog" aria-modal="true">
@@ -539,9 +652,29 @@
           <input v-model="facilityForm.contractor" />
           <label>A/S 연락처</label>
           <input v-model="facilityForm.as_contact" />
-          <label>이미지 URL</label>
-          <input v-model="facilityForm.image_url" />
-        </div>
+          <label><span>설비 이미지</span>  <input
+    type="file"
+    accept="image/*"
+    class="facility-image-input"
+    @change="onFacilityImageChange"
+  /></label>
+
+<div class="img-upload-box">
+  <!-- 프리뷰 이미지 -->
+  <img
+    v-if="previewImage || facilityForm.image_url"
+    :src="previewImage || resolveImg(facilityForm.image_url)"
+    class="img-preview"
+  />
+
+  <!-- 기본 UI (이미지 없을 때) -->
+  <div v-else class="img-empty">
+    <p class="img-empty-title">이미지를 업로드하세요</p>
+    <p class="img-empty-desc">권장 크기: 380 × 260 px</p>
+    <p class="img-empty-sub">JPG / PNG 지원</p>
+  </div>
+</div>
+</div>
         <footer class="ats-modal__ft">
           <button class="btn ghost" @click="closeFacilityEditor">취소</button>
           <button class="btn primary" @click="saveFacility" :disabled="savingFacility">저장</button>
@@ -686,9 +819,6 @@
         </footer>
       </div>
     </div>
-
-
-
   </div>
 </template>
 
@@ -708,6 +838,14 @@ export default {
   components: { EnergyDashboard },
   data () {
     return {
+    loadingKpis: false,
+loadingHourly: false,
+loadingLatest: false,
+loadingDriver: false,
+loadingFacility: false,
+loadingMaint: false,
+loadingWeather: false,
+    previewImage: null,
       inspectIdx: null,
       wxPinned: false,
       _searchTimer: null,
@@ -1314,7 +1452,6 @@ export default {
           heatW,
           pf:    this.pickFirstNum([t.powerFactor, t.pf, t.pfPct]),
           freq:  this.pickFirstNum([t.frequencyHz, t.freq, t.frequency]),
-
           srcInC:  this.pickFirstNum([t.inlet_temp_c, t.source_in_c, t.ground_in_c, t.brine_in_c, t.srcInC]),
           srcOutC: this.pickFirstNum([t.outlet_temp_c, t.source_out_c, t.ground_out_c, t.brine_out_c, t.srcOutC]),
           loadInC: this.pickFirstNum([t.load_in_temp_c, t.load_in_c, t.chilled_in_c, t.heating_in_c, t.loadInTempC]),
@@ -1425,6 +1562,48 @@ created () {
   this.enforceUserImei()
 },
   methods: {
+async onFacilityImageChange(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // 1) 프론트 미리보기용 임시 URL (바로 보이게)
+  const blobUrl = URL.createObjectURL(file);
+  this.previewImage = blobUrl;
+
+  // 2) 오른쪽 카드에도 즉시 반영
+  this.facilityInfo.image_url = blobUrl;
+
+  // 3) 서버 업로드 준비
+  const imei = this.imeiUse;
+  const form = new FormData();
+  form.append("rtuImei", imei);
+  form.append("file", file);
+
+  // 4) 업로드 요청
+  const res = await fetch("/api/facility/upload", {
+    method: "POST",
+    body: form,
+    credentials: "include",
+  }).then(r => r.json());
+
+  if (res.ok) {
+    // 5) 업로드 완료된 실제 경로 저장
+    this.facilityForm.image_url = res.url;
+  } else {
+    alert("이미지 업로드 실패");
+  }
+},
+resolveImg(path) {
+  if (!path) return "";
+
+  if (path.startsWith("http")) return path;
+
+  if (location.hostname === "127.0.0.1" || location.hostname === "localhost") {
+    return `http://127.0.0.1:8080${path}`;
+  }
+
+  return `https://kocome.com${path}`;
+},
     syncAdminFromStorage () {
     try {
       const flag = (localStorage.getItem('isAdmin') === 'true')
@@ -1477,13 +1656,27 @@ normMulti(v) {
       const hex = this.normMulti(v);
       return hex ? hex.toUpperCase() : '—';
     },
-    onRowClick (r) {
-      const hex = this.normMulti(r?.multiId);
-      if (!hex) { this.clearMulti(); return; }
-      if (hex === this.selectedMulti) { this.clearMulti(); return; }
-      this.onSelectUnit(hex);
-    },
+ onRowClick (r) {
+    const hex = this.normMulti(r?.multiId)
 
+    // 멀티 ID가 없으면 전체보기로 리셋
+    if (!hex) {
+      this.clearMulti()
+      return
+    }
+
+    // 이미 선택된 행을 다시 클릭하면 전체보기로 리셋
+    if (hex === this.selectedMulti) {
+      this.clearMulti()
+      return
+    }
+
+    // 새로운 멀티 설비 선택
+    this.onSelectUnit(hex)
+  },
+onViewAll() {
+  this.selectedMulti = ''  // 전체보기 모드
+},
     onWxMove (e) {
       if (this.wxPinned) return;
       const box = e.currentTarget.getBoundingClientRect();
@@ -1894,222 +2087,350 @@ normMulti(v) {
 
 async loadAll () {
   if (!this.imeiUse) return;
+
   this.abortAll();
   const myReq = ++this.currentReqId;
 
-  this.loading = true;
+  //
+  // 🔵 1) 빠른 API 먼저 (KPI + Hourly)
+  //
+  this.loadingHourly = true;
+  this.loadingKpis = true;
+
   try {
     await Promise.all([
       this.loadHourly(myReq),
       this.loadKpis(myReq),
-      this.loadLatest(myReq),
-      this.loadDriverUnits(myReq),
     ]);
+  } catch (e) {
+    console.warn('fast APIs failed', e);
   } finally {
-    this.loading = false;
+    this.loadingHourly = false;
+    this.loadingKpis = false;
   }
 
-  Promise.allSettled([
-    this.loadFacility(myReq),
-    this.loadMaintenance(myReq),
-    // 날씨는 유지: 호출 자체는 비중요로 돌려 UI 체감 개선
-    this.loadWeather(myReq),
-  ]).catch(() => {});
+  //
+  // 🔵 2) 중간급 API (latest, driver)
+  //
+  this.loadingLatest = true;
+  this.loadLatest(myReq)
+    .catch(() => {})
+    .finally(() => { this.loadingLatest = false });
+
+  this.loadingDriver = true;
+  this.loadDriverUnits(myReq)
+    .catch(() => {})
+    .finally(() => { this.loadingDriver = false });
+
+  //
+  // 🔵 3) 느린 API (facility, maintenance)
+  //
+  setTimeout(() => {
+    this.loadingFacility = true;
+    this.loadFacility(myReq)
+      .catch(() => {})
+      .finally(() => { this.loadingFacility = false });
+
+    this.loadingMaint = true;
+    this.loadMaintenance(myReq)
+      .catch(() => {})
+      .finally(() => { this.loadingMaint = false });
+  }, 200);
+
+  //
+  // 🔵 4) 가장 느린 Weather
+  //
+  setTimeout(() => {
+    this.loadingWeather = true;
+
+    this.loadWeather(myReq)
+      .catch(() => {})
+      .finally(() => { this.loadingWeather = false });
+  }, 500);
 },
 
-    // KPI
 // KPI
 async loadKpis (reqId) {
-  const params = new URLSearchParams({
-    rtuImei: this.imeiUse,
-    imei: this.imeiUse,
-    energy: this.energyField || '01'
-  });
-  if (this.typeField && !this.isHeat) params.set('type', this.typeField);
+  // 🔵 KPI 로딩 시작 → 스켈레톤 ON
+  this.loadingKpis = true;
 
-  // 선택된 멀티를 2자리 hex로만 추가
-  const hexMulti = this.normMulti(this.selectedMulti);
-  if (hexMulti) params.set('multi', hexMulti);
+  try {
+    const params = new URLSearchParams({
+      rtuImei: this.imeiUse,
+      imei: this.imeiUse,
+      energy: this.energyField || '01'
+    });
 
-  const url = `/api/energy/${this.apiNS}?${params.toString()}`;
-  const r = await fetch(url, this.fopts('kpis'));
-  if (!r.ok) return;
-  if (reqId && reqId !== this.currentReqId) return;
+    if (this.typeField && !this.isHeat) params.set('type', this.typeField);
 
-  const j = await r.json();
-  const k = j.kpis || {};
-  this.kpi = {
-    now_kw: k.now_kw ?? null,
-    today_kwh: k.today_kwh ?? null,
-    total_kwh: k.total_kwh ?? null,
-    co2_ton: k.co2_ton ?? null,
-    last_month_avg_kw: k.last_month_avg_kw ?? null,
-    inverter_efficiency_pct: k.inverter_efficiency_pct ?? null,
-    _updatedAt: j.deviceInfo?.latestAt || null
-  };
+    // 멀티코드를 2자리 hex로 정규화
+    const hexMulti = this.normMulti(this.selectedMulti);
+    if (hexMulti) params.set('multi', hexMulti);
+
+    const url = `/api/energy/${this.apiNS}?${params.toString()}`;
+    const r = await fetch(url, this.fopts('kpis'));
+
+    if (!r.ok) return;
+    if (reqId && reqId !== this.currentReqId) return;
+
+    const j = await r.json();
+    const k = j.kpis || {};
+
+    this.kpi = {
+      now_kw: k.now_kw ?? null,
+      today_kwh: k.today_kwh ?? null,
+      total_kwh: k.total_kwh ?? null,
+      co2_ton: k.co2_ton ?? null,
+      last_month_avg_kw: k.last_month_avg_kw ?? null,
+      inverter_efficiency_pct: k.inverter_efficiency_pct ?? null,
+      _updatedAt: j.deviceInfo?.latestAt || null
+    };
+
+  } catch (err) {
+    console.warn('loadKpis error:', err);
+
+  } finally {
+    // 🔵 KPI 로딩 종료 → 스켈레톤 OFF → 실제 KPI 표시
+    this.loadingKpis = false;
+  }
 },
     // 최신 프레임
-    async loadLatest (reqId) {
-      const url = `/api/energy/${this.apiNS}/debug?rtuImei=${encodeURIComponent(this.imeiUse)}&imei=${encodeURIComponent(this.imeiUse)}&limit=1`;
-      const r = await fetch(url, this.fopts('latest'));
-      if (!r.ok) return;
-      if (reqId && reqId !== this.currentReqId) return;
-      const arr = await r.json();
-      const row = Array.isArray(arr) ? arr[0] : null;
-      const p = row?.parsed?.metrics || {};
+async loadLatest (reqId) {
+  this.loadingLatest = true;
+  try {
+    const url =
+      `/api/energy/${this.apiNS}/debug?rtuImei=${encodeURIComponent(this.imeiUse)}&imei=${encodeURIComponent(this.imeiUse)}&limit=1`;
 
-      const state = typeof p.state === 'string' ? p.state : null;
-      const state_raw = typeof p.stateRaw === 'number' ? p.stateRaw : null;
+    const r = await fetch(url, this.fopts('latest'));
+    if (!r.ok) return;
+    if (reqId && reqId !== this.currentReqId) return;
 
-      this.mets = {
-        ...this.emptyMets(),
-        ...p,
-        statusList: p.statusList || [],
-        faultList: p.faultList || [],
-        statusFlags: p.statusFlags ?? p.faultFlags ?? 0,
-        isOperating: typeof p.isOperating === 'boolean' ? p.isOperating : null,
-        state,
-        state_raw
-      };
-      this.latestCollectedAt = row?.time || row?.createdAt || row?.ts || null;
-    },
+    const arr = await r.json();
+    const row = Array.isArray(arr) ? arr[0] : null;
+    const p = row?.parsed?.metrics || {};
+
+    const state = typeof p.state === 'string' ? p.state : null;
+    const state_raw = typeof p.stateRaw === 'number' ? p.stateRaw : null;
+
+    this.mets = {
+      ...this.emptyMets(),
+      ...p,
+      statusList: p.statusList || [],
+      faultList: p.faultList || [],
+      statusFlags: p.statusFlags ?? p.faultFlags ?? 0,
+      isOperating: typeof p.isOperating === 'boolean' ? p.isOperating : null,
+      state,
+      state_raw
+    };
+    this.latestCollectedAt =
+      row?.time || row?.createdAt || row?.ts || null;
+
+  } catch (e) {
+    console.warn('loadLatest error:', e);
+  } finally {
+    this.loadingLatest = false;
+  }
+},
 
 async loadHourly(reqId) {
   if (!this.imeiUse) return;
 
-  const params = new URLSearchParams({
-    imei: this.imeiUse,
-    rtuImei: this.imeiUse,
-    date: new Date().toISOString().slice(0,10), // 오늘
-  });
-  if (this.energyField) params.set('energy', this.energyField);
-  if (this.typeField && this.energyField === '01') params.set('type', this.typeField);
+  this.loadingHourly = true;
+  try {
+    const params = new URLSearchParams({
+      imei: this.imeiUse,
+      rtuImei: this.imeiUse,
+      date: new Date().toISOString().slice(0,10),
+    });
+    if (this.energyField) params.set('energy', this.energyField);
+    if (this.typeField && this.energyField === '01') params.set('type', this.typeField);
 
-  // 선택된 멀티를 2자리 hex로만 추가
-  const hexMulti = this.normMulti(this.selectedMulti);
-  if (hexMulti) params.set('multi', hexMulti);
+    const hexMulti = this.normMulti(this.selectedMulti);
+    if (hexMulti) params.set('multi', hexMulti);
 
-  const url = `/api/energy/${this.apiNS}/hourly?${params.toString()}`;
-  const r = await fetch(url, this.fopts('hourly'));
-  if (!r.ok) return;
-  if (reqId && reqId !== this.currentReqId) return;
+    const url = `/api/energy/${this.apiNS}/hourly?${params.toString()}`;
+    const r = await fetch(url, this.fopts('hourly'));
+    if (!r.ok) return;
+    if (reqId && reqId !== this.currentReqId) return;
 
-  const j = await r.json();
-  const rows = Array.isArray(j.hours) ? j.hours : [];
+    const j = await r.json();
+    const rows = Array.isArray(j.hours) ? j.hours : [];
 
-  this.hourly = rows.map(h => ({
-    hour: String(h.hour).padStart(2,'0'),
-    kwh: (h.kwh == null ? null : Number(h.kwh))
-  }));
+    this.hourly = rows.map(h => ({
+      hour: String(h.hour).padStart(2,'0'),
+      kwh: (h.kwh == null ? null : Number(h.kwh))
+    }));
 
-  const sum = this.hourly.reduce((s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s), 0);
-  this.chartTodaySum = Number.isFinite(sum) ? Math.round(sum * 1000) / 1000 : null;
+    const sum = this.hourly.reduce(
+      (s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s), 0
+    );
+    this.chartTodaySum = Number.isFinite(sum)
+      ? Math.round(sum * 1000) / 1000
+      : null;
+
+  } catch (e) {
+    console.warn('loadHourly error:', e);
+  } finally {
+    this.loadingHourly = false;
+  }
 },
 
-    async loadDriverUnits (reqId) {
-      const params = new URLSearchParams({
-        imei: this.imeiUse,
-        rtuImei: this.imeiUse,
-        energy: this.energyField || '01'
-      });
-      if (this.typeField && !this.isHeat) params.set('type', this.typeField);
-      const url = `/api/energy/${this.apiNS}/instant/multi?${params.toString()}`;
 
-      const r = await fetch(url, this.fopts('driver'));
-      if (!r.ok) { this.driverUnits = []; return; }
-      if (reqId && reqId !== this.currentReqId) return;
-      const j = await r.json();
-      const units = Array.isArray(j?.units) ? j.units : [];
-      this.driverUnits = units;
-      if (units.length) this.latestCollectedAt = units[0]?.ts || this.latestCollectedAt;
-    },
+async loadDriverUnits (reqId) {
+  this.loadingDriver = true;
+  try {
+    const params = new URLSearchParams({
+      imei: this.imeiUse,
+      rtuImei: this.imeiUse,
+      energy: this.energyField || '01'
+    });
+    if (this.typeField && !this.isHeat) params.set('type', this.typeField);
+
+    const url = `/api/energy/${this.apiNS}/instant/multi?${params.toString()}`;
+    const r = await fetch(url, this.fopts('driver'));
+
+    if (!r.ok) { 
+      this.driverUnits = []; 
+      return; 
+    }
+    if (reqId && reqId !== this.currentReqId) return;
+
+    const j = await r.json();
+    const units = Array.isArray(j?.units) ? j.units : [];
+    this.driverUnits = units;
+
+    if (units.length)
+      this.latestCollectedAt = units[0]?.ts || this.latestCollectedAt;
+
+  } catch (e) {
+    console.warn('loadDriverUnits error:', e);
+  } finally {
+    this.loadingDriver = false;
+  }
+},
+
 
     /* 날씨(외기) – 키 매핑 수정 + 확장 지표 */
-    async loadWeather(reqId) {
-      try {
-        const url = `/api/weather/openmeteo/by-imei?imei=${encodeURIComponent(this.imeiUse)}`;
-        const r = await fetch(url, this.fopts('weather'));
-        if (!r.ok) return;
-        if (reqId && reqId !== this.currentReqId) return;
+async loadWeather(reqId) {
+  this.loadingWeather = true;
+  try {
+    const url =
+      `/api/weather/openmeteo/by-imei?imei=${encodeURIComponent(this.imeiUse)}`;
 
-        const j = await r.json();
-        const hourly = Array.isArray(j?.hourly) ? j.hourly : [];
+    const r = await fetch(url, this.fopts('weather'));
+    if (!r.ok) return;
+    if (reqId && reqId !== this.currentReqId) return;
 
-        const pickNum = (obj, keys) => {
-          for (const k of keys) {
-            const n = Number(obj?.[k]);
-            if (Number.isFinite(n)) return n;
-          }
-          return null;
-        };
+    const j = await r.json();
+    const hourly = Array.isArray(j?.hourly) ? j.hourly : [];
 
-        const rows = hourly.map(h => {
-          const hour = (h.hour || '').slice(0, 2);
-          return {
-            hour,
-            temp: pickNum(h, ['TA','T1H','TMP','T3H','temp','temperature']),
-            app:  pickNum(h, ['TAF','apparent','apparent_temperature']),
-            hum:  pickNum(h, ['RH','REH','humidity','relative_humidity','relative_humidity_2m']),
-            wind: pickNum(h, ['WSPD','WSD','wind','wind_ms','windspeed','windspeed_10m']),
-            press:pickNum(h, ['PRESS','PRS','pressure','pressure_msl']),
-            cloud:pickNum(h, ['CLOUD','cloud','clouds','cloud_cover']),
-            pop:  pickNum(h, ['POP','prob','precipitation_probability']),
-            precip: pickNum(h, ['PRECIP','RN1','precip','precipitation']),
-            rad:  pickNum(h, ['RAD','GHI','SWRAD','shortwave','shortwave_radiation','global_radiation'])
-          };
-        });
-
-        this.envHourly = rows;
-
-        const nowH = new Date().getHours();
-        const cur = rows.find(r => Number(r.hour) === nowH) || rows[rows.length - 1] || rows[0];
-
-        if (cur) {
-          this.envTempC      = cur.temp;
-          this.envApparentC  = cur.app;
-          this.envHumidityPct= cur.hum;
-          this.envWindMs     = cur.wind;
-          this.envPressureHpa= cur.press;
-          this.envCloudPct   = cur.cloud;
-          this.envPrecipMm   = cur.precip;
-          this.envPopPct     = cur.pop;
-          this.envIrradWm2   = cur.rad ?? null;
-
-          // 날씨 한글 요약(가능 시)
-          this.envCond = this.condFrom({
-            PTY: pickNum(hourly[nowH]||{}, ['PTY','pty']),
-            SKY: pickNum(hourly[nowH]||{}, ['SKY','sky','SKY_CODE']),
-            weather: null,
-            condition: null
-          });
-        }
-      } catch (e) {
-        console.warn('loadWeather() failed', e);
-        this.envHourly = [];
-        this.envTempC = this.envApparentC = this.envCond = this.envPopPct = this.envHumidityPct = this.envWindMs = this.envPressureHpa = this.envCloudPct = this.envPrecipMm = this.envIrradWm2 = null;
+    const pickNum = (obj, keys) => {
+      for (const k of keys) {
+        const n = Number(obj?.[k]);
+        if (Number.isFinite(n)) return n;
       }
-    },
+      return null;
+    };
 
-    async loadFacility (reqId) {
-      if (!this.imeiUse) return;
-      const url = `/api/facility?rtuImei=${encodeURIComponent(this.imeiUse)}`;
-      const r = await fetch(url, this.fopts('facility'));
-      if (!r.ok) { this.facilityInfo = this.emptyFacilityInfo(); return; }
-      if (reqId && reqId !== this.currentReqId) return;
-      const j = await r.json();
-      const it = j?.item || null;
-      if (!it) { this.facilityInfo = this.emptyFacilityInfo(); return; }
-
-      this.facilityInfo = {
-        moduleCapacity: it.module_capacity || null,
-        installDate: it.install_date ? this.toDateStr(it.install_date) : null,
-        monitorStart: it.monitor_start ? this.toDateStr(it.monitor_start) : null,
-        projectName: it.project_name || null,
-        contractor: it.contractor || null,
-        asContact: it.as_contact || null,
-        image: it.image_url || null,
+    const rows = hourly.map(h => {
+      const hour = (h.hour || '').slice(0, 2);
+      return {
+        hour,
+        temp: pickNum(h, ['TA','T1H','TMP','T3H','temp','temperature']),
+        app:  pickNum(h, ['TAF','apparent','apparent_temperature']),
+        hum:  pickNum(h, ['RH','REH','humidity','relative_humidity','relative_humidity_2m']),
+        wind: pickNum(h, ['WSPD','WSD','wind','wind_ms','windspeed','windspeed_10m']),
+        press:pickNum(h, ['PRESS','PRS','pressure','pressure_msl']),
+        cloud:pickNum(h, ['CLOUD','cloud','clouds','cloud_cover']),
+        pop:  pickNum(h, ['POP','prob','precipitation_probability']),
+        precip: pickNum(h, ['PRECIP','RN1','precip','precipitation']),
+        rad:  pickNum(h, ['RAD','GHI','SWRAD','shortwave','shortwave_radiation','global_radiation'])
       };
-    },
+    });
+
+    this.envHourly = rows;
+
+    // 현재 시간데이터 추출
+    const nowH = new Date().getHours();
+    const cur = rows.find(r => Number(r.hour) === nowH)
+      || rows[rows.length - 1]
+      || rows[0];
+
+    if (cur) {
+      this.envTempC      = cur.temp;
+      this.envApparentC  = cur.app;
+      this.envHumidityPct= cur.hum;
+      this.envWindMs     = cur.wind;
+      this.envPressureHpa= cur.press;
+      this.envCloudPct   = cur.cloud;
+      this.envPrecipMm   = cur.precip;
+      this.envPopPct     = cur.pop;
+      this.envIrradWm2   = cur.rad ?? null;
+
+      this.envCond = this.condFrom({
+        PTY: pickNum(hourly[nowH]||{}, ['PTY','pty']),
+        SKY: pickNum(hourly[nowH]||{}, ['SKY','sky','SKY_CODE']),
+        weather: null,
+        condition: null
+      });
+    }
+
+  } catch (e) {
+    console.warn('loadWeather() failed', e);
+    this.envHourly = [];
+    this.envTempC = this.envApparentC = this.envCond =
+    this.envPopPct = this.envHumidityPct =
+    this.envWindMs = this.envPressureHpa =
+    this.envCloudPct = this.envPrecipMm =
+    this.envIrradWm2 = null;
+
+  } finally {
+    this.loadingWeather = false;
+  }
+},
+
+
+async loadFacility (reqId) {
+  this.loadingFacility = true;
+  try {
+    if (!this.imeiUse) return;
+    const url = `/api/facility?rtuImei=${encodeURIComponent(this.imeiUse)}`;
+
+    const r = await fetch(url, this.fopts('facility'));
+    if (!r.ok) {
+      this.facilityInfo = this.emptyFacilityInfo();
+      return;
+    }
+    if (reqId && reqId !== this.currentReqId) return;
+
+    const j = await r.json();
+    const it = j?.item || null;
+
+    if (!it) {
+      this.facilityInfo = this.emptyFacilityInfo();
+      return;
+    }
+
+    this.facilityInfo = {
+      moduleCapacity: it.module_capacity || null,
+      installDate: it.install_date
+        ? this.toDateStr(it.install_date)
+        : null,
+      monitorStart: it.monitor_start
+        ? this.toDateStr(it.monitor_start)
+        : null,
+      projectName: it.project_name || null,
+      contractor: it.contractor || null,
+      asContact: it.as_contact || null,
+      image: it.image_url || null,
+    };
+
+  } catch (e) {
+    console.warn('loadFacility error:', e);
+  } finally {
+    this.loadingFacility = false;
+  }
+},
     emptyFacilityInfo() {
       return {
         moduleCapacity: null,
@@ -2129,52 +2450,95 @@ async loadHourly(reqId) {
       } catch { return null; }
     },
 
-    openFacilityEditor (isEdit) {
-      this.editingFacility = !!isEdit;
-      this.facilityForm = {
-        module_capacity: this.facilityInfo.moduleCapacity || '',
-        install_date: this.facilityInfo.installDate || '',
-        monitor_start: this.facilityInfo.monitorStart || '',
-        project_name: this.facilityInfo.projectName || '',
-        contractor: this.facilityInfo.contractor || '',
-        as_contact: this.facilityInfo.asContact || '',
-        image_url: this.facilityInfo.image || '',
-      };
-      this.showFacilityEditor = true;
-      this.$nextTick(() => {
-        const el = document.querySelector('.ats-modal__panel input:not([disabled])');
-        el && el.focus();
-      });
-    },
-    closeFacilityEditor () {
-      if (this.savingFacility) return;
-      this.showFacilityEditor = false;
-    },
-    async saveFacility () {
-      if (!this.imeiUse) return;
-      try {
-        this.savingFacility = true;
-        const url = `/api/facility/${encodeURIComponent(this.imeiUse)}`;
-        const r = await fetch(url, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(this.facilityForm),
-        });
-        if (!r.ok) {
-          const msg = (await r.json().catch(()=>({message:''}))).message || '저장 실패';
-          alert(msg);
-          return;
-        }
-        this.showFacilityEditor = false;
-        await this.loadFacility(this.currentReqId);
-        alert('저장되었습니다.');
-      } catch (e) {
-        alert('저장 중 오류가 발생했습니다.');
-      } finally {
-        this.savingFacility = false;
-      }
-    },
+openFacilityEditor(isEdit) {
+  this.editingFacility = !!isEdit;
+
+  // 🔥 현재 조회 중 IMEI를 그대로 사용해야 한다!
+  const imei = this.imeiUse;
+
+  this.facilityForm = {
+    rtuimei: imei,  // 서버는 snake_case 쓰면 rtu_imei 일 수도 있음 확인 필요
+    module_capacity: this.facilityInfo.moduleCapacity || '',
+    install_date: this.facilityInfo.installDate || '',
+    monitor_start: this.facilityInfo.monitorStart || '',
+    project_name: this.facilityInfo.projectName || '',
+    contractor: this.facilityInfo.contractor || '',
+    as_contact: this.facilityInfo.asContact || '',
+    image_url: this.facilityInfo.image || ''   // 🔥 딱 이걸로 고쳐야 함!
+  };
+
+  this.showFacilityEditor = true;
+
+  this.$nextTick(() => {
+    const el = document.querySelector('.ats-modal__panel input:not([disabled])');
+    el && el.focus();
+  });
+},
+closeFacilityEditor () {
+  if (this.savingFacility) return;
+
+  // 모달 닫기
+  this.showFacilityEditor = false;
+
+  // 🔥 1) 프리뷰 이미지 초기화
+  this.previewImage = null;
+
+  // 🔥 2) 파일 input 초기화
+  this.$nextTick(() => {
+    const fileInput = this.$el.querySelector(".facility-image-input");
+    if (fileInput) fileInput.value = "";
+  });
+
+  // 🔥 3) 수정모달이면 기존 DB 데이터 다시 불러오기
+  if (this.editingFacility) {
+    this.loadFacility(this.currentReqId);
+  } else {
+    // 등록 모달일 때는 폼 값 초기화
+    this.facilityForm = {
+      module_capacity: '',
+      install_date: '',
+      monitor_start: '',
+      project_name: '',
+      contractor: '',
+      as_contact: '',
+      image_url: ''
+    };
+  }
+},
+async saveFacility() {
+  if (!this.imeiUse) return;
+
+  try {
+    this.savingFacility = true;
+
+    const url = `/api/facility/${encodeURIComponent(this.imeiUse)}`;
+
+    const r = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(this.facilityForm),
+    });
+
+    if (!r.ok) {
+      const msg = (await r.json().catch(() => ({ message: "" }))).message || "저장 실패";
+      alert(msg);
+      return;
+    }
+
+    // 저장 성공 → 모달 닫기
+    this.showFacilityEditor = false;
+
+    // 최신 데이터 다시 로드
+    await this.loadFacility(this.currentReqId);
+
+    alert("저장되었습니다.");
+  } catch (e) {
+    alert("저장 중 오류가 발생했습니다.");
+  } finally {
+    this.savingFacility = false;
+  }
+},
 
     async loadMaintenance (reqId) {
       if (!this.imeiUse) return;
@@ -2234,36 +2598,57 @@ async loadHourly(reqId) {
       }
     },
 
+_syncQueryTimer: null,
+_lastQueryKey: '',
+
 async syncQuery() {
   try {
     if (!this.$router) return;
     const cur = this.$route?.query || {};
 
-    // multi를 항상 2자리 hex로 정규화
+    // multi를 항상 2자리 HEX로 정규화
     const hexMulti = this.normMulti(this.selectedMulti);
 
-    // ✅ 관리자 여부 판단
     const isAdmin = this.isAdmin;
 
     const next = {
       ...cur,
-      ...(isAdmin ? (this.imeiUse ? { imei: this.imeiUse } : {}) : {}), // 🔥 비관리자면 imei 제외
+      ...(isAdmin ? (this.imeiUse ? { imei: this.imeiUse } : {}) : {}),
       ...(this.energyField ? { energy: this.energyField } : {}),
       ...(this.typeField ? { type: this.typeField } : {}),
       ...(hexMulti ? { multi: hexMulti } : {})
     };
 
-    // ✅ 비관리자는 imei 파라미터 완전 제거
     if (!isAdmin && 'imei' in next) delete next.imei;
 
-    const same = JSON.stringify(cur) === JSON.stringify(next);
-    if (!same) {
-      await this.$router.replace({ query: next });
-    }
+    // 문자열 비교용 key
+    const nextKey = JSON.stringify(next);
+
+    // 🔥 1) 최근 라우팅과 완전히 동일하면 무시 (성능 핵심)
+    if (this._lastQueryKey === nextKey) return;
+
+    // 🔥 2) debounce 적용
+    if (this._syncQueryTimer) clearTimeout(this._syncQueryTimer);
+
+    this._syncQueryTimer = setTimeout(async () => {
+      // 최종 라우트 상태 캐싱
+      this._lastQueryKey = nextKey;
+
+      // cur와 next가 실제로 동일하면 router.replace 생략
+      const same = JSON.stringify(cur) === nextKey;
+      if (same) return;
+
+      try {
+        await this.$router.replace({ query: next });
+      } catch (e) {
+        console.warn('router.replace failed', e);
+      }
+    }, 120); // <-- 80~150ms 추천
   } catch (e) {
     console.warn('syncQuery failed', e);
   }
 },
+
 
     number (v, digits = 0) {
       if (v === null || v === undefined || Number.isNaN(v)) return '—';
@@ -2338,47 +2723,58 @@ async syncQuery() {
     },
 
 async clearMulti () {
+  // ✅ 이미 전체보기 상태면 그래프+KPI만 새로고침
   if (!this.selectedMulti) {
     await Promise.all([
       this.loadHourly(this.currentReqId),
-      this.loadKpis(this.currentReqId)   // KPI도 갱신
-    ]);
-    return;
+      this.loadKpis(this.currentReqId)
+    ])
+    return
   }
-  this.selectedMulti = '';
-  await this.syncQuery(true);
-  this.hoverIdx = null;
-  this.hourly = [];
-  this.chartTodaySum = null;
 
-  // 전체보기로 돌아올 때도 KPI + 그래프 재조회
+  // ✅ 전체보기로 복귀
+  this.selectedMulti = ''        // ⚡ EnergyDashboard에도 전달됨
+  await this.syncQuery(true)
+
+  // 내부 상태 리셋
+  this.hoverIdx = null
+  this.hourly = []
+  this.chartTodaySum = null
+
+  // ✅ 전체보기로 돌아올 때 KPI + 그래프 재조회
   await Promise.all([
     this.loadHourly(this.currentReqId),
     this.loadKpis(this.currentReqId)
-  ]);
+  ])
 },
 async onSelectUnit (hex) {
-  const next = this.normMulti(hex);
-  if (!next) return this.clearMulti();
+  const next = this.normMulti(hex)
+  if (!next) return this.clearMulti()
+
+  // ✅ 동일한 멀티를 다시 클릭하면 → 강제 새로고침
   if (this.selectedMulti === next) {
     await Promise.all([
       this.loadHourly(this.currentReqId),
-      this.loadKpis(this.currentReqId)   // KPI도 갱신
-    ]);
-    return;
+      this.loadKpis(this.currentReqId)
+    ])
+    return
   }
-  this.selectedMulti = next;
-  await this.syncQuery(true);
-  this.hoverIdx = null;
-  this.hourly = [];
-  this.chartTodaySum = null;
 
-  // 멀티 선택 시 시간대별 그래프 + KPI 모두 재조회
+  // ✅ 새로운 멀티 선택
+  this.selectedMulti = next      // ⚡ EnergyDashboard에 전달됨 (props 반응)
+  await this.syncQuery(true)
+
+  // 내부 상태 리셋
+  this.hoverIdx = null
+  this.hourly = []
+  this.chartTodaySum = null
+
+  // ✅ 현재 탭의 시간대별 그래프 + KPI 재조회
   await Promise.all([
     this.loadHourly(this.currentReqId),
     this.loadKpis(this.currentReqId)
-  ]);
-}
+  ])
+},
   },
 mounted () {
   this.syncAdminFromStorage();

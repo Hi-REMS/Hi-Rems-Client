@@ -2,74 +2,7 @@
 <template>
   <main class="edb-page">
     <div class="edb-inner">
-      <!-- SEARCH BAR -->
 
-      <!--
-      <section class="edb-toolbar edb-card edb-card--soft" v-if="isAdmin">
-        <div class="edb-tool-left" v-if="isAdmin">
-          <!-- IMEI: 항상 표시 -->
-          <label class="edb-label">IMEI</label>
-          <div class="edb-input-wrap">
-            <input
-              v-model.trim="imeiField"
-              @keyup.enter="onSearch"
-              class="edb-input"
-              placeholder="예) 03-58-48-00-70-54-06-06"
-            />
-            <span class="edb-input-ico">⌕</span>
-          </div>
-
-          <!-- 지역/에너지/타입: 관리자만 표시 -->
-          <template v-if="isAdmin">
-            <label class="edb-label">에너지</label>
-            <select v-model="energyField" class="edb-select edb-select--sm">
-              <option value="01">태양광(0x01)</option>
-              <option value="02">태양열(0x02)</option>
-              <option value="03">지열(0x03)</option>
-              <option value="04">풍력(0x04)</option>
-              <option value="06">연료전지(0x06)</option>
-              <option value="07">ESS(0x07)</option>
-            </select>
-
-            <label class="edb-label">타입</label>
-            <select
-              v-model="typeField"
-              class="edb-select edb-select--sm"
-              :disabled="energyField!=='01'"
-              :title="energyField==='01' ? '태양광 단상/삼상' : '태양광에서만 사용'"
-            >
-              <option disabled value="">선택</option>
-              <option value="01">단상(0x01)</option>
-              <option value="02">삼상(0x02)</option>
-            </select>
-          </template>
-
-          <!-- 멀티: 문서상 태양광만 지원 -->
-          <label class="edb-label">멀티</label>
-          <select
-            v-model="multiField"
-            class="edb-select edb-select--sm"
-            :title="multiLabel"
-            :disabled="energyField!=='01'"
-          >
-            <option value="">전체</option>
-            <option value="00">0</option>
-            <option value="01">1</option>
-            <option value="02">2</option>
-            <option value="03">3</option>
-          </select>
-        </div>
-
-        <div class="edb-tool-right" v-if="isAdmin">
-          <button class="edb-btn edb-btn--ghost" @click="reset">초기화</button>
-          <button class="edb-btn edb-btn--primary" :disabled="loading || !imeiField" @click="onSearch">
-            <span v-if="!loading">조회</span>
-            <span v-else class="edb-spinner"></span>
-          </button>
-
-        </div>
-      </section>
- -->
       <!-- TOP KPIs: 주간 · 월간 · 연간 -->
       <section class="edb-stat-row edb-center edb-stat-row--triple">
         <!-- 주간 -->
@@ -91,7 +24,7 @@
           <div class="edb-stat-main">
             <div class="edb-stat-title">월간발전량</div>
             <div class="edb-stat-value">
-              <b>{{ fmt(kpiMonth.kwh, 2) }}</b><span>kWh</span>
+              <b>{{ fmt(kpiMonth.kwh, 2) }}</b><span >kWh</span>
             </div>
             <div class="edb-stat-sub edb-ok">
               CO₂ {{ fmt(kpiMonth.co2, 2) }} kg · 식수 {{ fmt(kpiMonth.trees, 0) }} 그루
@@ -214,14 +147,14 @@
           <div class="edb-card-hd">
             <h3><span class="edb-dot edb-dot--amber"></span>월간발전량(주차)</h3>
             <div class="edb-card-actions">
-              <span class="edb-chip">kWh</span>
+              <span class="edb-chip" style="position:relative; left:-5px;">kWh</span>
               <button
                 class="edb-btn edb-btn--primary edb-btn--sm"
                 :disabled="downloading || !canDownload"
                 @click="openDownloadModal"
                 :title="canDownload ? '월별 CSV 다운로드' : '조회 후 활성화됩니다'"
               >
-                ⬇ 데이터 다운로드
+                다운로드
               </button>
             </div>
           </div>
@@ -462,18 +395,19 @@
           <span class="edb-meta">기준 날짜: <b>{{ detailDay }}</b></span>
         </div>
       </div>
-      <!-- 오른쪽: 액션(주간예보 버튼) -->
-      <div class="edb-detail-actions">
-        <button
-          class="edb-btn edb-btn--tint edb-btn--sm"
-          :disabled="!imeiField || wxLoading"
-          @click="openWxModal"
-          title="이번주(7일) 날씨 예보 보기"
-        >
-          <span v-if="!wxLoading">주간예보</span>
-          <span v-else class="edb-spinner"></span>
-        </button>
-      </div>
+<!-- 오른쪽: 액션(주간예보 버튼) -->
+<div class="edb-detail-actions">
+  <button
+    class="edb-week-btn"
+    :disabled="!imeiField || wxLoading"
+    @click="openWxModal"
+    title="이번주(7일) 날씨 예보 보기"
+  >
+    <span v-if="!wxLoading">주간예보</span>
+    <span v-else class="edb-spinner"></span>
+  </button>
+</div>
+
     </div> <!-- /.edb-detail-hd -->
 
     <div class="edb-detail-body">
@@ -557,163 +491,132 @@
       </div>
     </div>
 
-    <!-- ✅ 이번주 날씨 예보 모달 -->
-    <div v-if="showWx" class="edb-modal-backdrop" @click.self="closeWxModal">
-      <div class="edb-modal edb-modal--forecast">
-        <header class="edb-modal-hd">
-          <div class="edb-modal-ico">🌦</div>
-          <div class="edb-modal-title">이번주 날씨 예보</div>
-          <button class="edb-modal-x" @click="closeWxModal">✕</button>
-        </header>
+ <div v-if="showWx" class="edb-modal-backdrop" @click.self="closeWxModal">
+  <div class="edb-modal edb-modal--forecast">
+    <!-- 헤더 -->
+    <header class="edb-modal-hd">
+      <div class="edb-modal-ico">🌦</div>
+      <div class="edb-modal-title">이번주 날씨 예보</div>
+      <button class="edb-modal-x" @click="closeWxModal">✕</button>
+    </header>
 
-        <div class="edb-modal-body">
-          <p class="edb-modal-desc">최저/최고 기온 추세와 강수확률을 함께 확인하세요.</p>
+    <!-- 본문 -->
+    <div class="edb-modal-body">
+      <p class="edb-modal-desc">최저/최고 기온 추세와 강수확률을 함께 확인하세요.</p>
 
-          <div v-if="wxLoading" class="edb-loading" style="min-height:180px;">
-            <span class="edb-spinner edb-spinner--lg"></span> 예보 불러오는 중…
+      <div v-if="wxLoading" class="edb-loading" style="min-height:180px;">
+        <span class="edb-spinner edb-spinner--lg"></span> 예보 불러오는 중…
+      </div>
+
+      <template v-else>
+        <div v-if="wxErr" class="edb-empty-msg">{{ wxErr }}</div>
+
+        <!-- ✅ 차트 영역 -->
+        <div v-else-if="wxWeek.length" class="wx-chart-wrap">
+          <svg
+            :viewBox="`0 0 ${wxVb.w} ${wxVb.h}`"
+            class="edb-svg-chart"
+            :style="axisStyle"
+          >
+            <!-- 격자 & 축 -->
+            <g class="grid">
+              <line v-for="(t,i) in wxYTicks" :key="'wgy'+i"
+                    :x1="wxPad.l" :x2="wxVb.w-wxPad.r" :y1="t.y" :y2="t.y"/>
+            </g>
+            <g class="axis axis-left">
+              <line :x1="wxPad.l" :x2="wxPad.l" :y1="wxPad.t" :y2="wxVb.h-wxPad.b"/>
+              <g v-for="(t,i) in wxYTicks" :key="'wyl'+i">
+                <text :x="wxPad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
+              </g>
+            </g>
+            <g class="axis axis-bottom">
+              <line :x1="wxPad.l" :x2="wxVb.w-wxPad.r" :y1="wxVb.h-wxPad.b" :y2="wxVb.h-wxPad.b"/>
+              <g v-for="(x,i) in wxXTicks" :key="'wxt'+i">
+                <line :x1="x.x" :x2="x.x" :y1="wxVb.h-wxPad.b" :y2="wxVb.h-wxPad.b+5"/>
+                <text :x="x.x" :y="wxVb.h-wxPad.b+28" text-anchor="middle">{{ x.label }}</text>
+              </g>
+            </g>
+
+            <!-- 최고/최저 라인 -->
+            <defs>
+              <filter id="wxShadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.25"/>
+              </filter>
+            </defs>
+
+            <polyline :points="wxPointsMax" fill="none" stroke="#ef4444" stroke-width="3" filter="url(#wxShadow)" />
+            <polyline :points="wxPointsMin" fill="none" stroke="#3b82f6" stroke-width="3" filter="url(#wxShadow)" />
+
+            <!-- 점 -->
+            <g>
+              <circle v-for="(p,i) in wxGeom" :key="'dot-max'+i" :cx="p.x" :cy="p.yMax" r="4" fill="#ef4444"/>
+              <circle v-for="(p,i) in wxGeom" :key="'dot-min'+i" :cx="p.x" :cy="p.yMin" r="4" fill="#3b82f6"/>
+            </g>
+
+            <!-- 온도 라벨 -->
+            <g class="wx-point-labels">
+              <text v-for="(p,i) in wxGeom" :key="'lbl-max'+i"
+                    :x="p.x" :y="p.yMax - 8"
+                    text-anchor="middle" class="wx-label wx-label--hi">
+                {{ fmt(wxWeek[i].tmax, 1) }}℃
+              </text>
+              <text v-for="(p,i) in wxGeom" :key="'lbl-min'+i"
+                    :x="p.x" :y="p.yMin + 18"
+                    text-anchor="middle" class="wx-label wx-label--lo">
+                {{ fmt(wxWeek[i].tmin, 1) }}℃
+              </text>
+            </g>
+          </svg>
+
+          <!-- ✅ 네이버 날씨형 밴드 -->
+          <div class="wx-bottom-band">
+            <div class="wx-row wx-dates">
+              <span v-for="(d,i) in wxWeek" :key="'d'+i">{{ d.label }}</span>
+            </div>
+            <div class="wx-row wx-highs">
+              <span v-for="(d,i) in wxWeek" :key="'h'+i">{{ fmt(d.tmax,1) }}℃</span>
+            </div>
+            <div class="wx-row wx-lows">
+              <span v-for="(d,i) in wxWeek" :key="'l'+i">{{ fmt(d.tmin,1) }}℃</span>
+            </div>
+            <div class="wx-row wx-pops">
+              <span v-for="(d,i) in wxWeek" :key="'p'+i">{{ d.pop ?? '0' }}%</span>
+            </div>
           </div>
-
-          <template v-else>
-            <div v-if="wxErr" class="edb-empty-msg">{{ wxErr }}</div>
-
-            <!-- 차트 -->
-            <div v-else-if="wxWeek.length" class="edb-chart__body" ref="wxWrap">
-              <svg
-                :viewBox="`0 0 ${wxVb.w} ${wxVb.h}`"
-                class="edb-svg-chart"
-                :style="axisStyle"
-                aria-hidden="true"
-              >
-                <!-- 격자 & 축 -->
-                <g class="grid">
-                  <line v-for="(t,i) in wxYTicks" :key="'wgy'+i"
-                        :x1="wxPad.l" :x2="wxVb.w-wxPad.r" :y1="t.y" :y2="t.y"/>
-                </g>
-                <g class="axis axis-left">
-                  <line :x1="wxPad.l" :x2="wxPad.l" :y1="wxPad.t" :y2="wxVb.h-wxPad.b"/>
-                  <g v-for="(t,i) in wxYTicks" :key="'wyl'+i">
-                    <text :x="wxPad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
-                  </g>
-                </g>
-                <g class="axis axis-bottom">
-                  <line :x1="wxPad.l" :x2="wxVb.w-wxPad.r" :y1="wxVb.h-wxPad.b" :y2="wxVb.h-wxPad.b"/>
-                  <g v-for="(x,i) in wxXTicks" :key="'wxt'+i">
-                    <line :x1="x.x" :x2="x.x" :y1="wxVb.h-wxPad.b" :y2="wxVb.h-wxPad.b+5"/>
-                    <text :x="x.x" :y="wxVb.h-wxPad.b+28" text-anchor="middle">{{ x.label }}</text>
-                  </g>
-                </g>
-
-                <!-- 최고/최저 polyline -->
-                <defs>
-                  <filter id="wxShadow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.25"/>
-                  </filter>
-                </defs>
-
-                <!-- 최고 (상단 라인) -->
-                <polyline
-                  :points="wxPointsMax"
-                  fill="none"
-                  stroke="#ef4444"
-                  stroke-width="3"
-                  filter="url(#wxShadow)"
-                />
-                <!-- 최저 (하단 라인) -->
-                <polyline
-                  :points="wxPointsMin"
-                  fill="none"
-                  stroke="#3b82f6"
-                  stroke-width="3"
-                  filter="url(#wxShadow)"
-                />
-
-                <!-- 점 -->
-                <g>
-                  <circle v-for="(p,i) in wxGeom" :key="'dot-max'+i"
-                          :cx="p.x" :cy="p.yMax" r="4" fill="#ef4444"/>
-                  <circle v-for="(p,i) in wxGeom" :key="'dot-min'+i"
-                          :cx="p.x" :cy="p.yMin" r="4" fill="#3b82f6"/>
-                </g>
-                <!-- 점 -->
-<g>
-  <circle v-for="(p,i) in wxGeom" :key="'dot-max'+i"
-          :cx="p.x" :cy="p.yMax" r="4" fill="#ef4444"/>
-  <circle v-for="(p,i) in wxGeom" :key="'dot-min'+i"
-          :cx="p.x" :cy="p.yMin" r="4" fill="#3b82f6"/>
-</g>
-
-<!-- ★ 온도 라벨 (항상 표시) -->
-<g class="wx-point-labels">
-  <!-- 최고기온 라벨 -->
-  <text v-for="(p,i) in wxGeom" :key="'lbl-max'+i"
-        :x="p.x" :y="p.yMax - 8" text-anchor="middle"
-        class="wx-label wx-label--hi">
-    {{ fmt(wxWeek[i].tmax, 1) }}℃
-  </text>
-
-  <!-- 최저기온 라벨 -->
-  <text v-for="(p,i) in wxGeom" :key="'lbl-min'+i"
-        :x="p.x" :y="p.yMin + 18" text-anchor="middle"
-        class="wx-label wx-label--lo">
-    {{ fmt(wxWeek[i].tmin, 1) }}℃
-  </text>
-</g>
-
-              </svg>
-<ul class="wx-popband" role="list">
-  <li v-for="(d,i) in wxWeek" :key="'pop-'+i">
-    <span class="wx-popband__date">{{ d.label }}</span>
-    <span class="wx-popband__chip">{{ d.pop ?? '—' }}%</span>
-  </li>
-</ul>
-              <!-- 범례 -->
-              <div class="edb-legend" style="display:flex; gap:16px; margin-top:8px;">
-                <span style="display:inline-flex; align-items:center; gap:6px;">
-                  <i style="width:10px; height:10px; background:#ef4444; border-radius:2px; display:inline-block;"></i>
-                  최고기온
-                </span>
-                <span style="display:inline-flex; align-items:center; gap:6px;">
-                  <i style="width:10px; height:10px; background:#3b82f6; border-radius:2px; display:inline-block;"></i>
-                  최저기온
-                </span>
-                <span style="display:inline-flex; align-items:center; gap:6px;">
-                  <i style="width:10px; height:10px; background:rgba(0,0,0,.25); border-radius:2px; display:inline-block;"></i>
-                  강수확률(%)
-                </span>
-              </div>
-            </div>
-
-            <!-- 폴백: 테이블 -->
-            <div v-else class="edb-table-wrap edb-thin-scroll">
-              <table class="edb-tbl">
-                <thead>
-                  <tr>
-                    <th>날짜</th>
-                    <th class="ar">최저(℃)</th>
-                    <th class="ar">최고(℃)</th>
-                    <th class="ar">강수확률(%)</th>
-                    <th>상태</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(d, i) in wxWeek" :key="'wrow'+i">
-                    <td>{{ d.label }}</td>
-                    <td class="edb-num">{{ fmt(d.tmin, 1) }}</td>
-                    <td class="edb-num">{{ fmt(d.tmax, 1) }}</td>
-                    <td class="edb-num">{{ d.pop ?? '—' }}</td>
-                    <td>{{ d.cond || '—' }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </template>
         </div>
 
-        <footer class="edb-modal-ftr">
-          <button class="edb-btn edb-btn--ghost" @click="closeWxModal">닫기</button>
-        </footer>
-      </div>
+        <!-- 폴백 테이블 -->
+        <div v-else class="edb-table-wrap edb-thin-scroll">
+          <table class="edb-tbl">
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th class="ar">최저(℃)</th>
+                <th class="ar">최고(℃)</th>
+                <th class="ar">강수확률(%)</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(d, i) in wxWeek" :key="'wrow'+i">
+                <td>{{ d.label }}</td>
+                <td class="edb-num">{{ fmt(d.tmin, 1) }}</td>
+                <td class="edb-num">{{ fmt(d.tmax, 1) }}</td>
+                <td class="edb-num">{{ d.pop ?? '—' }}</td>
+                <td>{{ d.cond || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
     </div>
+
+    <!-- 푸터 -->
+    <footer class="edb-modal-ftr">
+      <button class="edb-btn edb-btn--ghost" @click="closeWxModal">닫기</button>
+    </footer>
+  </div>
+</div>
   </main>
 </template>
 
@@ -736,6 +639,11 @@ const WEEKDAY = ['일','월','화','수','목','금','토'];
 
 export default {
   name: 'EnergyDashboard',
+  props: {
+  imei: String,
+  isAdmin: Boolean,
+  multi: { type: String, default: '' }
+},
   data () {
     const now = new Date();
     const y = now.getFullYear();
@@ -1008,34 +916,51 @@ export default {
     wxPointsMax(){ return this.wxGeom.map(p => `${p.x},${p.yMax}`).join(' ') },
     wxPointsMin(){ return this.wxGeom.map(p => `${p.x},${p.yMin}`).join(' ') },
   },
-  watch: {
-    // 에너지 변경 시 타입/멀티 초기화(태양광만 사용)
-    energyField(nv){
-      if (nv !== '01') {
-        this.typeField = ''
-        this.multiField = ''
-      }
-    },
-    '$route.query'(q) {
-      const nextImei  = (q.imei || '').toString().trim()
-      const nextEnergy= typeof q.energy === 'string' ? q.energy : this.energyField
-      const nextType  = typeof q.type  === 'string' ? q.type  : ''
-      const nextMulti = typeof q.multi === 'string' ? q.multi : ''
-      const shouldReload =
-        (nextImei && nextImei !== this.imeiField) ||
-        (nextEnergy !== this.energyField) ||
-        (nextType  !== this.typeField) ||
-        (nextMulti !== this.multiField)
+watch: {
+  // ✅ 상위 컴포넌트에서 전달된 multi prop 변경 시
+  async multi(nv) {
+    this.multiField = nv
 
-      if (shouldReload) {
-        if (nextImei)   this.imeiField = nextImei
-        this.energyField = nextEnergy
-        this.typeField   = nextType
-        this.multiField  = nextMulti
-        this.onSearch()
+    // imei가 존재해야만 검색 수행
+    if (this.imeiField) {
+      this.loading = true
+      try {
+        await this.onSearch()   // 👈 이제 multiField가 반영된 뒤 호출됨
+      } finally {
+        this.loading = false
       }
     }
   },
+
+  // 에너지 변경 시 타입/멀티 초기화(태양광만 사용)
+  energyField(nv) {
+    if (nv !== '01') {
+      this.typeField = ''
+      this.multiField = ''
+    }
+  },
+
+  '$route.query'(q) {
+    const nextImei  = (q.imei || '').toString().trim()
+    const nextEnergy= typeof q.energy === 'string' ? q.energy : this.energyField
+    const nextType  = typeof q.type  === 'string' ? q.type  : ''
+    const nextMulti = typeof q.multi === 'string' ? q.multi : ''
+    const shouldReload =
+      (nextImei && nextImei !== this.imeiField) ||
+      (nextEnergy !== this.energyField) ||
+      (nextType  !== this.typeField) ||
+      (nextMulti !== this.multiField)
+
+    if (shouldReload) {
+      if (nextImei)   this.imeiField = nextImei
+      this.energyField = nextEnergy
+      this.typeField   = nextType
+      this.multiField  = nextMulti
+      this.onSearch()
+    }
+  }
+},
+
   methods: {
     // === 관리자 동기화 ===
     syncAdminFromStorage(){

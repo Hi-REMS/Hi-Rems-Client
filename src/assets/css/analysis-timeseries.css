@@ -44,6 +44,8 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
   gap:12px; background:var(--card); border:1px solid var(--border-1);
   border-radius:14px; padding:10px 12px; margin-bottom:16px;
 }
+
+
 .ts-page .tool-left{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; min-width:0; }
 .ts-page .lbl{ color:var(--muted-1); font-size:12px; }
 
@@ -55,6 +57,7 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
 }
 .ts-page .sel{ min-width:150px; }
 .ts-page .chk{ color:var(--muted-1); font-size:12px; display:flex; align-items:center; gap:6px; }
+
 
 /* Buttons (Page scope) */
 .ts-page .btn{
@@ -87,6 +90,30 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
   background: linear-gradient(180deg,
     color-mix(in srgb, var(--accent-1) 68%, #11283a 32%) 0%,
     color-mix(in srgb, var(--accent-1) 44%, #0a1a29 56%) 100%);
+}
+/* 시간대별 날씨 스트립 (wx-strip) */
+.wx-strip {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* svg 자체를 반응형으로 조정 */
+.wx-svg {
+  width: 100%;
+  height: auto;
+  max-width: none;
+  aspect-ratio: 720 / 140;
+  display: block;
+}
+
+/* 모바일에서 세로공간 조금 더 확보 */
+@media (max-width: 768px) {
+  .wx-svg {
+    aspect-ratio: 720 / 200; /* 세로를 약간 키움 */
+  }
+  .wx-strip {
+    margin-top: 4px;
+  }
 }
 
 /* Ghost */
@@ -205,10 +232,6 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
 
 /* Facility Image — card context (하나만 남김) */
 .ts-page .facility-card .facility-img { margin-bottom: 12px; }
-.ts-page .facility-card .facility-img img{
-  width:100%; height:160px; object-fit:cover; object-position:center;
-  border-radius:12px; border:1px solid var(--border-1); display:block;
-}
 
 /* Loading overlay (page-scoped, absolute) */
 .ts-page .loading-overlay{
@@ -964,4 +987,247 @@ html[data-theme="dark"] .weather-card .wx-inspect{
 .card:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+@media (max-width: 767px) {
+  /* 그래프 카드의 overflow 해제 */
+  .ts-page .chart-placeholder {
+    padding: 24px 26px 28px !important;
+    overflow: visible !important; /* ✅ 그래프 잘림 방지 */
+  }
+
+  /* SVG 자체는 원래 폭으로 유지 */
+  .ts-page .svg-chart {
+    width: 100% !important;
+    height: 520px !important;
+    max-width: none !important;
+    transform: scale(1.25) !important; /* ✅ 확대 유지 */
+    transform-origin: center top !important;
+    overflow: visible !important;
+  }
+
+  /* ✅ X/Y축 텍스트는 그대로 (너무 크면 시야 방해됨) */
+  .ts-page .svg-chart .axis text {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+  }
+
+  /* ✅ 막대 위 숫자만 강조 */
+  .ts-page .svg-chart .bar-labels .bar-label {
+    font-size: 24.5px !important;   /* 🔹 숫자만 더 큼 */
+    font-weight: 800 !important;
+    stroke-width: 3px !important;
+  }
+
+  /* ✅ 범례(합산 발전량 / 꼭짓점 연결선)는 원래 크기 유지 */
+  .ts-page .legend {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    margin-top: 10px !important;
+  }
+
+  /* 막대 폭 살짝 넓힘 */
+  .ts-page .svg-chart .bar {
+    transform: scaleX(1.2) !important;
+    transform-origin: center;
+  }
+}
+
+.ts-page .svg-chart .bar-labels .bar-label {
+  font-size:12px; fill: var(--text-1);
+  paint-order: stroke;
+  stroke: var(--chart-dot-stroke);
+  stroke-width:3px;
+  pointer-events:none;
+}
+.img-upload-box {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  border: 2px dashed var(--p-accent);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .25s ease;
+  margin-bottom: 14px;
+}
+
+.img-upload-box:hover {
+  border-color: #21e2cf;
+  background: rgba(33,226,207,0.07);
+}
+
+.img-empty {
+  text-align: center;
+  color: var(--p-muted);
+}
+
+.img-empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--p-text);
+}
+
+.img-empty-desc {
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.img-empty-sub {
+  font-size: 12px;
+  margin-top: 4px;
+  opacity: .75;
+}
+
+.img-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.img-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+/* 이미지 업로드 래퍼 */
+.img-upload-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 이미지 프리뷰는 항상 블록으로 전체 너비 차지 */
+.img-preview {
+  width: 100%;
+  max-width: 100%;
+  border-radius: 8px;
+  display: block;
+}
+
+/* 파일 선택 input을 아래로 떨어뜨리기 */
+.facility-image-input {
+  margin-top: 10px;
+  display: block;
+}
+.img-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.facility-image-input {
+  font-size: 13px;
+}
+
+.ats-modal__body .preview {
+  width: 100%;
+  max-height: 350px; 
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.ats-modal__body .preview img {
+  max-height: 350px; 
+  width: auto;
+  object-fit: contain;
+}
+
+.facility-img {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: #f6f7f9;
+}
+
+.facility-img img {
+  width: 100%;
+  height: auto;        /* 이미지 비율대로 자동 증가 */
+  object-fit: contain; /* 전체 이미지 표시 */
+  display: block;
+}
+
+.facility-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* 이미지 비율 유지하면서 꽉 차게 */
+}
+.ts-page .facility-card .facility-img {
+  width: 100%;
+  max-height: 400px;   /* ⭐ 여기! 세로 최대 600px 제한 */
+  border-radius: 10px;
+  overflow: hidden;    /* 넘치는 부분 숨김 */
+  background: #f6f7f9;
+}
+
+/* 이미지 */
+.ts-page .facility-card .facility-img img {
+  width: 100%;
+  height: auto;        /* ⭐ 세로 자동. 박스를 넘기면 자동 축소됨 */
+  max-height: 400px;    /* ⭐ 박스 크기(600px)를 넘지 않도록 */
+  object-fit: contain; /* 비율 유지 */
+  display: block;
+}
+/* KPI 기본 */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+/* 스켈레톤 KPI */
+.kpi-skeleton {
+  background: var(--p-panel-2);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 82px;
+  animation: sk-blink 1.2s infinite ease-in-out;
+}
+
+/* 스켈레톤 공용 라인 */
+.skeleton-line {
+  display: block;
+  width: 60%;
+  height: 12px;
+  background: var(--p-line);
+  border-radius: 6px;
+  opacity: 0.5;
+}
+
+/* 스켈레톤 아이콘 */
+.skeleton-ico {
+  width: 18px;
+  height: 18px;
+  background: var(--p-line);
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+/* 스켈레톤 값 */
+.skeleton-value {
+  display: block;
+  width: 70%;
+  height: 22px;
+  background: var(--p-line);
+  border-radius: 4px;
+  margin: 8px 0;
+  opacity: 0.5;
+}
+
+/* 점멸 애니메이션 */
+@keyframes sk-blink {
+  0% { opacity: 0.35; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.35; }
 }

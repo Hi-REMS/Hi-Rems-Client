@@ -11,7 +11,7 @@ import Register from '@/views/Register.vue'
 import FindPassword from '@/views/FindPassword.vue'
 import ResetPassword from '@/views/ResetPassword.vue'
 import ChangePassword from '@/views/ChangePassword.vue'
-
+import Members from '@/views/admin/Members.vue'
 Vue.use(Router)
 
 // 이메일 기반 관리자 식별 로직 (라우터 전역 공통)
@@ -26,7 +26,7 @@ function isAdminUser (u) {
 
 const router = new Router({
   mode: 'hash',
-  base: '/hirems/frontend/',
+  base: '/hirems/',
   routes: [
     // 루트에서 로그인 여부/역할로 분기
     {
@@ -55,7 +55,7 @@ const router = new Router({
     { path: '/home', component: Home, meta: { requiresAuth: true, hideHeader: false } },
     { path: '/analysis/timeseries', component: AnalysisTimeseries, meta: { requiresAuth: true, hideHeader: false } },
     { path: '/energy', name: 'EnergyDashboard', component: EnergyDashboard, meta: { requiresAuth: true, hideHeader: false } },
-
+    { path: '/admin/members',name: 'AdminMembers', component: Members, meta: { requiresAuth: true }},
     // 항상 마지막
     { path: '*', redirect: '/' }
   ],
@@ -75,8 +75,12 @@ router.afterEach(() => {
   })
 })
 
-// ───────────────── 인증 가드 ─────────────────
 router.beforeEach(async (to, from, next) => {
+  // 🔥 로그인 페이지는 절대 자동 리다이렉트 금지
+  if (to.path === '/login') {
+    return next()
+  }
+
   const PUBLIC = ['/login', '/register', '/findpassword', '/reset']
   const isPublic = PUBLIC.some(p => to.path.startsWith(p))
 
@@ -93,14 +97,14 @@ router.beforeEach(async (to, from, next) => {
   if (to.matched.some(r => r.meta.requiresAuth)) {
     const me = await getMe()
     if (me) {
-      // 비관리자가 /home 접근하려 하면 차단
+      // 비관리자가 /home 접근 → 차단
       if (to.path === '/home' && !isAdminUser(me)) {
         return next('/analysis/timeseries')
       }
       return next()
     }
 
-    // 미인증 → 로그인 (redirect는 내부/안전 경로만 허용)
+    // 미인증 → 로그인
     const safeRedirect = (() => {
       const raw = to.fullPath || ''
       const BLOCKED = ['/login','/register','/reset','/findpassword']
@@ -111,8 +115,8 @@ router.beforeEach(async (to, from, next) => {
     return next(safeRedirect ? `/login?redirect=${encodeURIComponent(safeRedirect)}` : '/login')
   }
 
-  // 이미 로그인 상태에서 /login 또는 /register 접근 시 역할별 기본 경로로
-  if (isPublic && (to.path === '/login' || to.path === '/register')) {
+  // 이미 로그인 상태에서 /register 접근하면 리다이렉트
+  if (isPublic && to.path === '/register') {
     const me = await getMe()
     if (me) {
       const defaultPath = isAdminUser(me) ? '/home' : '/analysis/timeseries'

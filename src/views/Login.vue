@@ -9,6 +9,11 @@
 
       <!-- RIGHT: 로그인 카드 -->
       <section class="auth-panel">
+        <img 
+    src="@/assets/haeinlogo.png"
+    alt="Hi-REMS 로고"
+    class="auth-logo"
+  />
         <header class="platform-head" aria-labelledby="heroMain">
           <h1 id="heroMain" class="hero-title">
             지속가능한 에너지 <br />모니터링 플랫폼
@@ -88,7 +93,7 @@
 
 <script>
 import { api } from '@/api'
-import '@/assets/css/register.css'
+import '@/assets/css/login.css'
 
 const ADMIN_EMAILS = ['admin@company.com']
 

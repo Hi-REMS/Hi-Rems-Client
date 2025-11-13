@@ -1,0 +1,234 @@
+/* ───────── 전체 ───────── */
+.admin-modern {
+  padding: 40px;
+  background: linear-gradient(180deg, #f9fafb 0%, #eef1f4 100%);
+  min-height: 100vh;
+  font-family: 'Noto Sans KR', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #111;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ───────── 다크모드 전체 ───────── */
+[data-theme="dark"] .admin-modern {
+  background: linear-gradient(180deg, #0c111b 0%, #1a202c 100%);
+  color: #e5e7eb;
+}
+
+/* ───────── 헤더 ───────── */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 90%;
+  max-width: 1100px;
+  margin-bottom: 25px;
+}
+.admin-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+}
+.admin-header p {
+  font-size: 14px;
+  color: #666;
+}
+
+/* 다크모드 */
+[data-theme="dark"] .admin-header h1 {
+  color: #fff;
+}
+[data-theme="dark"] .admin-header p {
+  color: #aaa;
+}
+
+/* ───────── 검색창 ───────── */
+.search-input {
+  padding: 8px 14px;
+  width: 240px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #111;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #0b8;
+  box-shadow: 0 0 0 3px rgba(11, 136, 136, 0.15);
+}
+
+/* 다크모드 */
+[data-theme="dark"] .search-input {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+[data-theme="dark"] .search-input:focus {
+  border-color: #0dd;
+  box-shadow: 0 0 0 3px rgba(0, 200, 200, 0.25);
+}
+
+/* ───────── 테이블 ───────── */
+.table-container {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+  width: 90%;
+  max-width: 1100px;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.members-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.members-table th {
+  background: #f3f4f6;
+  text-align: center;
+  padding: 12px 8px;
+  color: #333;
+  font-weight: 700;
+  border-bottom: 1px solid #e5e7eb;
+}
+.members-table td {
+  text-align: center;
+  padding: 10px 8px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+  color: #444;
+}
+.members-table tr:hover td {
+  background: #f9fafb;
+}
+
+/* 다크모드 */
+[data-theme="dark"] .table-container {
+  background: #111827;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+[data-theme="dark"] .members-table th {
+  background: #1f2937;
+  color: #e5e7eb;
+  border-bottom: 1px solid #374151;
+}
+[data-theme="dark"] .members-table td {
+  color: #cbd5e1;
+  border-bottom: 1px solid #273043;
+}
+[data-theme="dark"] .members-table tr:hover td {
+  background: #1e293b;
+}
+
+/* ───────── 입력 필드 ───────── */
+.input-edit {
+  width: 90%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  transition: all 0.2s;
+  text-align: center;
+  color: #111;
+  background: #fff;
+}
+.input-edit:focus {
+  border-color: #0b8;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(11, 136, 136, 0.15);
+}
+
+/* 다크모드 */
+[data-theme="dark"] .input-edit {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+[data-theme="dark"] .input-edit:focus {
+  border-color: #00e5c1;
+  box-shadow: 0 0 0 2px rgba(0, 229, 193, 0.25);
+}
+
+/* ───────── 버튼 ───────── */
+.btn-edit,
+.btn-save {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-edit {
+  background: #ccc;
+  color: #333;
+}
+.btn-edit:hover {
+  background: #bbb;
+}
+.btn-save {
+  background: #0b8;
+  color: #fff;
+}
+.btn-save:hover {
+  background: #099;
+}
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 다크모드 버튼 */
+[data-theme="dark"] .btn-edit {
+  background: #334155;
+  color: #e2e8f0;
+}
+[data-theme="dark"] .btn-edit:hover {
+  background: #475569;
+}
+[data-theme="dark"] .btn-save {
+  background: #00bfa5;
+  color: #fff;
+}
+[data-theme="dark"] .btn-save:hover {
+  background: #00a896;
+}
+
+/* ───────── 로딩 ───────── */
+.loading-state {
+  text-align: center;
+  padding: 60px;
+}
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #ccc;
+  border-top-color: #0b8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+/* 다크모드 */
+[data-theme="dark"] .spinner {
+  border-color: #475569;
+  border-top-color: #00e5c1;
+}
+
+/* ───────── 토스트 ───────── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--toast-bg, #0b8);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-weight: 600;
+  z-index: 1000;
+}

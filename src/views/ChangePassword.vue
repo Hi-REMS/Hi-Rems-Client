@@ -4,6 +4,11 @@
       <div class="art-pad" aria-hidden="true"></div>
 
       <section class="auth-panel">
+              <img 
+    src="@/assets/haeinlogo.png"
+    alt="Hi-REMS 로고"
+    class="auth-logo"
+  />
         <header class="platform-head" aria-labelledby="heroMain">
           <h1 id="heroMain" class="hero-title">비밀번호 변경</h1>
           <p class="hero-sub strong-text">

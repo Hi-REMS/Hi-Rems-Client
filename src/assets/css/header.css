@@ -409,3 +409,104 @@ html[data-theme="dark"] {
     visibility: hidden !important;
   }
 }
+/* ─────────────── 관리자 전용 버튼 (고유 스타일) ─────────────── */
+.hdr-admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: black;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: none;
+  box-shadow: none;
+}
+
+.hdr-admin-ico svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+/* Hover / Active 효과 */
+.hdr-admin-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 191, 165, 0.3);
+}
+
+.hdr-admin-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 191, 165, 0.25);
+}
+
+/* 다크모드 대응 */
+[data-theme="dark"] .hdr-admin-btn {
+  color:white;
+  box-shadow: 0 2px 8px rgba(0, 255, 204, 0.12);
+}
+
+[data-theme="dark"] .hdr-admin-btn:hover {
+  color:white;
+  box-shadow: 0 4px 14px rgba(0, 255, 204, 0.25);
+}
+
+/* 텍스트 */
+.hdr-admin-txt {
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* 다크/라이트 테마에서도 잘 어울리게 살짝 톤다운 */
+.hdr-admin-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 191, 165, 0.3);
+}
+/* 🔙 768px 이하에서도 항상 뒤로가기 버튼 보이게 */
+@media (max-width: 768px) {
+  .hdr-btn.hdr-back {
+    display: inline-flex !important;
+    visibility: visible !important;
+  }
+}
+
+.hdr-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 110px;         /* 🔥 로고를 확실히 더 크게 */
+  height: auto;
+}
+
+/* 브랜드 텍스트 */
+.sub-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);       /* ✔ 다크모드 자동 반영 */
+  opacity: .75;             /* ✔ 약한 느낌 유지 */
+}
+
+/* 버전 배지 */
+.sub-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface)); /* ✔ 테마 따른 배경 */
+  color: var(--accent);      /* ✔ 포인트 컬러 */
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  opacity: .85;
+}
+
+[data-theme="dark"] .brand-logo {
+  filter: brightness(1.7);
+}
