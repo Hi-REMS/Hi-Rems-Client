@@ -41,13 +41,13 @@
             <div class="field">
               <label for="username">아이디(이메일)</label>
               <div class="pill" :class="{ error: touched && !usernameValid }">
-                <input
+                <input style="font-size:14px;"
                   id="username"
                   v-model.trim="username"
                   type="email"
                   inputmode="email"
                   autocomplete="username"
-                  placeholder="admin@company.com"
+                  placeholder="email@example.com"
                   required
                   @blur="touched = true"
                   @keydown.space.prevent
@@ -63,12 +63,10 @@
               <span v-else class="spinner" aria-hidden="true"></span>
             </button>
 
-            <p class="foot mt8">
-              로그인 화면으로 돌아가기?
-              <router-link to="/login">로그인</router-link>
-              <span aria-hidden="true"> · </span>
-              <router-link to="/register">회원가입</router-link>
-            </p>
+           <p class="foot mt8">
+           <router-link to="/login">로그인</router-link> 
+           으로 돌아가기
+           </p>
 
             <p v-if="error" class="pw-error-text" style="margin-top:8px;" aria-live="polite">
               {{ error }}

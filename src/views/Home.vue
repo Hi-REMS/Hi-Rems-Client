@@ -36,12 +36,12 @@
             >
               <div class="kpi-mini-label">상태 이상</div>
               <div class="kpi-mini-value kpi-warn">{{ nFmt(totals.abnormal_plants) }}</div>
-              <div class="kpi-mini-detail">
-                자세히 보기
-                <svg width="12" height="12" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M9 6l6 6-6 6z" />
-                </svg>
-              </div>
+ <div class="kpi-mini-detail link-style">
+  <span>자세히 보기</span>
+  <svg class="ic" width="14" height="14" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M9 6l6 6-6 6"/>
+  </svg>
+</div>
             </div>
           </div>
 
@@ -112,20 +112,6 @@
             <div class="rems-t-value" :title="rawTip(energy.thermal.today_co2_ton, 'tCO₂')">
               <template v-if="energyLoading">—</template><template v-else>{{ dFmt(energy.thermal.today_co2_ton) }}</template>
               <span class="rems-unit">tCO₂</span>
-            </div>
-          </div>
-          <div class="rems-tile">
-            <div class="rems-t-caption">태양열 집열면적</div>
-            <div class="rems-t-value">
-              <template v-if="energyLoading">—</template><template v-else>{{ dFmt(energy.thermal.collector_area_m2) }}</template>
-              <span class="rems-unit">㎡</span>
-            </div>
-          </div>
-          <div class="rems-tile">
-            <div class="rems-t-caption">집열 출력</div>
-            <div class="rems-t-value">
-              <template v-if="energyLoading">—</template><template v-else>{{ dFmt(energy.thermal.output_kw) }}</template>
-              <span class="rems-unit">kW</span>
             </div>
           </div>
         </div>
@@ -295,32 +281,38 @@
 </div>
 
 
-        <div class="rems-table-wrap rems-table-sticky">
-          <table class="rems-table rems-table-compact">
-            <thead>
-              <tr>
-                <th>{{ selectedSido ? selectedSido + ' (시·군·구)' : '시·도' }}</th>
-                <th class="rems-num">발전수</th>
-                <th class="rems-num">가동률(%)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="loadingRegions"><td colspan="3">⏳ 집계 중…</td></tr>
-              <tr v-else-if="!regions.length"><td colspan="3">표시할 데이터가 없습니다.</td></tr>
-              <tr v-else v-for="r in regions" :key="r.name"
-                  class="rems-row-click zebra"
-                  :class="{ 'rems-active': r.name===selectedSigungu }"
-                  @click="onRowClick(r.name)">
-                <td>{{ r.name }}</td>
-                <td class="rems-num">{{ nFmt(r.count) }}</td>
-                <td class="rems-num">
-                  <template v-if="r.rate==null">—</template>
-                  <span :class="rateClass(r.rate)" v-else>{{ r.rate.toFixed(1) }}</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+<div class="rems-table-wrap rems-table-sticky">
+  <table class="rems-table rems-table-compact">
+    <thead>
+      <tr>
+        <th>{{ selectedSido ? selectedSido + ' (시·군·구)' : '시·도' }}</th>
+        <th class="rems-num">발전수</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr v-if="loadingRegions">
+        <td colspan="2">⏳ 집계 중…</td>
+      </tr>
+
+      <tr v-else-if="!regions.length">
+        <td colspan="2">표시할 데이터가 없습니다.</td>
+      </tr>
+
+      <tr v-else 
+          v-for="r in regions" 
+          :key="r.name"
+          class="rems-row-click zebra"
+          :class="{ 'rems-active': r.name===selectedSigungu }"
+          @click="onRowClick(r.name)"
+      >
+        <td>{{ r.name }}</td>
+        <td class="rems-num">{{ nFmt(r.count) }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
       </article>
 
       <!-- 3행: 빠른 이동 -->
@@ -434,7 +426,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-if="abn.loading"><td colspan="6">⏳ 불러오는 중…</td></tr>
+            <tr v-if="abn.loading"><td colspan="6"><div class="loading-wrapper">⏳ 불러오는 중…</div></td></tr>
               <tr v-else-if="!filteredAbnItems.length"><td colspan="6">표시할 데이터가 없습니다.</td></tr>
               <tr
                 v-else
@@ -444,7 +436,7 @@
                 @click="focusImei(row)">
                 <td class="mono"><span>{{ row.imei }}</span></td>
                 <td><span :class="['rems-tag', reasonClass(row.reason)]">{{ row.reason }}</span></td>
-                <td class="mono">{{ row.op_mode }}</td>
+                <td class="mono"><span style="position:relative; left:25px;">{{ row.op_mode }}</span></td>
                 <td class="mono">
                   {{ toKst(row.last_time) }}
                   <small class="rems-muted"> ({{ fromNow(row.last_time) }})</small>
@@ -473,7 +465,7 @@
 <script>
 import { api } from '@/api'
 import '@/assets/css/dashboard.css'
-
+import '@/assets/css/dashboard_modal.css'
 const SIGUN_LEVEL  = 8
 const FOCUS_LEVEL  = 7
 const REGION_BUBBLE_LEVEL = 9 // level > 8 에서 버블 표시

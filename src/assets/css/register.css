@@ -219,7 +219,7 @@
   align-items: center;
   gap: 8px;
   border-radius: 999px;
-  border: 1px solid var(--pill-border);
+  border: 0.1px solid var(--pill-border);
   background: var(--pill-bg);
   padding: 10px 12px;
   transition: border-color 170ms ease, background-color 170ms ease, box-shadow 170ms ease;
@@ -444,3 +444,24 @@
 .auth-card .pill input::-webkit-credentials-auto-fill-button {
   visibility: hidden; pointer-events: none; position: absolute; right: 0;
 }
+
+/* ==========================================================
+   FIX: 모바일·데스크톱에서 하단 잘리는 문제 해결
+   핵심: auth 전체는 스크롤 가능해야 하고,
+         auth-inner는 높이가 고정되면 안 된다.
+   ========================================================== */
+
+/* 1) auth 전체 스크롤 가능 */
+.auth {
+  overflow-y: auto !important;
+  height: auto !important;
+  min-height: 100vh !important;
+}
+
+/* 3) 모바일 — 아래쪽 여백 반드시 확보 */
+@media (max-width: 480px) {
+  .auth-inner {
+    padding: 24px 16px 70px !important;
+  }
+}
+

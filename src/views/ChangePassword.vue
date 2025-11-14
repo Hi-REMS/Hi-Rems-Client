@@ -13,7 +13,6 @@
           <h1 id="heroMain" class="hero-title">비밀번호 변경</h1>
           <p class="hero-sub strong-text">
             계정 보안을 위해 주기적으로 비밀번호를 변경하세요.<br />
-            비밀번호는 외부에 노출되지 않도록 주의해주세요.
           </p>
         </header>
 
@@ -68,7 +67,7 @@
             <div class="field">
               <label for="confirmPw">새 비밀번호 확인</label>
               <div class="pill" :class="{ error: confTouched && !confValid }">
-                <input
+                <input style="font-size:14px;"
                   id="confirmPw"
                   :type="showNew ? 'text' : 'password'"
                   v-model="confirmPw"

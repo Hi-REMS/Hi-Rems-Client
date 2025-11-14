@@ -8,74 +8,85 @@
       <div class="art-pad" aria-hidden="true"></div>
 
       <section class="auth-panel">
-              <img 
-    src="@/assets/haeinlogo.png"
-    alt="Hi-REMS 로고"
-    class="auth-logo"
-  />
+        <!-- 로고 -->
+        <img 
+          src="@/assets/haeinlogo.png"
+          alt="Hi-REMS 로고"
+          class="auth-logo"
+        />
+
+        <!-- 플랫폼 소개 -->
         <header class="platform-head" aria-labelledby="heroMain">
           <h1 id="heroMain" class="hero-title">
             지속가능한 에너지 <br />모니터링 플랫폼
           </h1>
           <p class="hero-sub">
-            새 비밀번호를 설정하고 대시보드에 다시 접속하세요.
+            새 비밀번호를 설정한 후 다시 로그인해 주세요.
           </p>
         </header>
 
+        <!-- 비밀번호 재설정 카드 -->
         <main class="auth-card" role="main" aria-labelledby="resetTitle">
           <header class="cardc-hd">
-            <h2 id="resetTitle" style="color:#2d2d2d;">비밀번호 재설정</h2>
+            <h2 id="resetTitle">비밀번호 재설정</h2>
             <p class="sub" v-if="!tokenMissing">
               새 비밀번호를 입력해 주세요.
             </p>
             <p class="sub" v-else>
-              유효한 재설정 링크가 없습니다. 다시 요청해 주세요.
+              유효한 링크가 만료되었거나 잘못되었습니다.<br />
+              다시 요청해 주세요.
             </p>
           </header>
 
-          <!-- 토큰 없음 -->
+          <!-- 토큰 없음 화면 -->
           <section v-if="tokenMissing" class="cardc-form">
-            <button class="btn-teal" type="button" @click="$router.replace('/forgot')">
+            <button class="btn-teal" type="button" @click="$router.replace('/findpassword')">
               비밀번호 찾기 화면으로 이동
             </button>
           </section>
 
-          <!-- 토큰 있음 -->
+          <!-- 토큰 정상 화면 -->
           <form v-else class="cardc-form" @submit.prevent="onSubmit" novalidate>
+            <!-- 새 비밀번호 -->
             <div class="field">
               <label for="password">새 비밀번호</label>
               <div class="pill" :class="{ error: passwordTouched && !passwordValid }">
-                <input
+                <input style="font-size:14px;"
                   id="password"
                   :type="showPassword ? 'text' : 'password'"
                   v-model="password"
                   autocomplete="new-password"
-                  placeholder="********"
+                  placeholder="영문/숫자/특수문자 조합 8자 이상"
                   required
                   @blur="passwordTouched = true"
                 />
-                <button type="button" class="pill-action" @click="showPassword = !showPassword">
+                <button type="button" class="pill-action"
+                  @click="showPassword = !showPassword">
                   {{ showPassword ? '숨김' : '표시' }}
                 </button>
               </div>
 
-              <div class="pw-strength slim" aria-hidden="true">
+              <!-- 강도 바 -->
+              <div class="pw-strength slim">
                 <div class="bar" :style="{ width: strengthPercent + '%' }"></div>
               </div>
+
+              <!-- 비밀번호 조건 -->
               <ul v-if="passwordTouched && passwordErrors.length" class="pw-errors compact">
                 <li v-for="(err, i) in passwordErrors" :key="i">{{ err }}</li>
               </ul>
             </div>
 
+            <!-- 비밀번호 확인 -->
             <div class="field">
               <label for="confirm">비밀번호 확인</label>
               <div class="pill" :class="{ error: confirmTouched && !confirmValid }">
-                <input
+                <input style="font-size:14px;"
                   id="confirm"
                   :type="showPassword ? 'text' : 'password'"
                   v-model="confirm"
                   autocomplete="new-password"
-                  placeholder="비밀번호 재입력"
+                  placeholder="*******"
                   required
                   @blur="confirmTouched = true"
                 />
@@ -85,19 +96,18 @@
               </p>
             </div>
 
-            <button class="btn-teal" :disabled="loading || !canSubmit">
+            <button class="btn-teal" :disabled="loading || !canSubmit" style="height:50px;">
               <span v-if="!loading">재설정 완료</span>
               <span v-else class="spinner" aria-hidden="true"></span>
             </button>
 
-            <p v-if="error" class="pw-error-text" style="margin-top:8px;" aria-live="polite">
-              {{ error }}
-            </p>
+            <p v-if="error" class="pw-error-text mt8">{{ error }}</p>
 
-            <p v-if="done" class="sub" style="margin-top:12px;" aria-live="polite">
-              비밀번호가 재설정되었습니다. 이제 로그인할 수 있어요.
-              <router-link to="/login">로그인</router-link>
-            </p>
+<p v-if="done" class="reset-done-msg" aria-live="polite">
+  <span class="done-main">비밀번호가 성공적으로 변경되었습니다.</span>
+  <span class="done-sub">이제 로그인할 수 있어요.</span>
+  <router-link to="/login" class="done-login-link">로그인 하러가기</router-link>
+</p>
           </form>
         </main>
       </section>
@@ -107,7 +117,7 @@
 
 <script>
 import { api } from '@/api'
-import '@/assets/css/register.css'
+import '@/assets/css/resetpassword.css'
 
 export default {
   name: 'ResetPassword',
@@ -115,15 +125,21 @@ export default {
     return {
       token: '',
       tokenMissing: false,
-      password: '', passwordTouched: false,
-      confirm: '',  confirmTouched: false,
+
+      password: '',
+      confirm: '',
       showPassword: false,
+
+      passwordTouched: false,
+      confirmTouched: false,
+
       loading: false,
       error: '',
       done: false,
     }
   },
   computed: {
+    /* 비밀번호 강도 */
     strengthPercent() {
       let s = 0
       if (this.password.length >= 8) s += 25
@@ -132,20 +148,31 @@ export default {
       if (/[^A-Za-z0-9]/.test(this.password)) s += 25
       return s
     },
+
+    /* 비밀번호 검증 */
     passwordErrors() {
       const e = []
       const pw = this.password
-      if (!pw || pw.length < 8) e.push('8자 이상이어야 합니다.')
-      if (!/[A-Z]/.test(pw)) e.push('대문자(A-Z)를 포함하세요.')
-      if (!/[a-z]/.test(pw)) e.push('소문자(a-z)를 포함하세요.')
-      if (!/[0-9]/.test(pw)) e.push('숫자(0-9)를 포함하세요.')
-      if (!/[^A-Za-z0-9]/.test(pw)) e.push('특수문자를 포함하세요.')
+
+      if (!pw || pw.length < 8) e.push('8자 이상 입력해 주세요.')
+      if (!/[A-Z]/.test(pw)) e.push('대문자를 포함해야 합니다.')
+      if (!/[a-z]/.test(pw)) e.push('소문자를 포함해야 합니다.')
+      if (!/[0-9]/.test(pw)) e.push('숫자를 포함해야 합니다.')
+      if (!/[^A-Za-z0-9]/.test(pw)) e.push('특수문자를 포함해야 합니다.')
       if (/\s/.test(pw)) e.push('공백 문자는 사용할 수 없습니다.')
+
       return e
     },
-    passwordValid() { return this.passwordErrors.length === 0 },
-    confirmValid()  { return !!this.password && this.password === this.confirm },
-    canSubmit()     { return this.passwordValid && this.confirmValid }
+
+    passwordValid() {
+      return this.passwordErrors.length === 0
+    },
+    confirmValid() {
+      return this.password && this.password === this.confirm
+    },
+    canSubmit() {
+      return this.passwordValid && this.confirmValid
+    },
   },
   created() {
     const t = this.$route.query.token
@@ -155,23 +182,28 @@ export default {
   methods: {
     async onSubmit() {
       if (this.loading || !this.canSubmit || this.tokenMissing) return
-      this.error = ''; this.done = false
+
+      this.error = ''
+      this.done = false
+
       try {
         this.loading = true
+
         await api.post('/auth/reset', {
           token: this.token,
           new_password: this.password,
         })
+
         this.done = true
-        // UX: 1~2초 뒤 로그인으로 넘기고 싶다면 아래 주석 해제
-        // setTimeout(() => this.$router.replace('/login'), 1200)
       } catch (err) {
-        const msg = err?.response?.data?.message || err?.message || '재설정 실패'
-        this.error = msg
+        this.error =
+          err?.response?.data?.message ||
+          err.message ||
+          '비밀번호 재설정에 실패했습니다.'
       } finally {
         this.loading = false
       }
-    }
-  }
+    },
+  },
 }
 </script>

@@ -45,16 +45,86 @@
 .rems-t-value { font-weight:800; font-size:18px; }
 .rems-unit { font-weight:400; font-size:12px; color:var(--muted); margin-left:4px; }
 
-/* Table */
-.rems-table-wrap { padding: 8px 12px 14px 12px; }
-.rems-table { width:100%; border-collapse:collapse; font-size:13px; }
-.rems-table thead th { text-align:left; color:var(--muted); font-weight:600; padding:10px 8px; border-bottom:1px solid var(--border); }
-.rems-num { text-align:right; }
-.rems-table tbody td { padding:10px 8px; border-bottom:1px dashed color-mix(in srgb, var(--text) 10%, transparent); }
-.rems-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.rems-card.rems-row-2 .rems-table-wrap { max-height: 560px; overflow:auto; }
+/* ──────────────────────────────── */
+/*      지역별 테이블 기본 구조      */
+/* ──────────────────────────────── */
+
+.rems-table-wrap { 
+  padding: 10px 14px 16px 14px;
+}
+
+.rems-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-size: 14px;
+  table-layout: fixed; /* 중요: 컬럼 정렬 깨짐 방지 */
+}
+
+/* ──────────────────────────────── */
+/*               Head               */
+/* ──────────────────────────────── */
+
+.rems-table thead th {
+  padding: 12px 10px;
+  color: var(--muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.3);
+}
+
+/* 첫 번째 컬럼: 시도 */
+.rems-table thead th:first-child,
+.rems-table tbody td:first-child {
+  text-align: left;
+  width: 60%;     /* 시도 컬럼 가로 비율 */
+  padding-left: 4px;
+}
+
+/* 두 번째 컬럼: 발전수 */
+.rems-table thead th:last-child,
+.rems-table tbody td:last-child {
+  text-align: right;  
+  width: 40%;     /* 발전수 컬럼 가로 비율 */
+  padding-right: 4px;
+}
+
+/* ──────────────────────────────── */
+/*               Body               */
+/* ──────────────────────────────── */
+
+.rems-table tbody td { 
+  padding: 12px 10px; 
+  border-bottom: 1px dashed color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+/* Hover 효과 */
+.rems-table tbody tr:hover { 
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  cursor: pointer;
+}
+
+/* zebra row */
+.rems-table tbody tr.zebra:nth-child(even) {
+  background: rgba(0,0,0,0.02);
+}
+
+/* active row */
+.rems-table tbody tr.rems-active {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  font-weight: 600;
+}
+
+/* 스크롤 */
+.rems-card.rems-row-2 .rems-table-wrap { 
+  max-height: 560px; 
+  overflow:auto; 
+}
 .rems-card.rems-row-2 .rems-table-wrap::-webkit-scrollbar { width:8px; }
-.rems-card.rems-row-2 .rems-table-wrap::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 25%, transparent); border-radius:6px; }
+.rems-card.rems-row-2 .rems-table-wrap::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--muted) 25%, transparent); 
+  border-radius:6px; 
+}
+
 
 /* Map */
 .rems-map-card { position:relative; overflow:hidden; }
@@ -74,15 +144,6 @@
 .rems-lg::before { content:''; width:10px; height:10px; border-radius:2px; display:inline-block; }
 .rems-lg-ok::before{background:var(--ok);} .rems-lg-idle::before{background:var(--idle);} .rems-lg-paused::before{background:var(--paused);}
 .rems-lg-warn::before{background:var(--warn);} .rems-lg-danger::before{background:var(--danger);}
-
-/* Chip / Select */
-.rems-chip{ font-size:13px; color:var(--chip-text); background: linear-gradient(180deg, color-mix(in srgb, var(--chip-bg) 96%, transparent), color-mix(in srgb, var(--chip-bg) 82%, transparent)); border:1px solid color-mix(in srgb, var(--chip-border) 85%, var(--accent) 15%); padding:8px 12px; border-radius:999px; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease; box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent), 0 1px 2px color-mix(in srgb, #000 20%, transparent); }
-.rems-chip:hover{ background: linear-gradient(180deg, color-mix(in srgb, var(--chip-hover-bg) 96%, transparent), color-mix(in srgb, var(--chip-hover-bg) 86%, transparent)); border-color: color-mix(in srgb, var(--accent) 35%, var(--chip-border) 65%); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); }
-.rems-chip:active{ transform: translateY(1px); }
-
-.rems-map-breadcrumbs .rems-chip{ background: linear-gradient(180deg, color-mix(in srgb, var(--crumb-bg) 96%, transparent), color-mix(in srgb, var(--crumb-bg) 82%, transparent)); border-color: var(--crumb-border); }
-.rems-map-breadcrumbs .rems-chip:hover{ background: color-mix(in srgb, var(--crumb-hover-bg) 92%, transparent); }
-
 .rems-row-click { cursor:pointer; }
 .rems-row-click:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
 
@@ -149,11 +210,91 @@ html[data-theme="light"] .rems-qa-btn:hover{
 .rems-map-card .rems-count-bubble{ z-index: 2; }
 
 .rems-map-breadcrumbs{ display:flex; align-items:center; gap:12px; }
-.rems-crumbs{ margin-left:auto; display:flex; align-items:center; gap:6px; }
-.rems-crumbs .rems-chip{ cursor:pointer; }
-.rems-crumbs .rems-strong{ font-weight:700; }
-.rems-crumbs .rems-dim{ opacity:.9 }
-.rems-sep{ opacity:.5 }
+/* ───────────────────────────────
+   Breadcrumb Wrapper
+─────────────────────────────── */
+.rems-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 4px 0;
+}
+
+/* separator */
+.rems-sep {
+  color: var(--muted);
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+
+/* ───────────────────────────────
+   Base Chip Style
+─────────────────────────────── */
+.rems-chip {
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text);
+}
+
+/* hover */
+.rems-chip:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* 선택된 단계 강조 */
+.rems-chip.rems-strong {
+  border-color: var(--accent);
+  color: var(--accent-strong, var(--accent));
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* 마지막 단계 – 비활성 표시 */
+.rems-chip.rems-dim {
+  opacity: 0.75;
+  cursor: default;
+  pointer-events: none;
+}
+
+
+/* ───────────────────────────────
+   🌙 다크 모드 (background 어두울 때)
+─────────────────────────────── */
+html[data-theme='dark'] .rems-chip {
+  background: #1c2333;
+  border-color: #3a435a;
+  color: white;
+}
+
+html[data-theme='dark'] .rems-chip:hover {
+  background: rgba(88, 255, 210, 0.12);
+  border-color: #5ef0c8;
+  color: #8effdf;
+}
+
+html[data-theme='dark'] .rems-chip.rems-strong {
+  border-color: #5ef0c8;
+  color: #8effdf;
+  background: rgba(94, 240, 200, 0.18);
+}
+
+html[data-theme='dark'] .rems-chip.rems-dim {
+  opacity: 0.6;
+  color: white;
+}
+
+html[data-theme='dark'] .rems-sep {
+  color: white;
+}
 
 .rems-count-bubble.rems-dim{ opacity:.35; filter:saturate(60%); }
 .rems-count-bubble.rems-active{ box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 45%, transparent); transform: translateZ(0) scale(1.02); }
@@ -359,7 +500,6 @@ html[data-theme="light"] .rems-legend{
 
   /* 입력/버튼 밀집도 완화 */
   .rems-input-sm { height: 32px; }
-  .rems-chip { padding: 6px 10px; font-size: 12px; }
 
   /* 지도 축소 & 패널 크기 조정 */
   .rems-kmap, .rems-map { height: 380px !important; min-height: 380px; }
@@ -410,11 +550,43 @@ html[data-theme="light"] .rems-abn-wrap .rems-table tbody tr.zebra:nth-child(eve
   padding:12px; min-height:72px; display:flex; flex-direction:column; justify-content:center;
 }
 .kpi-mini-label{ font-size:12px; color:var(--muted); margin-bottom:4px; }
-.kpi-mini-value{ font-size:22px; font-weight:800; letter-spacing:-0.02em; }
+.kpi-mini-value{ font-size:17px; font-weight:800; letter-spacing:-0.02em; }
 .kpi-mini-unit{ font-size:12px; font-weight:600; color:var(--muted); margin-left:4px; }
 @media (max-width: 640px){
   .kpi-grid-2x2{ grid-template-columns:1fr 1fr; gap:10px; }
   .kpi-mini-value{ font-size:19px; }
+}
+
+/* 기본 링크 스타일 */
+.link-style {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2f80ed;
+  cursor: pointer;
+  text-decoration: none;
+
+  padding: 2px 0;
+  border-bottom: 1px solid transparent;
+
+  transition: all 0.25s ease;
+}
+
+.link-style .ic {
+  opacity: 0.7;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* hover 효과 */
+.link-style:hover {
+  color: #1b66c9; /* 더 진한 블루 */
+}
+
+.link-style:hover .ic {
+  transform: translateX(4px);
+  opacity: 1;
 }
 
 /* 하단 인라인 요약 */
@@ -674,7 +846,61 @@ html[data-theme="light"] .abn-chip.slate{
   background: #86efac;
 }
 
-/* ✅ 정상 마커 */
+/* ───────────────────────────────────────── */
+/*   MAP MODE TABS (이상 / 정상 보기 토글)  */
+/* ───────────────────────────────────────── */
+
+.map-mode-tabs {
+  display: inline-flex;
+  background: var(--surface-2);
+  padding: 4px;
+  border-radius: 10px;
+  gap: 4px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+.map-tab {
+  padding: 6px 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.map-tab:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.map-tab.active {
+  background: #22c55e;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+/* 다크모드 */
+html[data-theme="dark"] .map-mode-tabs {
+  background: color-mix(in srgb, var(--surface) 60%, #000);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+
+html[data-theme="dark"] .map-tab {
+  color: var(--text);
+}
+
+html[data-theme="dark"] .map-tab:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+html[data-theme="dark"] .map-tab.active {
+  background: #16a34a; /* 조금 더 딥 그린 */
+  color: #fff;
+}
+
 .rems-marker-normal-dot {
   width: 10px; height: 10px; border-radius: 9999px;
   background: #22c55e;
@@ -1225,261 +1451,4 @@ html[data-theme='dark'] .seg-pill.active {
   to { transform: rotate(360deg); }
 }
 
-/* ==========================================================
-   🔹 모달 전체 백드롭 (배경 어둡게)
-========================================================== */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: background 0.3s ease;
-}
 
-html[data-theme='light'] .modal-backdrop {
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
-}
-
-html[data-theme='dark'] .modal-backdrop {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(8px);
-}
-
-/* ==========================================================
-   🔹 모달 본체
-========================================================== */
-.modal {
-  position: relative;              /* ✅ 로딩 스피너 기준점 */
-  display: flex;
-  flex-direction: column;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 960px;
-  max-height: 85vh;
-  overflow: hidden;
-  animation: modal-fade-in 0.3s ease;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-  backdrop-filter: blur(12px) saturate(180%);
-}
-
-html[data-theme='light'] .modal {
-  background: #fff;
-  color: #1e293b;
-}
-
-html[data-theme='dark'] .modal {
-  background: rgba(30, 41, 59, 0.78);
-  color: #e2e8f0;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.65);
-}
-
-/* ==========================================================
-   🔹 모달 헤더 / 푸터
-========================================================== */
-.modal__hd {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-}
-
-.modal__hd h3 {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.modal__close {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  color: inherit;
-  transition: opacity 0.2s;
-}
-.modal__close:hover { opacity: 0.7; }
-
-.modal__ft {
-  display: flex;
-  justify-content: flex-end;
-  padding: 12px 20px;
-  border-top: 1px solid rgba(0,0,0,0.05);
-}
-
-/* ==========================================================
-   🔹 모달 툴바 영역 (필터, 검색 등)
-========================================================== */
-.modal__tools {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 20px;
-  flex-wrap: wrap;
-}
-
-.modal__search {
-  flex: 1;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.modal__input {
-  width: 220px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  color: #1e293b;
-  transition: all 0.2s;
-}
-
-.modal__input:focus {
-  outline: none;
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56,189,248,0.25);
-}
-
-/* 다크모드 입력창 */
-html[data-theme='dark'] .modal__input {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.2);
-  color: #f8fafc;
-}
-html[data-theme='dark'] .modal__input::placeholder {
-  color: rgba(255,255,255,0.4);
-}
-
-/* ==========================================================
-   🔹 모달 내 요약라인
-========================================================== */
-.modal__summary {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  padding: 10px 20px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.abn-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 999px;
-  padding: 5px 10px;
-}
-.abn-chip.danger { background: #fee2e2; color: #b91c1c; }
-.abn-chip.warn { background: #fef3c7; color: #92400e; }
-
-.abn-total {
-  margin-left: auto; /* ✅ 오른쪽 끝으로 */
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  font-size: 14px;
-  background: var(--surface-2, #e2e8f0);
-  color: var(--text, #1e293b);
-  border-radius: 999px;
-  padding: 6px 12px;
-}
-html[data-theme='dark'] .abn-total {
-  background: rgba(255,255,255,0.1);
-  color: #f1f5f9;
-}
-
-/* ==========================================================
-   🔹 모달 내 테이블
-========================================================== */
-.modal__table {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 20px 16px;
-}
-
-.rems-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.rems-table th,
-.rems-table td {
-  padding: 10px 8px;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}
-
-.rems-table th {
-  text-align: left;
-  font-weight: 600;
-  background: rgba(0,0,0,0.02);
-}
-.rems-table tr:hover {
-  background: rgba(0,0,0,0.03);
-}
-
-/* 다크모드 테이블 */
-html[data-theme='dark'] .rems-table th {
-  background: rgba(255,255,255,0.05);
-  color: #f1f5f9;
-}
-html[data-theme='dark'] .rems-table td {
-  border-color: rgba(255,255,255,0.08);
-  color: #cbd5e1;
-}
-html[data-theme='dark'] .rems-table tr:hover {
-  background: rgba(255,255,255,0.07);
-}
-
-/* ==========================================================
-   🔹 모달 내부 로딩 스피너 (모달 범위 한정)
-========================================================== */
-.modal-loading-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(3px);
-  z-index: 50;
-  border-radius: inherit;
-}
-
-.modal-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #cbd5e1;
-  border-top-color: #38bdf8;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-html[data-theme='dark'] .modal-loading-overlay {
-  background: rgba(15, 23, 42, 0.65);
-}
-
-/* ==========================================================
-   🔹 반응형
-========================================================== */
-@media (max-width: 768px) {
-  .modal {
-    width: 95%;
-    max-height: 90vh;
-  }
-  .modal__tools {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .modal__input {
-    width: 100%;
-  }
-}

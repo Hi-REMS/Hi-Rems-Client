@@ -13,24 +13,20 @@
   --muted: #606a75;
   --border: #dfe3ea;
 
-  /* surfaces */
   --card-bg: color-mix(in oklab, #fff 88%, transparent);
   --elev-shadow: 0 8px 24px rgba(15, 23, 42, .10);
 
-  /* inputs */
   --surface-1: color-mix(in oklab, #fff 86%, transparent);
   --surface-err: color-mix(in oklab, #fee2e2 70%, #fff 30%);
-  --ring: #4f46e5;             /* focus ring (indigo) */
+  --ring: #4f46e5;
   --ring-weak: color-mix(in oklab, var(--ring) 20%, transparent);
   --error: #ef4444;
   --ok: #10b981;
 
-  /* brand */
   --brand: #10b981;
   --brand-600: #059669;
   --brand-700: #047857;
 
-  /* radius & shadows */
   --r-lg: 16px; --r-md: 12px; --r-sm: 10px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
   --shadow-md: 0 10px 28px rgba(15, 23, 42, .14);
@@ -53,7 +49,6 @@
   }
 }
 
-/* ===== Layout ===== */
 .auth {
   position: fixed;
   inset: 0;
@@ -73,7 +68,7 @@
 
 .auth::before{
   content:"";
-  position:absolute;   /* ★ 여기 */
+  position:absolute;
   inset:-4rem;
   background-image:var(--auth-bg);
   background-size:cover;
@@ -86,7 +81,7 @@
 
 .auth::after{
   content:"";
-  position:absolute;   /* ★ 여기 */
+  position:absolute;
   inset:0;
   background:
     radial-gradient(800px 800px at 15% 20%, rgba(0,0,0,.12), transparent 60%),
@@ -102,12 +97,10 @@
 .art-pad{ min-height:40vh; }
 .auth-panel{ display:grid; gap:18px; }
 
-/* Platform head */
 .platform-head{ display:grid; gap:12px; margin-bottom:6px; }
 .hero-title{ font-size:clamp(26px,3.2vw,38px); line-height:1.15; letter-spacing:-.02em; font-weight:800; }
 .hero-sub{ font-size:clamp(13px,1.2vw,15.5px); color:var(--muted); line-height:1.6; }
 
-/* Card */
 .auth-card{
   border-radius:var(--r-lg);
   background:var(--card-bg);
@@ -120,24 +113,11 @@
 .cardc-hd h2{ font-size:20px; font-weight:800; letter-spacing:-.01em; }
 .cardc-hd .sub{ margin-top:6px; color:var(--muted); font-size:13.5px; line-height:1.6; }
 
-/* ===== Form ===== */
 .cardc-form{ display:grid; gap:16px; margin-top:8px; }
 .field{ display:grid; gap:8px; }
 .field label{ font-size:13px; font-weight:700; color:var(--muted); }
 
-/* --- Input capsule (single-line style) --- */
-.pill{
-  display:flex; align-items:center; gap:10px;
-  border-radius:999px;
-  /* 핵심: 기본 테두리는 투명, 그림자만 사용 → double border 방지 */
-  border:1px solid transparent;
-  background:var(--surface-1);
-  padding:12px 14px;
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--border) 60%, transparent);
-  transition: box-shadow .18s ease, background-color .18s ease, transform .12s ease;
-}
 .pill:focus-within{
-  /* 내부 가이드라인 제거하고 외곽 포커스 링만 */
   box-shadow:
     0 0 0 4px var(--ring-weak),
     inset 0 0 0 1px color-mix(in oklab, var(--ring) 60%, transparent);
@@ -152,12 +132,11 @@
   flex:1 1 auto; min-width:0;
   border:0; outline:none; background:transparent;
   color:var(--text);
-  font-size:16px; /* iOS zoom 방지 */
+  font-size:16px;
   line-height:1.4; padding:2px;
 }
 .pill input::placeholder{ color:color-mix(in oklab, var(--muted) 70%, transparent); }
 
-/* Show/Hide button */
 .pill-action{
   border:0; background:transparent; color:var(--brand);
   font-weight:700; font-size:13px; padding:6px 8px; border-radius:8px;
@@ -166,7 +145,6 @@
 .pill-action:hover{ background:color-mix(in oklab, var(--brand) 12%, transparent); transform:translateY(-1px); }
 .pill-action:active{ transform:translateY(0); }
 
-/* Autofill (Chrome/Edge) → input과 동일 배경/텍스트 유지 */
 .pill input:-webkit-autofill,
 .pill input:-webkit-autofill:hover,
 .pill input:-webkit-autofill:focus{
@@ -176,20 +154,17 @@
   caret-color:var(--text);
 }
 
-/* Password strength */
 .pw-strength{ height:6px; background:color-mix(in oklab, var(--border) 70%, transparent);
   border-radius:999px; overflow:hidden; margin-top:6px; }
 .pw-strength.slim{ height:4px; }
 .pw-strength .bar{ height:100%; width:0%; background:linear-gradient(90deg, #ef4444, #f59e0b 40%, var(--ok)); transition:width .26s ease; }
 
-/* Errors */
 .pw-errors.compact{
   margin-top:8px; padding-left:18px; color:var(--muted);
   font-size:12.5px; line-height:1.5; list-style:disc;
 }
 .pw-error-text{ margin-top:6px; font-size:12.5px; color:var(--error); }
 
-/* CTA */
 .btn-teal{
   display:inline-flex; align-items:center; justify-content:center; gap:10px;
   width:100%; border:0; border-radius:12px; padding:12px 16px;
@@ -202,26 +177,22 @@
 .btn-teal:active{ transform:translateY(0); background:var(--brand-700); }
 .btn-teal:disabled{ opacity:.65; cursor:not-allowed; filter:grayscale(.15); transform:none; box-shadow:none; }
 
-/* Spinner */
 .spinner{ --s:18px; width:var(--s); height:var(--s);
   border-radius:50%; border:2.5px solid rgba(255,255,255,.45); border-top-color:#fff;
   animation:spin .8s linear infinite; }
 @keyframes spin{ to{ transform:rotate(360deg) } }
 
-/* Foot */
 .foot{ color:var(--muted); font-size:13px; text-align:center; }
 .foot a{ color:var(--brand); font-weight:800; text-decoration:none; }
 .foot a:hover{ text-decoration:underline; }
 .mt8{ margin-top:8px; }
 
-/* Focus accessibility (only ring; no extra border) */
 :where(button,[role="button"],a,input){ outline:none; }
 :where(button,[role="button"],a,input):focus-visible{
   box-shadow:0 0 0 4px var(--ring-weak), 0 0 0 1.5px color-mix(in oklab, var(--ring) 70%, transparent);
   border-radius:10px;
 }
 
-/* ===== Responsive ===== */
 @media (max-width:1024px){
   .auth-inner{ grid-template-columns:1fr; align-items:start;
     padding-top:clamp(28px, 6vw, 56px); padding-bottom:clamp(28px, 6vw, 56px); }
@@ -232,7 +203,259 @@
   .auth-card{ padding:16px; }
 }
 
-/* Motion reduce */
 @media (prefers-reduced-motion: reduce){
   *{ animation:none !important; transition:none !important; }
 }
+
+.platform-head {
+  gap: 18px !important;
+  margin-bottom: 12px !important;
+}
+
+.hero-title {
+  font-size: clamp(20px, 3.0vw, 35px) !important;
+}
+
+.hero-sub {
+  font-size: clamp(14px, 1.25vw, 15px) !important;
+  line-height: 0.5  !important;
+  font-weight: 400;
+  color: color-mix(in oklab, var(--muted) 92%, transparent);
+  letter-spacing: -0.01em;
+  opacity: .92;
+}
+
+.auth-logo {
+  width: 148px !important;
+  margin-bottom: 14px !important;
+}
+
+.auth::before {
+  filter: saturate(1.05) contrast(1.05) brightness(1) blur(1px) !important;
+}
+
+.auth::after {
+  background:
+    radial-gradient(900px 900px at 55% 20%, rgba(0,0,0,.18), transparent 75%),
+    linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.1)) !important;
+}
+
+.pill {
+  transition: box-shadow .18s ease, background-color .18s ease, transform .12s ease !important;
+}
+
+.pill:hover {
+  transform: translateY(-1px) !important;
+  background: color-mix(in oklab, var(--surface-1) 90%, #fff 10%) !important;
+}
+
+.pill:focus-within {
+  box-shadow:
+    0 0 0 5px color-mix(in oklab, var(--ring) 25%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--ring) 70%, transparent) !important;
+}
+
+/* --- label 개선 --- */
+.field label {
+  font-weight: 600 !important;
+  color: #4c5561 !important;
+  margin-bottom: 2px !important;
+}
+
+/* --- 로그인 버튼 개선 --- */
+.btn-teal {
+  background: linear-gradient(180deg, var(--brand) 0%, var(--brand-600) 100%) !important;
+  box-shadow: 0 8px 18px color-mix(in oklab, var(--brand) 35%, transparent) !important;
+}
+
+.btn-teal:hover {
+  background: linear-gradient(180deg, var(--brand-600), var(--brand-700)) !important;
+}
+
+.btn-teal:active {
+  transform: translateY(0) !important;
+}
+
+.auth-inner {
+  grid-template-columns: 1.1fr minmax(0, var(--panel-w)) !important;
+}
+@media (max-width: 480px) {
+
+  .auth-inner {
+    padding: 32px 22px !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .auth-panel {
+    width: 100% !important;
+    max-width: 420px !important;
+    margin: 0 auto !important;
+  }
+
+  .auth-card {
+    padding: 20px 18px !important;
+    border-radius: 18px !important;
+    max-width: 380px !important;
+    margin: 0 auto !important;
+  }
+
+  .platform-head {
+    padding: 0 6px !important;
+  }
+
+  .hero-title {
+    font-size: 22px !important;
+    line-height: 1.25 !important;
+  }
+
+  .hero-sub {
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+    padding-right: 4px !important;
+  }
+
+  .pill {
+    padding: 10px 14px !important;
+  }
+
+  .btn-teal {
+    padding: 12px 14px !important;
+    font-size: 14px !important;
+    border-radius: 10px !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .btn-teal {
+    height: 55px !important;
+    margin: 0 auto !important; 
+    display: block !important;
+  }
+}
+/* === 로그인 하단 액션 메뉴 === */
+.auth-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;    /* 🔥 가장 현대적인 패턴: 중앙 정렬 */
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+}
+
+.auth-actions .auth-link {
+  color: var(--muted) !important;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .15s ease;
+}
+
+.auth-actions .auth-link:hover {
+  color: var(--brand-600) !important;
+}
+
+.auth-actions .auth-link.strong {
+  color: var(--brand) !important;
+  font-weight: 700 !important;
+}
+
+.auth-actions .divider {
+  color: color-mix(in oklab, var(--muted) 70%, transparent);
+  font-size: 13px;
+}
+
+/* === 로그인 하단 액션 메뉴 === */
+.auth-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+}
+
+/* 공통 링크 스타일 */
+.auth-actions .auth-link {
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+  position: relative;
+  transition: color .20s ease;
+}
+
+/* 밑줄 효과 (애니메이션 포함) */
+.auth-actions .auth-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 1.8px;
+  background-color: currentColor;
+  transition: width .18s ease;
+}
+
+/* hover 시 밑줄 */
+.auth-actions .auth-link:hover::after {
+  width: 100%;
+}
+
+/* hover 시 색상 살짝 강조 */
+.auth-actions .auth-link:hover {
+  color: color-mix(in oklab, var(--brand) 40%, var(--muted));
+}
+
+/* 회원가입 — 기본 강조 색 */
+.auth-actions .auth-link.strong {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+/* 회원가입 hover — 더 진한 브랜드 색 */
+.auth-actions .auth-link.strong:hover {
+  color: var(--brand-600);
+}
+
+/* 구분 점 */
+.auth-actions .divider {
+  color: color-mix(in oklab, var(--muted) 70%, transparent);
+  font-size: 13px;
+}
+
+.auth-actions {
+  margin-top: 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.act-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.act-label {
+  color: #7c8a96;
+  font-size: 13.3px;   /* 버튼보다 약간 작게 */
+  line-height: 1.4;
+}
+
+.auth-link {
+  color: #0c9f77;  /* 현재 너의 메인 초록색 */
+  font-weight: 500;
+  text-decoration: none;
+  transition: 0.15s ease;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+  opacity: 0.9;
+}
+
+.auth-link.strong {
+  font-weight: 600;
+}
+

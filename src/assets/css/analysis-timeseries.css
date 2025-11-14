@@ -51,6 +51,7 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
 
 /* Inputs */
 .ts-page .input{
+  font-size:14px !important;
   background:var(--input-bg); color:var(--input-text);
   border:1px solid var(--border-1); border-radius:10px;
   padding:8px 10px; min-width:260px; outline:none;
@@ -161,7 +162,7 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
 .ts-page .kpi-hd{ display:flex; justify-content:space-between; align-items:center; color:var(--muted-1); font-size:12px; }
 .ts-page .kpi-title{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%; }
 .ts-page .kpi-main{ display:flex; align-items:baseline; gap:6px; flex-wrap: wrap; }
-.ts-page .kpi-value{ font-size:22px; font-weight:800; line-height:1; min-width:0; }
+.ts-page .kpi-value{ font-size:20px; font-weight:800; line-height:1; min-width:0; }
 .ts-page .kpi-unit{ font-size:12px; color:var(--muted-1); white-space:nowrap; }
 .ts-page .kpi-sub{ color:var(--muted-1); font-size:12px; margin-top:4px; }
 .ts-page .kpi-ico{ opacity:.45; }
@@ -1222,6 +1223,7 @@ html[data-theme="dark"] .weather-card .wx-inspect{
   background: var(--p-line);
   border-radius: 4px;
   margin: 8px 0;
+  
   opacity: 0.5;
 }
 

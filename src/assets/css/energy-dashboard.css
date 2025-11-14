@@ -101,13 +101,11 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   background: var(--p-panel);
   border: 1px solid var(--p-line);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   padding: var(--space-md) var(--space-lg);
   transition: var(--transition);
 }
 
 .edb-card:hover {
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
   transform: translateY(-2px);
 }
 
@@ -142,10 +140,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   flex-direction: column;
   justify-content: center;
   transition: var(--transition);
-}
-
-.metric:hover {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .metric__label {
@@ -319,9 +313,7 @@ html[data-theme="dark"], :root[data-theme="dark"] {
 /* ─────────────────────────────────────────────
    9. 다크 모드용 추가 효과
    ───────────────────────────────────────────── */
-html[data-theme="dark"] .edb-card {
-  box-shadow: 0 8px 22px rgba(0,0,0,.35);
-}
+
 
 html[data-theme="dark"] .edb-tbl tbody tr:hover {
   background: rgba(255,255,255,0.05);
@@ -441,24 +433,14 @@ html[data-theme="dark"] .edb-btn--ghost:hover {
    3. 카드 레이아웃/배경/그림자 강화
    ───────────────────────────────────────────── */
 .edb-card {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--p-panel) 92%, #fff 8%),
-    color-mix(in srgb, var(--p-panel-2) 96%, #000 4%)
-  );
   border-radius: 18px;
   border: 1px solid color-mix(in srgb, var(--p-line) 60%, transparent);
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, .04),
-    0 10px 24px rgba(0, 0, 0, .08);
   transition: all .25s ease;
 }
 
 .edb-card:hover {
   transform: translateY(-3px);
-  box-shadow:
-    0 6px 12px rgba(0, 0, 0, .06),
-    0 18px 40px rgba(0, 0, 0, .12);
+
 }
 
 /* ─────────────────────────────────────────────
@@ -478,7 +460,6 @@ html[data-theme="dark"] .edb-btn--ghost:hover {
   user-select: none;
   color: #042026;
   background: linear-gradient(90deg, #22d3ee, #0ea5e9);
-  box-shadow: 0 4px 14px rgba(6, 182, 212, .3);
   transition: background .2s ease, box-shadow .25s ease, transform .1s ease;
 }
 
@@ -489,12 +470,12 @@ html[data-theme="dark"] .edb-btn--ghost:hover {
 
 .wx-forecast-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(6, 182, 212, .35);
+
 }
 
 .wx-forecast-btn:active {
   transform: translateY(0);
-  box-shadow: 0 3px 8px rgba(6, 182, 212, .25);
+
 }
 
 /* 다크 모드용 */
@@ -585,14 +566,14 @@ html[data-theme="dark"] .wx-forecast-btn {
   background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.92) 100%);
   border-radius: 18px;
   padding: 18px 20px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+
   border: 1px solid rgba(0,0,0,0.05);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .edb-stat:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+
 }
 
 .edb-stat-title {
@@ -635,7 +616,7 @@ html[data-theme="dark"] .wx-forecast-btn {
 html[data-theme="dark"] .edb-stat {
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+
 }
 
 html[data-theme="dark"] .edb-stat-sub.edb-ok {
@@ -732,7 +713,6 @@ html[data-theme="dark"] .edb-stat-value b {
   border-radius: 18px;
   width: 90%;
   max-width: 800px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -760,7 +740,6 @@ html[data-theme="dark"] .edb-stat-value b {
   width: 90%;
   max-width: 720px;
   overflow: hidden;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
   display: flex;
   flex-direction: column;
@@ -865,7 +844,6 @@ html[data-theme="dark"] .edb-stat-value b {
   background: var(--surface);
   color: var(--text);
   border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1209,4 +1187,60 @@ html[data-theme="dark"] .edb-bar-labels text {
     transform: scale(1.02);
     transform-origin: center top;
   }
+}
+
+/* 그래프 hover 시 */
+/* ==========================================
+   📌 Energy Dashboard Custom Tooltip
+   ========================================== */
+.edb-tip {
+  position: absolute;
+  min-width: 110px;
+  max-width: 220px;
+
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--p-panel) 92%, black 8%);
+  color: var(--p-text);
+
+  border: 1px solid var(--p-line);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+
+  pointer-events: none;
+  white-space: nowrap;
+
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-4px);
+  animation: tipFadeIn .18s ease-out forwards;
+}
+
+/* 타이틀 & 값 */
+.edb-tip-title {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.edb-tip-value {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* 다크모드 */
+html[data-theme="dark"] .edb-tip {
+  background: rgba(30, 41, 59, 0.88);
+  border-color: rgba(255,255,255,0.1);
+  color: #f8fafc;
+}
+
+/* Fade-in animation */
+@keyframes tipFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

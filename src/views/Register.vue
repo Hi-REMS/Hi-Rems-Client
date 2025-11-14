@@ -18,7 +18,7 @@
             지속가능한 에너지<br />모니터링 플랫폼
           </h1>
           <p class="hero-sub">
-            태양광·지열·태양열 설비의 발전량과 상태를 한 곳에서 관리하세요.
+            재생에너지 발전 상태를 한 곳에서 확인하세요.
           </p>
         </header>
 
@@ -33,13 +33,13 @@
             <div class="field">
               <label for="username">아이디(이메일)</label>
               <div class="pill" :class="{ error: usernameTouched && !usernameValid }">
-                <input
+                <input style="font-size:14px;"
                   id="username"
                   v-model.trim="username"
                   type="email"
                   inputmode="email"
                   autocomplete="username"
-                  placeholder="ex) test@test.com"
+                  placeholder="이메일을 입력하세요."
                   required
                   @blur="usernameTouched = true"
                   @keydown.space.prevent
@@ -54,7 +54,7 @@
             <div class="field">
               <label for="worker">담당자(이름)</label>
               <div class="pill" :class="{ error: workerTouched && !workerValid }">
-                <input
+                <input style="font-size:14px;"
                   id="worker"
                   v-model.trim="worker"
                   type="text"
@@ -73,7 +73,7 @@
             <div class="field">
               <label for="phoneNumber">전화번호</label>
               <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
-                <input
+                <input style="font-size:14px;"
                   id="phoneNumber"
                   v-model.trim="phoneNumber"
                   type="tel"
@@ -119,7 +119,7 @@
             <div class="field">
               <label for="confirm">비밀번호 확인</label>
               <div class="pill" :class="{ error: confirmTouched && !confirmValid }">
-                <input
+                <input style="font-size:14px;"
                   id="confirm"
                   :type="showPassword ? 'text' : 'password'"
                   v-model="confirm"

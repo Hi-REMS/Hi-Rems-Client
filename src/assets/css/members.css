@@ -232,3 +232,8 @@
   font-weight: 600;
   z-index: 1000;
 }
+[data-theme="dark"] .input-edit {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0 !important;   /* ← 이거 추가 */
+}

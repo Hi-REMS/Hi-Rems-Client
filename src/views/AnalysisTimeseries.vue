@@ -45,11 +45,6 @@
             <option value="01">단상(0x01)</option>
             <option value="02">삼상(0x02)</option>
           </select>
-
-          <label class="chk">
-            <input type="checkbox" v-model="onlyOk" />
-            정상 프레임만(0x00)
-          </label>
         </template>
       </div>
 
@@ -853,7 +848,6 @@ loadingWeather: false,
       imeiField: DEFAULT_IMEI,
       energyField: '01',
       typeField: '',
-      onlyOk: true,
       lastRouterErr: '',
       imeiUse: '',
       envHourly: [],
@@ -1950,7 +1944,6 @@ onViewAll() {
       this.energyField = '01';
       this.typeField = '';
       this.selectedMulti = '';
-      this.onlyOk = true;
       this.imeiUse = '';
       this.clearForLoading();
       this.abortAll();

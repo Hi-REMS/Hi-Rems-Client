@@ -19,7 +19,7 @@
             지속가능한 에너지 <br />모니터링 플랫폼
           </h1>
           <p class="hero-sub">
-            태양광·지열·태양열 설비의 발전량과 상태를 한 곳에서 확인하세요.
+            재생에너지 발전 상태를 한 곳에서 확인하세요.
           </p>
         </header>
 
@@ -33,12 +33,12 @@
             <div class="field">
               <label for="username">아이디</label>
               <div class="pill">
-                <input
+                <input style="font-size:14.5px;"
                   id="username"
                   v-model.trim="username"
                   type="text"
                   autocomplete="username"
-                  placeholder="admin@company.com"
+                  placeholder="email@example.com"
                   required
                 />
               </div>
@@ -67,23 +67,23 @@
               <p v-if="capsOn" class="pw-error-text">Caps Lock이 켜져 있습니다.</p>
             </div>
 
-            <div class="row-between">
-              <label class="check">
-                <input type="checkbox" disabled />
-                <span>로그인 상태 유지</span>
-              </label>
-              <router-link class="link" to="/findpassword">비밀번호 찾기</router-link>
-            </div>
 
             <button class="btn-teal" :disabled="loading">
               <span v-if="!loading">로그인</span>
               <span v-else class="spinner" aria-hidden="true"></span>
             </button>
 
-            <p class="foot mt8">
-              아직 계정이 없으신가요?
-              <router-link to="/register">회원가입</router-link>
-            </p>
+<div class="auth-actions">
+  <div class="act-row">
+    <span class="act-label">회원가입이 필요하신가요?</span>
+    <router-link to="/register" class="auth-link strong">회원가입</router-link>
+  </div>
+
+  <div class="act-row">
+    <span class="act-label">비밀번호를 잊으셨나요?</span>
+    <router-link to="/findpassword" class="auth-link">비밀번호 찾기</router-link>
+  </div>
+</div>
           </form>
         </main>
       </section>

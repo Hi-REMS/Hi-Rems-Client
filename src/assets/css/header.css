@@ -506,7 +506,3 @@ html[data-theme="dark"] {
   border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   opacity: .85;
 }
-
-[data-theme="dark"] .brand-logo {
-  filter: brightness(1.7);
-}
