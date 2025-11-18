@@ -11,12 +11,12 @@
     </div>
 
     <div class="hdr-actions">
-      <button
-        v-if="canGoBack"
-        class="hdr-btn hdr-back"
-        @click="goBack"
-        title="뒤로가기"
-      >
+    <button
+    v-if="isAdmin && canGoBack"
+    class="hdr-btn hdr-back"
+    @click="goBack"
+    title="뒤로가기"
+    >
         <span class="hdr-ico">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <path

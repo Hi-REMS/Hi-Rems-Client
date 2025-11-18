@@ -33,7 +33,7 @@
               @keyup.enter="openAbnModal"
             >
               <div class="kpi-mini-label">상태 이상</div>
-              <div class="kpi-mini-value kpi-warn">{{ nFmt(totals.abnormal_plants) }}</div>
+              <div class="kpi-mini-value kpi-warn">{{ nFmt(abn.summary.OFFLINE) }}</div>
  <div class="kpi-mini-detail link-style">
   <span>자세히 보기</span>
   <svg class="ic" width="14" height="14" viewBox="0 0 24 24">
@@ -347,60 +347,41 @@
           <button class="modal__close" @click="closeAbnModal" aria-label="닫기">✕</button>
         </header>
 
-        <div class="modal__tools">
-          <div class="rems-seg seg-modern" role="tablist" aria-label="이상 사유 필터">
-            <button
-              class="seg-pill"
-              :class="{active: reasonFilter==='ALL'}"
-              @click="reasonFilter='ALL'"
-              role="tab"
-              :aria-selected="reasonFilter==='ALL'">
-              <span class="seg-dot seg-all"></span>
-              전체
-              <span class="seg-count">{{ nFmt(totals.abnormal_plants) }}</span>
-            </button>
+<div class="modal__tools">
+  <div class="rems-seg seg-modern" role="tablist" aria-label="이상 사유 필터">
 
-            <button
-              class="seg-pill"
-              :class="{active: reasonFilter==='OFFLINE'}"
-              @click="reasonFilter='OFFLINE'"
-              role="tab"
-              :aria-selected="reasonFilter==='OFFLINE'">
-              <span class="seg-dot seg-offline"></span>
-              OFFLINE
-              <span class="seg-count">{{ nFmt(abn.summary.OFFLINE) }}</span>
-            </button>
+    <!-- 전체 버튼 -->
+    <button
+      class="seg-pill"
+      :class="{active: reasonFilter==='ALL'}"
+      @click="reasonFilter='ALL'"
+      role="tab"
+      :aria-selected="reasonFilter==='ALL'">
+      <span class="seg-dot seg-all"></span>
+      전체
+      <span class="seg-count">{{ nFmt(abn.summary.OFFLINE) }}</span>
+    </button>
 
-            <button
-              class="seg-pill"
-              :class="{active: reasonFilter==='OPMODE_ABNORMAL'}"
-              @click="reasonFilter='OPMODE_ABNORMAL'"
-              role="tab"
-              :aria-selected="reasonFilter==='OPMODE_ABNORMAL'">
-              <span class="seg-dot seg-op"></span>
-              OPMODE
-              <span class="seg-count">{{ nFmt(abn.summary.OPMODE_ABNORMAL) }}</span>
-            </button>
-          </div>
+  </div>
 
-          <div class="modal__search">
-            <input
-              class="modal__input"
-              v-model.trim="imeiQuery"
-              @input="onSearchImei"
-              placeholder="IMEI로 필터링" />
-          </div>
-        </div>
+  <div class="modal__search">
+    <input
+      class="modal__input"
+      v-model.trim="imeiQuery"
+      @input="onSearchImei"
+      placeholder="IMEI로 필터링" />
+  </div>
+</div>
 
         <div class="rems-abn-summaryline modal__summary">
           <span class="abn-chip danger"><i aria-hidden="true">●</i> OFFLINE <b>{{ nFmt(abn.summary.OFFLINE) }}</b></span>
-          <span class="abn-chip warn"><i aria-hidden="true">●</i> OPMODE_ABNORMAL <b>{{ nFmt(abn.summary.OPMODE_ABNORMAL) }}</b></span>
+          
           <span class="abn-total">
             <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M3 5h18v2H3zm4 6h10v2H7zm-4 6h18v2H3z"/>
             </svg>
-            <b>{{ nFmt(abn.summary.OFFLINE + abn.summary.OPMODE_ABNORMAL) }}</b>
-            <span class="label">이상 합계</span>
+            
+            
           </span>
         </div>
 
@@ -410,7 +391,7 @@
               <tr>
                 <th style="width:260px">IMEI</th>
                 <th style="width:140px">이유</th>
-                <th style="width:120px">opMode</th>
+                
                 <th style="width:220px">마지막 수신(KST)</th>
                 <th style="width:120px">경과(분)</th>
                 <th>최근24h 메시지</th>
@@ -427,7 +408,6 @@
                 @click="focusImei(row)">
                 <td class="mono"><span>{{ row.imei }}</span></td>
                 <td><span :class="['rems-tag', reasonClass(row.reason)]">{{ row.reason }}</span></td>
-                <td class="mono"><span style="position:relative; left:25px;">{{ row.op_mode }}</span></td>
                 <td class="mono">
                   {{ toKst(row.last_time) }}
                   <small class="rems-muted"> ({{ fromNow(row.last_time) }})</small>
@@ -519,11 +499,10 @@ data () {
       loading: false,
       offlineMin: 90,
       limit: 50,
-      summary: { OFFLINE: 0, OPMODE_ABNORMAL: 0 },
+      summary: { OFFLINE: 0 },
       items: [],
       msgs24hMax: 1,
     },
-    reasonFilter: 'ALL',
     imeiQuery: '',
   }
 },
@@ -564,9 +543,7 @@ beforeDestroy () {
     },
     filteredAbnItems () {
       const q = this.imeiQuery?.trim()
-      const list = (this.reasonFilter === 'ALL')
-        ? this.abn.items
-        : this.abn.items.filter(i => i.reason === this.reasonFilter)
+      const list = this.abn.items.filter(i => i.reason === 'OFFLINE')
       if (!q) return list
       return list.filter(i => i.imei.includes(q))
     }
@@ -749,7 +726,12 @@ async refreshMapPoints() {
       if (hours < 48) return `${hours.toFixed(1)}시간 전`
       return `${(hours/24).toFixed(1)}일 전`
     },
-    reasonClass (reason) { if (reason==='OFFLINE') return 'tag-offline'; if (reason==='OPMODE_ABNORMAL' || reason==='OPMODE') return 'tag-opmode'; if (reason==='FAULT_BIT') return 'tag-fault'; return 'tag-default' },
+    reasonClass (reason) {
+    if (reason === 'OFFLINE') return 'tag-offline';
+    if (reason === 'FAULT_BIT') return 'tag-fault';
+    return 'tag-default';
+    },
+
     barWidth (v) { const pct = Math.round((v / this.abn.msgs24hMax) * 100); return Math.min(100, pct) + '%' },
     async copy (text) { try { await navigator.clipboard.writeText(text) } catch {} },
     onSearchImei () {},
@@ -926,13 +908,13 @@ async loadBasic () {
       if (this.focusPulse)  { this.focusPulse.setMap(null);  this.focusPulse  = null }
     },
 
-reasonColor (reason) {
+reasonColor(reason) {
   if (!reason) return '#22c55e'
   const R = String(reason).toUpperCase()
   if (R === 'OFFLINE') return '#ef4444'
-  if (R === 'OPMODE_ABNORMAL' || R === 'OPMODE') return '#64748b'
   return '#22c55e'
 },
+
 makeMarkerEl (pt) {
   const el = document.createElement('div')
   el.className = 'rems-marker rems-marker-fadein'
@@ -998,10 +980,7 @@ makeMarkerEl (pt) {
       el.addEventListener('mouseleave', () => tipOverlay.setMap(null))
 
       const z =
-        pt.reason === 'OFFLINE' ? 300 :
-        (pt.reason === 'OPMODE_ABNORMAL' || pt.reason === 'OPMODE') ? 250 :
-        200
-
+      pt.reason === 'OFFLINE' ? 300 : 200
       const overlay = new kakao.maps.CustomOverlay({
         position: latlng,
         content: el,
