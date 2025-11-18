@@ -318,6 +318,7 @@ html[data-theme='dark'] .rems-sep {
   background-size: 14px;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
+
 .rems-select-dark:hover{
   border-color: color-mix(in srgb, var(--accent) 35%, var(--select-border) 65%);
 }
@@ -438,6 +439,35 @@ html[data-theme="light"] .rems-legend{
 }
 .rems-abn-wrap .rems-table tbody tr.zebra:nth-child(even){
   background: color-mix(in srgb, var(--text) 3%, transparent);
+}
+/* 라이트 모드에서 rems-chip (전국 버튼 등) 밝은 톤으로 보정 */
+html[data-theme="light"] .rems-chip {
+  background: #ffffff !important;
+  color: #1e293b !important;        /* 진한 네이비 글자 */
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+}
+
+/* hover */
+html[data-theme="light"] .rems-chip:hover {
+  background: #f1f5f9 !important;
+  color: #0ea5e9 !important;        /* 살짝 포인트 컬러 */
+  border-color: #bae6fd !important;
+}
+
+/* 선택(강조)된 칩: rems-strong */
+html[data-theme="light"] .rems-chip.rems-strong {
+  background: #e0f7ff !important;
+  color: #0284c7 !important;
+  border: 1px solid #7dd3fc !important;
+  font-weight: 600 !important;
+}
+
+/* dim 단계(시군구) */
+html[data-theme="light"] .rems-chip.rems-dim {
+  background: #f3f4f6 !important;
+  color: #64748b !important;
+  opacity: 0.9 !important;
 }
 
 .rems-abn-wrap .rems-tag { /* reason 태그 또렷하게 */

@@ -49,245 +49,312 @@
       </section>
 
       <!-- 1행: 주간 · 월간(주차) · 연간 -->
-      <section class="edb-charts3">
-        <!-- 주간 -->
-        <article class="edb-card edb-chart edb-week">
-          <div class="edb-card-hd">
-            <h3><span class="edb-dot edb-dot--cyan"></span>주간발전량</h3>
-            <span v-if="bars.length" class="edb-chip edb-chip--strong">합계 {{ fmt(totalKwh, 2) }} kWh</span>
-          </div>
+<!-- 1행: 주간 · 월간(주차) · 연간 -->
+<section class="edb-charts3">
 
-          <div class="edb-chart__body" ref="weekWrap">
-            <svg
-              v-if="bars.length"
-              ref="svg"
-              :viewBox="`0 0 ${vb.w} ${vb.h}`"
-              class="edb-svg-chart"
-              aria-hidden="true"
-              :style="axisStyle"
-            >
-              <g class="grid">
-                <line v-for="(t, i) in yTicks" :key="'gy'+i" :x1="pad.l" :x2="vb.w-pad.r" :y1="t.y" :y2="t.y"/>
-              </g>
-              <g class="axis axis-left">
-                <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
-                <g v-for="(t,i) in yTicks" :key="'yl'+i">
-                  <text :x="pad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
-                </g>
-              </g>
-              <g class="axis axis-bottom">
-                <line :x1="pad.l" :x2="vb.w-pad.r" :y1="vb.h-pad.b" :y2="vb.h-pad.b"/>
-                <g v-for="(x,i) in xTicks" :key="'xt'+i">
-                  <line :x1="x.x" :x2="x.x" :y1="vb.h-pad.b" :y2="vb.h-pad.b+5"/>
-                  <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">{{ x.label }}</text>
-                </g>
-              </g>
+  <!-- ▒▒▒▒▒ 주간 ▒▒▒▒▒ -->
+  <article class="edb-card edb-chart edb-week">
+    <div class="edb-card-hd">
+      <h3><span class="edb-dot edb-dot--cyan"></span>주간발전량</h3>
+      <span v-if="bars.length" class="edb-chip edb-chip--strong">
+        합계 {{ fmt(totalKwh, 2) }} kWh
+      </span>
+    </div>
 
-              <g fill="url(#barGrad)" filter="url(#dropShadow)">
-                <defs>
-                  <linearGradient id="barGrad" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%"  stop-color="#34d5ff" stop-opacity="1"/>
-                    <stop offset="100%" stop-color="#34d5ff" stop-opacity=".35"/>
-                  </linearGradient>
-                  <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.25"/>
-                  </filter>
-                </defs>
-                <rect
-                  v-for="(b, i) in barsGeom"
-                  :key="'b'+i"
-                  class="bar"
-                  :x="b.x" :y="b.y" :width="b.w" :height="b.h" rx="10"
-                  @mouseenter="onBarEnter('week', i, $event)"
-                  @mousemove="onBarMove('week', i, $event)"
-                  @mouseleave="onBarLeave"
-                >
-                  <title>{{ formatDay(bucketsWeek[i]) }}: {{ fmt(valuesWeek[i], valuesWeek[i]>=10?0:1) }}</title>
-                </rect>
-              </g>
+    <div class="edb-chart__body" ref="weekWrap">
+      <svg
+        v-if="bars.length"
+        ref="svg"
+        :viewBox="`0 0 ${vb.w} ${vb.h}`"
+        class="edb-svg-chart"
+        aria-hidden="true"
+        :style="axisStyle"
+      >
+        <g class="grid">
+          <line v-for="(t, i) in yTicks" :key="'gy'+i" :x1="pad.l" :x2="vb.w-pad.r" :y1="t.y" :y2="t.y"/>
+        </g>
 
-              <g class="edb-bar-labels" v-if="showValueLabels">
-                <text
-                  v-for="(b,i) in barsGeom"
-                  :key="'lblw'+i"
-                  class="edb-bar-label"
-                  :x="b.cx"
-                  :y="Math.max(8, b.y - 6)"
-                  text-anchor="middle"
-                >
-                  {{ fmt(valuesWeek[i], valuesWeek[i]>=10?0:1) }}
-                </text>
-              </g>
-            </svg>
+        <g class="axis axis-left">
+          <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
+          <g v-for="(t,i) in yTicks" :key="'yl'+i">
+            <text :x="pad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
+          </g>
+        </g>
 
-            <div v-else class="edb-empty">
-              <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
-              <div v-else-if="loading" class="edb-loading">
-                <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
-              </div>
-              <div v-else class="edb-empty-msg">데이터가 없습니다. IMEI 입력 후 <b>조회</b>를 눌러주세요.</div>
-            </div>
+        <g class="axis axis-bottom">
+          <line :x1="pad.l" :x2="vb.w-pad.r" :y1="vb.h-pad.b" :y2="vb.h-pad.b"/>
+          <g v-for="(x,i) in xTicks" :key="'xt'+i">
+            <line :x1="x.x" :x2="x.x" :y1="vb.h-pad.b" :y2="vb.h-pad.b+5"/>
+            <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">{{ x.label }}</text>
+          </g>
+        </g>
 
-            <!-- 커스텀 툴팁 -->
-            <div
-              v-if="tip.show && tip.chart==='week'"
-              class="edb-tip"
-              :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
-              role="tooltip"
-            >
-              <div class="edb-tip-title">{{ tip.label }}</div>
-              <div class="edb-tip-value">{{ fmt(tip.value, tip.value>=10?0:1) }}</div>
-            </div>
-          </div>
-          <p class="edb-range" v-if="weekRangeText">집계기간: {{ weekRangeText }}</p>
-        </article>
+        <g fill="url(#barGrad)" filter="url(#dropShadow)">
+          <defs>
+            <linearGradient id="barGrad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#34d5ff" stop-opacity="1"/>
+              <stop offset="100%" stop-color="#34d5ff" stop-opacity=".35"/>
+            </linearGradient>
+            <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.25"/>
+            </filter>
+          </defs>
 
-        <!-- 월간 (주차 집계) -->
-        <article class="edb-card edb-chart edb-week">
-          <div class="edb-card-hd">
-            <h3><span class="edb-dot edb-dot--amber"></span>월간발전량(주차)</h3>
-            <div class="edb-card-actions">
-              <span class="edb-chip" style="position:relative; left:-5px;">kWh</span>
-              <button
-                class="edb-btn edb-btn--primary edb-btn--sm"
-                :disabled="downloading || !canDownload"
-                @click="openDownloadModal"
-                :title="canDownload ? '월별 CSV 다운로드' : '조회 후 활성화됩니다'"
-              >
-                다운로드
-              </button>
-            </div>
-          </div>
-          <div class="edb-chart__body" ref="monthWrap">
-            <svg v-if="monthSeries.length" :viewBox="`0 0 ${vb.w} ${vb.h}`" class="edb-svg-chart" :style="axisStyle" aria-hidden="true">
-              <g class="grid"><line v-for="(t,i) in yTicksMonth" :key="'gmy'+i" :x1="pad.l" :x2="vb.w-pad.r" :y1="t.y" :y2="t.y"/></g>
-              <g class="axis axis-left">
-                <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
-                <g v-for="(t,i) in yTicksMonth" :key="'my'+i"><text :x="pad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text></g>
-              </g>
-              <g class="axis axis-bottom">
-                <line :x1="pad.l" :x2="vb.w-pad.r" :y1="vb.h-pad.b" :y2="vb.h-pad.b"/>
-                <g v-for="(x,i) in xTicksMonth" :key="'mx'+i">
-                  <line :x1="x.x" :x2="x.x" :y1="vb.h-pad.b" :y2="vb.h-pad.b+5"/>
-                  <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">{{ x.label }}</text>
-                </g>
-              </g>
-              <g fill="url(#monthGrad)" filter="url(#dropShadow)">
-                <defs>
-                  <linearGradient id="monthGrad" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stop-color="#ffb22e" stop-opacity="1"/>
-                    <stop offset="100%" stop-color="#ffb22e" stop-opacity=".35"/>
-                  </linearGradient>
-                </defs>
-                <rect
-                  v-for="(b,i) in barsGeomMonth"
-                  :key="'mb'+i"
-                  class="bar"
-                  :x="b.x" :y="b.y" :width="b.w" :height="b.h" rx="10"
-                  @mouseenter="onBarEnter('month', i, $event)"
-                  @mousemove="onBarMove('month', i, $event)"
-                  @mouseleave="onBarLeave"
-                >
-                  <title>{{ monthSeries[i].label }}: {{ fmt(valuesMonth[i], valuesMonth[i]>=10?0:1) }}</title>
-                </rect>
-              </g>
+          <rect
+            v-for="(b, i) in barsGeom"
+            :key="'b'+i"
+            class="bar"
+            :x="b.x" :y="b.y" :width="b.w" :height="b.h" rx="10"
+            @mouseenter="onBarEnter('week', i, $event)"
+            @mousemove="onBarMove('week', i, $event)"
+            @mouseleave="onBarLeave"
+          >
+            <title>{{ formatDay(bucketsWeek[i]) }}: {{ fmt(valuesWeek[i], valuesWeek[i]>=10?0:1) }}</title>
+          </rect>
+        </g>
 
-              <g class="edb-bar-labels" v-if="showValueLabels">
-                <text
-                  v-for="(b,i) in barsGeomMonth"
-                  :key="'lblm'+i"
-                  class="edb-bar-label"
-                  :x="b.cx"
-                  :y="Math.max(8, b.y - 6)"
-                  text-anchor="middle"
-                >
-                  {{ fmt(valuesMonth[i], valuesMonth[i]>=10?0:1) }}
-                </text>
-              </g>
-            </svg>
-            <div class="edb-empty" v-else>데이터가 없습니다. IMEI를 입력 후 조회를 눌러주세요.</div>
+        <g class="edb-bar-labels" v-if="showValueLabels">
+          <text
+            v-for="(b,i) in barsGeom"
+            :key="'lblw'+i"
+            class="edb-bar-label"
+            :x="b.cx"
+            :y="Math.max(8, b.y - 6)"
+            text-anchor="middle"
+          >
+            {{ fmt(valuesWeek[i], valuesWeek[i]>=10?0:1) }}
+          </text>
+        </g>
+      </svg>
 
-            <div
-              v-if="tip.show && tip.chart==='month'"
-              class="edb-tip"
-              :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
-              role="tooltip"
-            >
-              <div class="edb-tip-title">{{ tip.label }}</div>
-              <div class="edb-tip-value">{{ fmt(tip.value, tip.value>=10?0:1) }}</div>
-            </div>
-          </div>
-          <p class="edb-range" v-if="monthRangeText">집계기간: {{ monthRangeText }}</p>
-        </article>
+      <!-- 🔥 로딩/에러/빈데이터 분기 -->
+      <div v-else class="edb-empty">
+        <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
+        <div v-else-if="loading" class="edb-loading">
+          <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
+        </div>
+        <div v-else class="edb-empty-msg">
+          데이터가 없습니다. IMEI 입력 후 <b>조회</b>를 눌러주세요.
+        </div>
+      </div>
 
-        <!-- 연간 -->
-        <article class="edb-card edb-chart edb-week">
-          <div class="edb-card-hd">
-            <h3><span class="edb-dot edb-dot--cyan"></span>연간발전량</h3>
-            <span class="edb-chip">kWh</span>
-          </div>
-          <div class="edb-chart__body" ref="yearWrap">
-            <svg v-if="yearSeries.length" :viewBox="yearViewBox" class="edb-svg-chart" :style="axisStyle" aria-hidden="true">
-              <g class="grid"><line v-for="(t,i) in yTicksYear" :key="'gy'+i" :x1="pad.l" :x2="vb.w-pad.r" :y1="t.y" :y2="t.y"/></g>
-              <g class="axis axis-left">
-                <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
-                <g v-for="(t,i) in yTicksYear" :key="'yl'+i"><text :x="pad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text></g>
-              </g>
-              <g class="axis axis-bottom">
-                <line :x1="pad.l" :x2="vb.w-pad.r" :y1="vb.h-pad.b" :y2="vb.h-pad.b"/>
-                <g v-for="(x,i) in xTicksYear" :key="'xt'+i">
-                  <line :x1="x.x" :x2="x.x" :y1="vb.h-pad.b" :y2="vb.h-pad.b+5"/>
-                  <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">{{ x.label }}</text>
-                </g>
-              </g>
-              <g fill="url(#yearGrad)" filter="url(#dropShadow)">
-                <defs>
-                  <linearGradient id="yearGrad" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stop-color="#22d3ee" stop-opacity="1"/>
-                    <stop offset="100%" stop-color="#22d3ee" stop-opacity=".35"/>
-                  </linearGradient>
-                </defs>
-                <rect
-                  v-for="(b, i) in barsGeomYear"
-                  :key="'yb'+i"
-                  class="bar"
-                  :x="b.x" :y="b.y" :width="b.w" :height="b.h" rx="10"
-                  @mouseenter="onBarEnter('year', i, $event)"
-                  @mousemove="onBarMove('year', i, $event)"
-                  @mouseleave="onBarLeave"
-                >
-                  <title>{{ bucketsYear[i] }}: {{ fmt(valuesYear[i], valuesYear[i]>=10?0:1) }}</title>
-                </rect>
-              </g>
+      <!-- Tooltip -->
+      <div
+        v-if="tip.show && tip.chart==='week'"
+        class="edb-tip"
+        :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
+        role="tooltip"
+      >
+        <div class="edb-tip-title">{{ tip.label }}</div>
+        <div class="edb-tip-value">{{ fmt(tip.value, tip.value>=10?0:1) }}</div>
+      </div>
+    </div>
 
-              <g class="edb-bar-labels" v-if="showValueLabels">
-                <text
-                  v-for="(b,i) in barsGeomYear"
-                  :key="'lbly'+i"
-                  class="edb-bar-label"
-                  :x="b.cx"
-                  :y="Math.max(8, b.y - 6)"
-                  text-anchor="middle"
-                >
-                  {{ fmt(valuesYear[i], valuesYear[i]>=10?0:1) }}
-                </text>
-              </g>
-            </svg>
-            <div class="edb-empty" v-else>데이터가 없습니다. IMEI를 입력 후 조회를 눌러주세요.</div>
+    <p class="edb-range" v-if="weekRangeText">집계기간: {{ weekRangeText }}</p>
+  </article>
 
-            <div
-              v-if="tip.show && tip.chart==='year'"
-              class="edb-tip"
-              :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
-              role="tooltip"
-            >
-              <div class="edb-tip-title">{{ tip.label }}</div>
-              <div class="edb-tip-value">{{ fmt(tip.value, tip.value>=10?0:1) }}</div>
-            </div>
-          </div>
-          <p class="edb-range" v-if="yearRangeText">집계기간: {{ yearRangeText }}</p>
-        </article>
-      </section>
+  <!-- ▒▒▒▒▒ 월간 ▒▒▒▒▒ -->
+  <article class="edb-card edb-chart edb-week">
+    <div class="edb-card-hd">
+      <h3><span class="edb-dot edb-dot--amber"></span>월간발전량(주차)</h3>
+      <div class="edb-card-actions">
+        <span class="edb-chip" style="position:relative; left:-5px;">kWh</span>
+        <button
+          class="edb-btn edb-btn--primary edb-btn--sm"
+          :disabled="downloading || !canDownload"
+          @click="openDownloadModal"
+          :title="canDownload ? '월별 CSV 다운로드' : '조회 후 활성화됩니다'"
+        >
+          다운로드
+        </button>
+      </div>
+    </div>
+
+    <div class="edb-chart__body" ref="monthWrap">
+
+      <svg
+        v-if="monthSeries.length"
+        :viewBox="`0 0 ${vb.w} ${vb.h}`"
+        class="edb-svg-chart"
+        :style="axisStyle"
+        aria-hidden="true"
+      >
+        <g class="grid">
+          <line v-for="(t,i) in yTicksMonth" :key="'gmy'+i" :x1="pad.l" :x2="vb.w-pad.r" :y1="t.y" :y2="t.y"/>
+        </g>
+
+        <g class="axis axis-left">
+          <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
+          <g v-for="(t,i) in yTicksMonth" :key="'my'+i">
+            <text :x="pad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
+          </g>
+        </g>
+
+        <g class="axis axis-bottom">
+          <line :x1="pad.l" :x2="vb.w-pad.r" :y1="vb.h-pad.b" :y2="vb.h-pad.b"/>
+          <g v-for="(x,i) in xTicksMonth" :key="'mx'+i">
+            <line :x1="x.x" :x2="x.x" :y1="vb.h-pad.b" :y2="vb.h-pad.b+5"/>
+            <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">{{ x.label }}</text>
+          </g>
+        </g>
+
+        <g fill="url(#monthGrad)" filter="url(#dropShadow)">
+          <defs>
+            <linearGradient id="monthGrad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#ffb22e" stop-opacity="1"/>
+              <stop offset="100%" stop-color="#ffb22e" stop-opacity=".35"/>
+            </linearGradient>
+          </defs>
+
+          <rect
+            v-for="(b,i) in barsGeomMonth"
+            :key="'mb'+i"
+            class="bar"
+            :x="b.x" :y="b.y" :width="b.w" :height="b.h" rx="10"
+            @mouseenter="onBarEnter('month', i, $event)"
+            @mousemove="onBarMove('month', i, $event)"
+            @mouseleave="onBarLeave"
+          >
+            <title>{{ monthSeries[i].label }}: {{ fmt(valuesMonth[i], valuesMonth[i]>=10?0:1) }}</title>
+          </rect>
+        </g>
+
+        <g class="edb-bar-labels" v-if="showValueLabels">
+          <text
+            v-for="(b,i) in barsGeomMonth"
+            :key="'lblm'+i"
+            class="edb-bar-label"
+            :x="b.cx"
+            :y="Math.max(8, b.y - 6)"
+            text-anchor="middle"
+          >
+            {{ fmt(valuesMonth[i], valuesMonth[i]>=10?0:1) }}
+          </text>
+        </g>
+      </svg>
+
+      <!-- 🔥 수정된 로딩/에러/빈데이터 UI -->
+      <div v-else class="edb-empty">
+        <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
+        <div v-else-if="loading" class="edb-loading">
+          <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
+        </div>
+        <div v-else class="edb-empty-msg">
+          데이터가 없습니다. IMEI 입력 후 <b>조회</b>를 눌러주세요.
+        </div>
+      </div>
+
+      <div
+        v-if="tip.show && tip.chart==='month'"
+        class="edb-tip"
+        :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
+        role="tooltip"
+      >
+        <div class="edb-tip-title">{{ tip.label }}</div>
+        <div class="edb-tip-value">{{ fmt(tip.value, tip.value>=10?0:1) }}</div>
+      </div>
+    </div>
+
+    <p class="edb-range" v-if="monthRangeText">집계기간: {{ monthRangeText }}</p>
+  </article>
+
+  <!-- ▒▒▒▒▒ 연간 ▒▒▒▒▒ -->
+  <article class="edb-card edb-chart edb-week">
+    <div class="edb-card-hd">
+      <h3><span class="edb-dot edb-dot--cyan"></span>연간발전량</h3>
+      <span class="edb-chip">kWh</span>
+    </div>
+
+    <div class="edb-chart__body" ref="yearWrap">
+
+      <svg
+        v-if="yearSeries.length"
+        :viewBox="yearViewBox"
+        class="edb-svg-chart"
+        :style="axisStyle"
+        aria-hidden="true"
+      >
+        <g class="grid">
+          <line v-for="(t,i) in yTicksYear" :key="'gy'+i" :x1="pad.l" :x2="vb.w-pad.r" :y1="t.y" :y2="t.y"/>
+        </g>
+
+        <g class="axis axis-left">
+          <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
+          <g v-for="(t,i) in yTicksYear" :key="'yl'+i">
+            <text :x="pad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
+          </g>
+        </g>
+
+        <g class="axis axis-bottom">
+          <line :x1="pad.l" :x2="vb.w-pad.r" :y1="vb.h-pad.b" :y2="vb.h-pad.b"/>
+          <g v-for="(x,i) in xTicksYear" :key="'xt'+i">
+            <line :x1="x.x" :x2="x.x" :y1="vb.h-pad.b" :y2="vb.h-pad.b+5"/>
+            <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">{{ x.label }}</text>
+          </g>
+        </g>
+
+        <g fill="url(#yearGrad)" filter="url(#dropShadow)">
+          <defs>
+            <linearGradient id="yearGrad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#22d3ee" stop-opacity="1"/>
+              <stop offset="100%" stop-color="#22d3ee" stop-opacity=".35"/>
+            </linearGradient>
+          </defs>
+
+          <rect
+            v-for="(b,i) in barsGeomYear"
+            :key="'yb'+i"
+            class="bar"
+            :x="b.x" :y="b.y" :width="b.w" :height="b.h" rx="10"
+            @mouseenter="onBarEnter('year', i, $event)"
+            @mousemove="onBarMove('year', i, $event)"
+            @mouseleave="onBarLeave"
+          >
+            <title>{{ bucketsYear[i] }}: {{ fmt(valuesYear[i], valuesYear[i]>=10?0:1) }}</title>
+          </rect>
+        </g>
+
+        <g class="edb-bar-labels" v-if="showValueLabels">
+          <text
+            v-for="(b,i) in barsGeomYear"
+            :key="'lbly'+i"
+            class="edb-bar-label"
+            :x="b.cx"
+            :y="Math.max(8, b.y - 6)"
+            text-anchor="middle"
+          >
+            {{ fmt(valuesYear[i], valuesYear[i]>=10?0:1) }}
+          </text>
+        </g>
+      </svg>
+
+      <!-- 🔥 수정된 로딩/에러/빈데이터 UI -->
+      <div v-else class="edb-empty">
+        <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
+        <div v-else-if="loading" class="edb-loading">
+          <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
+        </div>
+        <div v-else class="edb-empty-msg">
+          데이터가 없습니다. IMEI 입력 후 <b>조회</b>를 눌러주세요.
+        </div>
+      </div>
+
+      <div
+        v-if="tip.show && tip.chart==='year'"
+        class="edb-tip"
+        :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
+        role="tooltip"
+      >
+        <div class="edb-tip-title">{{ tip.label }}</div>
+        <div class="edb-tip-value">{{ fmt(tip.value, tip.value>=10?0:1) }}</div>
+      </div>
+    </div>
+
+    <p class="edb-range" v-if="yearRangeText">집계기간: {{ yearRangeText }}</p>
+  </article>
+
+</section>
+
 
       <!-- 2행: 요약 · 날짜별 상세 -->
       <section class="edb-grid edb-bottom2">
@@ -385,17 +452,17 @@
           </div>
         </section>
 
-        <!-- 날짜별 상세 -->
+
  <section class="edb-card edb-detail" aria-live="polite">
     <div class="edb-detail-hd">
-      <!-- 왼쪽: 제목 + 메타 -->
+
       <div class="edb-detail-hgroup">
         <h3 class="edb-detail__title">시간별 상세정보</h3>
         <div class="edb-detail-meta" v-if="detailDay">
           <span class="edb-meta">기준 날짜: <b>{{ detailDay }}</b></span>
         </div>
       </div>
-<!-- 오른쪽: 액션(주간예보 버튼) -->
+
 <div class="edb-detail-actions">
   <button
     class="edb-week-btn"
@@ -403,7 +470,7 @@
     @click="openWxModal"
     title="이번주(7일) 날씨 예보 보기"
   >
-    <span v-if="!wxLoading">주간예보</span>
+    <span v-if="!wxLoading" style="font-size:12.5px;">주간예보</span>
     <span v-else class="edb-spinner"></span>
   </button>
 </div>
@@ -1242,169 +1309,212 @@ kDateLabel(iso){
       return ''
     },
 
-    /* ===== 메인 플로우 ===== */
-    async onSearch(options = {}) {
-      const loadDefault = options.loadDefault === true
-      const imei = this.imeiField?.trim()
-      if (!imei && !loadDefault) return
-      if (this.searching) return
+async onSearch(options = {}) {
+  const loadDefault = options.loadDefault === true;
+  const imei = this.imeiField?.trim();
+  if (!imei && !loadDefault) return;
+  if (this.searching) return;
 
-      this.searching = true
-      this.loading = true
-      this.errorMsg = ''
-      this.hasSearched = false
-      const myReq = ++this.currentReqId
+  this.searching = true;
+  this.loading = true;
+  this.errorMsg = '';
+  const myReq = ++this.currentReqId;
 
-      // 초기화
-      this.bars = []
-      this.totalKwh = 0
-      this.detailDay = ''
-      this.detailRows = []
-      this.monthSeries = []
-      this.yearSeries = []
-      this.monthRangeUtc = null
-      this.yearRangeUtc = null
-      this.weekRangeUtc = null
-      this.summary = {
-        capacity_kw: DUMMY_CAP_KW,
-        today_kwh: 0,
-        month_kwh: 0,
-        year_kwh: 0,
-        co2_kg: 0,
-        trees: 0,
-        install_date: null,
-        monitor_start: null
-      }
-      this.kpis = { totalKwh: 0, totalCo2: 0, totalTrees: 0 }
-      this.avgEff = null
+  /* -------------------------------------------------
+   * 1) 즉시 렌더링용 초기화 (바로 this.xxx 로 넣어줌)
+   * ------------------------------------------------- */
+  this.bars = [];
+  this.totalKwh = 0;
+  this.monthSeries = [];
+  this.yearSeries = [];
+  this.valuesWeek = [];
+  this.valuesMonth = [];
+  this.valuesYear = [];
+  this.detailRows = [];
+  this.detailDay = '';
+  this.monthRangeUtc = null;
+  this.yearRangeUtc = null;
+  this.weekRangeUtc = null;
+  this.summary = {
+    capacity_kw: DUMMY_CAP_KW,
+    today_kwh: 0,
+    month_kwh: 0,
+    year_kwh: 0,
+    co2_kg: 0,
+    trees: 0,
+    install_date: null,
+    monitor_start: null
+  };
+  this.kpis = { totalKwh: 0, totalCo2: 0, totalTrees: 0 };
+  this.avgEff = null;
 
-      // 라우터 쿼리 동기화
-      try {
-        const cur = this.$route?.query || {}
-        const next = {
-          ...(imei ? { imei } : {}),
-          ...(this.energyField ? { energy: this.energyField } : {}),
-          ...(this.typeField && this.energyField==='01' ? { type: this.typeField } : {}),
-          ...(this.multiField && this.energyField==='01' ? { multi: this.multiField } : {})
-        }
-        if (JSON.stringify(cur) !== JSON.stringify(next)) {
-          await this.$router.replace({ query: next })
-        }
-      } catch { /* no-op */ }
+  /* 즉시 렌더: 초기화된 상태로 화면 갱신 → 스피너 활성화 */
+  await this.$nextTick();
 
-      try {
-        // 주간 + 시간별(일간) 동시 요청
-        const [weekly, hourly] = await Promise.all([
-          this.fetchRange('weekly', false, imei),
-          this.fetchHourlyForToday()
-        ])
-        if (myReq !== this.currentReqId) return
+  /* -------------------------------------------------
+   * 2) 라우터 쿼리 sync
+   * ------------------------------------------------- */
+  try {
+    const cur = this.$route?.query || {};
+    const nextQ = {
+      ...(imei ? { imei } : {}),
+      ...(this.energyField ? { energy: this.energyField } : {}),
+      ...(this.typeField && this.energyField === '01' ? { type: this.typeField } : {}),
+      ...(this.multiField && this.energyField === '01' ? { multi: this.multiField } : {})
+    };
+    if (JSON.stringify(cur) !== JSON.stringify(nextQ)) {
+      await this.$router.replace({ query: nextQ });
+    }
+  } catch {}
 
-        // ===== 주간 차트 정규화 =====
-        const wSeries = Array.isArray(weekly?.series) ? weekly.series
-                        : Array.isArray(weekly?.data?.series) ? weekly.data.series
-                        : []
-        this.bars = wSeries.map(s => ({
-          x: s.bucket || s.date || s.x,
-          y: Number(s.kwh ?? s.y ?? 0)
-        })).filter(r => r.x != null)
+  /* -------------------------------------------------
+   * 3) 병렬 API
+   * ------------------------------------------------- */
+  try {
+    const weeklyP = this.fetchRange('weekly', false, imei);
+    const hourlyP = this.fetchHourlyForToday();
+    const weatherP = this.fetchWeatherHourlyByImei();
+    const monthlyP = this.fetchRange('monthly', false, imei);
+    const yearlyP = this.fetchRange('yearly', false, imei);
 
-        // 합계 & 범위
-        const wSum = Number(weekly?.summary?.total_kwh)
-          || this.bars.reduce((a,c)=>a+(c.y||0),0)
-        this.totalKwh = round2(wSum)
-        const r = weekly?.range_utc || weekly?.range || null
-        this.weekRangeUtc = r && r.start && r.end ? r : null
+    const [weekly, hourly, weather, monthly, yearly] =
+      await Promise.all([weeklyP, hourlyP, weatherP, monthlyP, yearlyP]);
 
-        // ===== “시간별 상세정보” =====
-        const kstToday = this.todayKstYmd()
-        this.detailDay = kstToday
-        this.detailRows = (hourly || []).map(h => ({
-          hour: `${h.hour}:00`,
-          kwh: h.kwh == null ? null : round2(h.kwh),
-          co2_kg: h.kwh == null ? null : round2(this.co2(h.kwh)),
-          weather: '—'
-        }))
-        const todaySum = (hourly || []).reduce(
-          (s, x) => (Number.isFinite(x.kwh) ? s + x.kwh : s), 0
-        )
-        this.summary.today_kwh = round2(todaySum)
-        this.avgEff = 13.9
+    if (myReq !== this.currentReqId) return;
 
-        // 시간대별 날씨 병합
-        const wx = await this.fetchWeatherHourlyByImei()
-        if (myReq !== this.currentReqId) return
-        if (wx.hourly.length) {
-          const wmap = new Map(wx.hourly.map(h => [this.toHH(h.hour), h]))
-          this.detailRows = this.detailRows.map(r => {
-            const key = this.toHH(r.hour)
-            const w = key ? wmap.get(key) : null
-            return w ? { ...r, weather: this.makeWeatherLabel(w) } : r
-          })
-        }
+    /* -------------------------------------------------
+     * 4) 결과 버퍼(next)에 데이터 조립
+     * ------------------------------------------------- */
+    const next = {
+      bars: [],
+      totalKwh: 0,
+      detailDay: '',
+      detailRows: [],
+      monthSeries: [],
+      yearSeries: [],
+      monthRangeUtc: null,
+      yearRangeUtc: null,
+      weekRangeUtc: null,
+      summary: { ...this.summary },
+      kpis: { totalKwh: 0, totalCo2: 0, totalTrees: 0 },
+      avgEff: null,
+      hasSearched: true
+    };
 
-        // ===== 월간, 연간 =====
-        const now = new Date()
-        const y = now.getFullYear()
-        const m = String(now.getMonth() + 1).padStart(2, '0')
-        const ym = `${y}-${m}`
+    /* ---------- 주간 ---------- */
+    const wSeries = Array.isArray(weekly?.series)
+      ? weekly.series
+      : Array.isArray(weekly?.data?.series)
+      ? weekly.data.series
+      : [];
 
-        const [monthly, yearly] = await Promise.all([
-          this.fetchRange('monthly', false, imei),
-          this.fetchRange('yearly',  false, imei)
-        ])
-        if (myReq !== this.currentReqId) return
+    next.bars = wSeries.map(s => ({
+      x: s.bucket || s.date || s.x,
+      y: Number(s.kwh ?? s.y ?? 0)
+    })).filter(r => r.x != null);
 
-        // 월간(일단위 원시 → 주차 집계)
-        const mSeries = Array.isArray(monthly?.series) ? monthly.series
-                        : Array.isArray(monthly?.data?.series) ? monthly.data.series
-                        : []
-        this.monthRangeUtc = monthly?.range_utc || monthly?.range || null
-        const monthAgg = this.aggregateWeeksFromDaily(
-          mSeries.map(r => ({ bucket: r.bucket || r.date || r.x, kwh: Number(r.kwh ?? r.y ?? 0) }))
-        )
-        this.monthSeries = monthAgg.series
-        this.summary.month_kwh = round2(
-          mSeries
-            .filter(r => String(r.bucket || r.date || r.x || '').startsWith(ym))
-            .reduce((s, r) => s + Number(r.kwh ?? r.y ?? 0), 0)
-        )
+    next.totalKwh = round2(
+      Number(weekly?.summary?.total_kwh) ||
+      next.bars.reduce((a, c) => a + (c.y || 0), 0)
+    );
 
-        // 연간(YTD) 보정
-        const ySeries = Array.isArray(yearly?.series) ? yearly.series
-                        : Array.isArray(yearly?.data?.series) ? yearly.data.series
-                        : []
-        this.yearSeries = this.ensureYearMonths(
-          ySeries.map(r => ({ bucket: r.bucket || r.date || r.x, kwh: Number(r.kwh ?? r.y ?? 0) })),
-          y
-        )
-        this.yearRangeUtc = yearly?.range_utc || yearly?.range || null
-        this.summary.year_kwh = round2(this.yearSeries.reduce((s, r) => s + (r.y || 0), 0))
+    next.weekRangeUtc = weekly?.range_utc || weekly?.range || null;
 
-        // KPI 캐시
-        this.kpis.totalKwh = this.summary.year_kwh
-        this.kpis.totalCo2 = this.co2(this.kpis.totalKwh)
-        this.kpis.totalTrees = this.treesFromKwh(this.kpis.totalKwh)
+    /* ---------- 상세 ---------- */
+    const today = this.todayKstYmd();
+    next.detailDay = today;
 
-        // 주간 환경 KPI
-        this.summary.co2_kg = this.co2(this.totalKwh)
-        this.summary.trees = this.treesFromKwh(this.totalKwh)
+    const rows = (hourly || []).map(h => ({
+      hour: `${h.hour}:00`,
+      kwh: h.kwh == null ? null : round2(h.kwh),
+      co2_kg: h.kwh == null ? null : round2(this.co2(h.kwh)),
+      weather: '—'
+    }));
 
-        if (!this.bars.length && !this.monthSeries.length && !this.yearSeries.length) {
-          this.errorMsg = '선택한 조건에 해당하는 데이터가 없습니다.'
-        }
+    next.detailRows = rows;
+    next.summary.today_kwh = round2(
+      rows.reduce((s, x) => (x.kwh != null ? s + x.kwh : s), 0)
+    );
+    next.avgEff = 13.9;
 
-        this.hasSearched = true
-        this.$nextTick(this.updateAxisFonts)
-        this.assertAggregateOrder()
-      } catch (e) {
-        this.errorMsg = e?.message || '오류가 발생했습니다.'
-        console.error('[EnergyDashboard:onSearch]', e)
-      } finally {
-        this.searching = false
-        this.loading = false
-      }
-    },
+    /* ---------- 날씨 ---------- */
+    if (weather?.hourly?.length) {
+      const wmap = new Map(weather.hourly.map(h => [this.toHH(h.hour), h]));
+      next.detailRows = rows.map(r => {
+        const key = this.toHH(r.hour);
+        const w = key ? wmap.get(key) : null;
+        return w ? { ...r, weather: this.makeWeatherLabel(w) } : r;
+      });
+    }
+
+    /* ---------- 월간 ---------- */
+    const mSeries = Array.isArray(monthly?.series)
+      ? monthly.series
+      : Array.isArray(monthly?.data?.series)
+      ? monthly.data.series
+      : [];
+
+    next.monthRangeUtc = monthly?.range_utc || monthly?.range || null;
+
+    const monthAgg = this.aggregateWeeksFromDaily(
+      mSeries.map(r => ({
+        bucket: r.bucket || r.date || r.x,
+        kwh: Number(r.kwh ?? r.y ?? 0)
+      }))
+    );
+
+    next.monthSeries = monthAgg.series;
+
+    /* ---------- 연간 ---------- */
+    const now = new Date();
+    const y = now.getFullYear();
+
+    const ySeries = Array.isArray(yearly?.series)
+      ? yearly.series
+      : Array.isArray(yearly?.data?.series)
+      ? yearly.data.series
+      : [];
+
+    next.yearSeries = this.ensureYearMonths(
+      ySeries.map(r => ({
+        bucket: r.bucket || r.date || r.x,
+        kwh: Number(r.kwh ?? r.y ?? 0)
+      })), y
+    );
+
+    next.yearRangeUtc = yearly?.range_utc || yearly?.range || null;
+
+    /* ---------- KPI ---------- */
+    next.summary.month_kwh = round2(
+      mSeries.reduce((s, r) => s + Number(r.kwh ?? r.y ?? 0), 0)
+    );
+
+    next.summary.year_kwh = round2(
+      next.yearSeries.reduce((s, r) => s + (r.y || 0), 0)
+    );
+
+    next.kpis.totalKwh = next.summary.year_kwh;
+    next.kpis.totalCo2 = this.co2(next.kpis.totalKwh);
+    next.kpis.totalTrees = this.treesFromKwh(next.kpis.totalKwh);
+
+    next.summary.co2_kg = this.co2(next.totalKwh);
+    next.summary.trees = this.treesFromKwh(next.totalKwh);
+
+    /* -------------------------------------------------
+     * 5) 최종 렌더링
+     * ------------------------------------------------- */
+    Object.assign(this, next);
+
+  } catch (e) {
+    this.errorMsg = e?.message || '오류가 발생했습니다.';
+    console.error('[onSearch]', e);
+
+  } finally {
+    this.searching = false;
+    this.loading = false;
+    this.$nextTick(this.updateAxisFonts);
+  }
+},
 
     reset(){
       if (this.searching) return

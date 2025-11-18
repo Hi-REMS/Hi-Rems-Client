@@ -175,13 +175,28 @@
             </header>
             <div class="detail-body">
               <div class="detail-row"><span class="dt">IMEI</span><span class="dd mono">{{ selectedPoint.imei }}</span></div>
+              <div class="detail-row" v-if="selectedPoint.worker"><span class="dt">담당자</span><span class="dd">{{ selectedPoint.worker }}</span></div>
+              <div class="detail-row"><span class="dt">에너지원</span><span class="dd">{{ selectedPoint.energy }}</span></div>
               <div class="detail-row"><span class="dt">상태</span><span class="dd"><span :class="['rems-tag', reasonClass(selectedPoint.reason)]">{{ selectedPoint.reason }}</span></span></div>
               <div class="detail-row" v-if="selectedPoint.address"><span class="dt">주소</span><span class="dd">{{ selectedPoint.address }}</span></div>
               <div class="detail-row" v-if="selectedPoint.sido || selectedPoint.sigungu"><span class="dt">행정구역</span><span class="dd">{{ selectedPoint.sido }} {{ selectedPoint.sigungu }}</span></div>
               <div class="detail-row" v-if="selectedPoint.last_time"><span class="dt">최근 수신</span><span class="dd mono">{{ toKst(selectedPoint.last_time) }} <small class="rems-muted">({{ fromNow(selectedPoint.last_time) }})</small></span></div>
             </div>
             <footer class="detail-ft">
-              <router-link class="btn primary w100" :to="`/analysis/timeseries?imei=${encodeURIComponent(selectedPoint.imei)}`">상세 모니터링 이동</router-link>
+              <router-link
+  class="btn primary w100"
+  :to="{
+    path: '/analysis/timeseries',
+    query: {
+      imei: selectedPoint.imei,
+      energy: selectedPoint.energy,
+      type: selectedPoint.type,
+      multi: selectedPoint.multi
+    }
+  }"
+>
+  상세 모니터링 이동
+</router-link>
             </footer>
           </aside>
           <div v-if="mapLoading" class="map-loading-overlay">
@@ -604,6 +619,18 @@ reasonFilter () {
 }
   },
   methods: {
+    energyName(code) {
+  const map = {
+    '01': '태양광',
+    '02': '태양열',
+    '03': '지열',
+    '04': '풍력',
+    '06': '연료전지',
+    '07': 'ESS'
+  }
+  if (!code) return '미등록'
+  return map[String(code).padStart(2,'0')] || '기타'
+},
     async refreshAll () {
     try {
       await Promise.all([
@@ -992,18 +1019,29 @@ makeMarkerEl (pt) {
 
   // ✅ 클릭 시 상세 패널 표시
   el.onclick = () => {
+    console.log('🔍[MarkerClick] 원본 pt 객체:', pt)
+
     this.selectedPoint = {
       imei: pt.imei,
       reason: pt.reason,
       address: pt.address,
       sido: pt.sido,
       sigungu: pt.sigungu,
-      last_time: pt.last_time
+      last_time: pt.last_time,
+      energy: this.energyName(pt.energy),
+      type: pt.type ?? null,
+      multi: pt.multi ?? null,
+      worker: pt.worker ?? null 
     }
+
+    console.log('✅[MarkerClick] selectedPoint:', this.selectedPoint)
+
     this.focusImei(pt)
   }
+
   return el
 },
+
     addMarker (latlng, pt) {
       const kakao = window.kakao
       const el = this.makeMarkerEl(pt)
@@ -1198,17 +1236,23 @@ showFocus (latlng, radius=8000, label='') {
 
 async focusImei (ptOrRow) {
   const kakao = window.kakao
+
   const pt = {
     imei: ptOrRow.imei,
     reason: ptOrRow.reason || 'NORMAL',
     address: ptOrRow.address,
     sido: ptOrRow.sido,
     sigungu: ptOrRow.sigungu,
-    last_time: ptOrRow.last_time
+    last_time: ptOrRow.last_time,
+    energy: ptOrRow.energy ?? null,
+    type: ptOrRow.type ?? null,
+    multi: ptOrRow.multi ?? null,
+    worker: ptOrRow.worker ?? null
   }
 
-  const coord = await this.ensureCoordForPoint(pt)
+  const coord = await this.ensureCoordForPoint(ptOrRow)
   if (!coord) return
+
   const latlng = new kakao.maps.LatLng(coord.lat, coord.lng)
 
   const currentLevel = this.map.getLevel()
@@ -1217,6 +1261,7 @@ async focusImei (ptOrRow) {
   this.map.panTo(latlng)
 
   this.showFocus(latlng, 3000, pt.imei)
+
   this.selectedPoint = pt
 },
 

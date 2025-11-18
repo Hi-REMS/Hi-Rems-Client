@@ -1,0 +1,136 @@
+/* ============================================
+   월간 날씨/발전량 비교 차트 (wxm-*)
+   ============================================ */
+
+.wxm-card {
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 16px 22px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  margin-bottom: 28px;
+}
+
+.wxm-card-header {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.wxm-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wxm-dot {
+  width: 10px;
+  height: 10px;
+  background: #38bdf8;
+  border-radius: 50%;
+}
+
+.wxm-chart-wrap {
+  width: 100%;
+  min-height: 290px;
+  position: relative;
+}
+
+.wxm-loading {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.wxm-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #cce7ff;
+  border-top-color: #38bdf8;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.wxm-svg {
+  width: 100%;
+  height: 310px;
+}
+
+/* Grid lines */
+.wxm-grid line {
+  stroke: var(--border);
+  stroke-width: 1;
+  opacity: 0.35;
+}
+
+/* Y-axis */
+.wxm-axis-y line {
+  stroke: var(--border);
+  stroke-width: 1.4;
+}
+
+.wxm-y-label {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+/* X-axis */
+.wxm-axis-x line {
+  stroke: var(--border);
+  stroke-width: 1.4;
+}
+
+.wxm-x-label {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+/* Bars */
+.wxm-bars rect {
+  fill: linear-gradient(180deg, #34d5ff 0%, rgba(0,119,255,0.35) 100%);
+  fill: #38bdf8;
+  opacity: 0.65;
+  transition: 0.25s;
+}
+
+.wxm-bars rect:hover {
+  opacity: 0.95;
+}
+
+/* Line (일사량) */
+.wxm-line polyline {
+  stroke: #f97316;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
+}
+
+/* Cloud points */
+.wxm-cloud-points circle {
+  fill: #64748b;
+  opacity: 0.9;
+  transition: 0.2s;
+}
+
+.wxm-cloud-points circle:hover {
+  opacity: 1;
+  r: 5;
+}
+
+.wxm-empty {
+  padding: 50px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}

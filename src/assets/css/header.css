@@ -32,6 +32,36 @@
   border-radius: 8px;
 }
 
+@media (max-width: 480px) {
+
+  .hdr-brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 6px !important;
+  }
+
+  .brand-logo {
+    width: 82px !important;
+    height: auto;
+    flex-shrink: 0;
+  }
+
+  .sub-name {
+    display: none !important;
+  }
+
+  .sub-badge {
+    display: none !important;
+  }
+
+  .hdr-actions {
+    flex-shrink: 0 !important;
+  }
+}
+
 .hdr-actions { display: flex; align-items: center; gap: 10px; }
 
 /* 버튼 공통 */

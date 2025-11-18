@@ -1233,3 +1233,245 @@ html[data-theme="dark"] .weather-card .wx-inspect{
   50% { opacity: 0.9; }
   100% { opacity: 0.35; }
 }
+
+/* ==============================
+   STATUS CARD (Modern 2025)
+   Light + Dark Theme
+   ============================== */
+.status-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* 헤더 */
+.status-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* ===============================
+   🔵 원형 상태 뱃지 (왼쪽 정렬)
+   =============================== */
+.status-indicator-container {
+  display: flex;
+  justify-content: flex-start; /* 제목과 왼쪽 정렬 */
+  margin-top: -6px;
+  margin-bottom: 4px;
+}
+
+.status-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid #ddd;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #333;
+  transition: 0.25s ease;
+}
+
+.status-circle i {
+  font-size: 1.35rem;
+  margin-bottom: 3px;
+}
+
+/* 상태별 색상 */
+.status-circle.normal {
+  border-color: #3ddc84;
+  color: #12a24c;
+}
+
+.status-circle.warning {
+  border-color: #fbbf24;
+  color: #d99100;
+}
+
+.status-circle.error {
+  border-color: #f87171;
+  color: #dc2626;
+}
+
+.status-circle:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 12px rgba(0,0,0,0.06);
+}
+
+/* ===============================
+   상태 요약
+   =============================== */
+.status-summary-box {
+  background: #f9fafc;
+  border-radius: 14px;
+  padding: 16px;
+  transition: background 0.25s ease;
+}
+
+.summary-title {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.summary-info {
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+/* ===============================
+   상세 인버터 상태
+   =============================== */
+.status-detail-box {
+  background: #fafafa;
+  border-radius: 14px;
+  padding: 16px;
+  transition: background 0.25s ease;
+}
+
+.detail-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 10px;
+}
+
+.detail-list {
+  padding: 0;   /* 기본 ul 들여쓰기 제거 */
+  margin: 0;
+}
+
+.detail-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;                     /* 아이콘과 텍스트 간격만 유지 */
+  padding: 8px 0;               /* 상하 간격만 */
+  border-bottom: 1px solid #eef1f6;
+  font-size: 0.92rem;
+  color: #425266;
+  margin-left: 0 !important;    /* 왼쪽 들여쓰기 강제 제거 */
+  text-align: left !important;  /* 텍스트 왼쪽 정렬 */
+}
+
+.detail-list li:last-child {
+  border-bottom: none;
+}
+
+.detail-list li i {
+  font-size: 1.1rem;
+  color: #f59e0b;
+}
+
+/* ===============================
+   누적 발전량
+   =============================== */
+.status-energy {
+  background: linear-gradient(135deg, #f5f9ff 0%, #f0f6ff 100%);
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+  transition: background 0.25s ease;
+}
+
+.energy-title {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.energy-value {
+  margin-top: 6px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+
+/* =====================================
+   🌙 DARK MODE
+   ===================================== */
+
+html[data-theme='dark'] .status-card {
+  background: #1e252f;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+}
+
+html[data-theme='dark'] .status-header h3 {
+  color: #f1f5f9;
+}
+
+/* 원형 뱃지 다크모드 */
+html[data-theme='dark'] .status-circle {
+  background: rgba(30, 37, 47, 0.6);
+  border-color: rgba(255,255,255,0.12);
+  color: #e2e8f0;
+}
+
+html[data-theme='dark'] .status-circle.normal {
+  border-color: #3ddc84;
+  color: #3ddc84;
+}
+
+html[data-theme='dark'] .status-circle.warning {
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+html[data-theme='dark'] .status-circle.error {
+  border-color: #f87171;
+  color: #f87171;
+}
+
+/* 요약 박스 */
+html[data-theme='dark'] .status-summary-box {
+  background: #232a35;
+}
+
+html[data-theme='dark'] .summary-info {
+  color: #d0d7e3;
+}
+
+/* 상세 상태 */
+html[data-theme='dark'] .status-detail-box {
+  background: #232a35;
+}
+
+html[data-theme='dark'] .detail-title {
+  color: #cfd6e3;
+}
+
+html[data-theme='dark'] .detail-list li {
+  color: #cdd3df;
+  border-color: #2f3644;
+}
+
+html[data-theme='dark'] .detail-list li i {
+  color: #fbbf24;
+}
+
+/* 누적 발전량 */
+html[data-theme='dark'] .status-energy {
+  background: linear-gradient(135deg, #1f2733 0%, #18202a 100%);
+}
+
+html[data-theme='dark'] .energy-title {
+  opacity: 0.65;
+}
+
+html[data-theme='dark'] .energy-value {
+  color: #60a5fa;
+}

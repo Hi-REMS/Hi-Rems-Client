@@ -1,187 +1,206 @@
-/* ───────── 전체 ───────── */
+/* ——————————————— 기본 레이아웃 ——————————————— */
 .admin-modern {
-  padding: 40px;
-  background: linear-gradient(180deg, #f9fafb 0%, #eef1f4 100%);
+  padding: 40px 24px;
   min-height: 100vh;
-  font-family: 'Noto Sans KR', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #111;
+
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface) 90%, white) 0%,
+    color-mix(in srgb, var(--surface) 70%, white) 100%
+  );
   transition: background 0.3s, color 0.3s;
+  font-family: "Noto Sans KR", sans-serif;
 }
 
-/* ───────── 다크모드 전체 ───────── */
+/* Dark mode */
 [data-theme="dark"] .admin-modern {
-  background: linear-gradient(180deg, #0c111b 0%, #1a202c 100%);
-  color: #e5e7eb;
+  background: linear-gradient(
+    180deg,
+    #0d1117 0%,
+    #161b22 100%
+  );
+  color: #e2e8f0;
 }
 
-/* ───────── 헤더 ───────── */
+/* ——————————————— 헤더 ——————————————— */
 .admin-header {
+  width: 100%;
+  max-width: 1120px;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  width: 90%;
-  max-width: 1100px;
-  margin-bottom: 25px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
+
 .admin-header h1 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #111;
+  font-size: 26px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
 }
+
 .admin-header p {
+  margin-top: 4px;
   font-size: 14px;
-  color: #666;
+  opacity: 0.75;
 }
 
-/* 다크모드 */
-[data-theme="dark"] .admin-header h1 {
-  color: #fff;
-}
-[data-theme="dark"] .admin-header p {
-  color: #aaa;
-}
-
-/* ───────── 검색창 ───────── */
+/* ——————————————— 검색창 ——————————————— */
 .search-input {
-  padding: 8px 14px;
-  width: 240px;
+  padding: 9px 14px;
+  width: 260px;
   border-radius: 10px;
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #111;
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  background: var(--surface);
+  color: var(--text);
   font-size: 14px;
-  transition: all 0.3s;
+  transition: all 0.25s ease;
 }
+
 .search-input:focus {
   outline: none;
-  border-color: #0b8;
-  box-shadow: 0 0 0 3px rgba(11, 136, 136, 0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
-/* 다크모드 */
+/* Dark mode */
 [data-theme="dark"] .search-input {
   background: #1e293b;
   border-color: #334155;
-  color: #e2e8f0;
-}
-[data-theme="dark"] .search-input:focus {
-  border-color: #0dd;
-  box-shadow: 0 0 0 3px rgba(0, 200, 200, 0.25);
 }
 
-/* ───────── 테이블 ───────── */
+/* ——————————————— 카드형 테이블 컨테이너 ——————————————— */
 .table-container {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
-  overflow-x: auto;
-  width: 90%;
-  max-width: 1100px;
+  width: 100%;
+  max-width: 1120px;
+  padding: 24px;
+  border-radius: 18px;
+
+  background: color-mix(in srgb, var(--surface) 96%, white);
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+
+  backdrop-filter: blur(6px);
   transition: background 0.3s, box-shadow 0.3s;
 }
+
+[data-theme="dark"] .table-container {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* ——————————————— 테이블 ——————————————— */
 .members-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
+
+/* 헤더 */
 .members-table th {
-  background: #f3f4f6;
   text-align: center;
-  padding: 12px 8px;
-  color: #333;
+  padding: 14px 10px;
   font-weight: 700;
-  border-bottom: 1px solid #e5e7eb;
-}
-.members-table td {
-  text-align: center;
-  padding: 10px 8px;
-  border-bottom: 1px solid #eee;
-  vertical-align: middle;
-  color: #444;
-}
-.members-table tr:hover td {
-  background: #f9fafb;
+  color: var(--text);
+
+  background: color-mix(in srgb, var(--surface) 90%, white);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
 
-/* 다크모드 */
-[data-theme="dark"] .table-container {
-  background: #111827;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-}
+/* Dark */
 [data-theme="dark"] .members-table th {
   background: #1f2937;
-  color: #e5e7eb;
-  border-bottom: 1px solid #374151;
-}
-[data-theme="dark"] .members-table td {
-  color: #cbd5e1;
-  border-bottom: 1px solid #273043;
-}
-[data-theme="dark"] .members-table tr:hover td {
-  background: #1e293b;
+  border-color: #374151;
 }
 
-/* ───────── 입력 필드 ───────── */
+/* 셀 */
+.members-table td {
+  text-align: center;
+  padding: 12px 10px;
+  color: var(--text);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  transition: background 0.2s;
+}
+
+.members-table tr:hover td {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+/* Dark hover */
+[data-theme="dark"] .members-table tr:hover td {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ——————————————— inline 수정 input ——————————————— */
 .input-edit {
   width: 90%;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  transition: all 0.2s;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: var(--surface);
+  color: var(--text);
   text-align: center;
-  color: #111;
-  background: #fff;
-}
-.input-edit:focus {
-  border-color: #0b8;
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(11, 136, 136, 0.15);
+  transition: all 0.2s;
 }
 
-/* 다크모드 */
+.input-edit:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* Dark */
 [data-theme="dark"] .input-edit {
   background: #1e293b;
   border-color: #334155;
-  color: #e2e8f0;
-}
-[data-theme="dark"] .input-edit:focus {
-  border-color: #00e5c1;
-  box-shadow: 0 0 0 2px rgba(0, 229, 193, 0.25);
 }
 
-/* ───────── 버튼 ───────── */
+/* ——————————————— 버튼 ——————————————— */
 .btn-edit,
 .btn-save {
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 7px 14px;
+  border-radius: 10px;
   border: none;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-.btn-edit {
-  background: #ccc;
-  color: #333;
-}
-.btn-edit:hover {
-  background: #bbb;
-}
-.btn-save {
-  background: #0b8;
-  color: #fff;
-}
-.btn-save:hover {
-  background: #099;
-}
-.btn-save:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  transition: all 0.25s ease;
 }
 
-/* 다크모드 버튼 */
+/* 수정 */
+.btn-edit {
+  background: color-mix(in srgb, var(--surface) 70%, var(--border));
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+.btn-edit:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--surface) 80%, var(--border));
+}
+
+/* 저장 */
+.btn-save {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, .15);
+}
+.btn-save:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--accent) 85%, black);
+}
+
+/* Dark */
 [data-theme="dark"] .btn-edit {
   background: #334155;
   color: #e2e8f0;
@@ -189,51 +208,149 @@
 [data-theme="dark"] .btn-edit:hover {
   background: #475569;
 }
-[data-theme="dark"] .btn-save {
-  background: #00bfa5;
-  color: #fff;
-}
-[data-theme="dark"] .btn-save:hover {
-  background: #00a896;
-}
 
-/* ───────── 로딩 ───────── */
+/* ——————————————— 로딩 ——————————————— */
 .loading-state {
   text-align: center;
-  padding: 60px;
+  padding: 80px 20px;
 }
+
 .spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #ccc;
-  border-top-color: #0b8;
+  width: 38px;
+  height: 38px;
+  border: 4px solid #cbd5e1;
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 10px;
+  margin: 0 auto 12px;
 }
 
-/* 다크모드 */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Dark */
 [data-theme="dark"] .spinner {
   border-color: #475569;
-  border-top-color: #00e5c1;
+  border-top-color: #22d3ee;
 }
 
-/* ───────── 토스트 ───────── */
+/* ——————————————— 토스트 ——————————————— */
 .toast {
   position: fixed;
-  bottom: 24px;
+  bottom: 22px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--toast-bg, #0b8);
-  color: white;
-  padding: 10px 18px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  font-weight: 600;
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(0,0,0,.25);
   z-index: 1000;
 }
-[data-theme="dark"] .input-edit {
-  background: #1e293b;
-  border-color: #334155;
-  color: #e2e8f0 !important;   /* ← 이거 추가 */
+
+.fade-enter-active,
+.fade-leave-active { transition: opacity .25s; }
+.fade-enter-from,
+.fade-leave-to { opacity: 0; }
+
+/* ============================================
+   📱 Mobile Responsive (max-width: 768px)
+============================================ */
+@media (max-width: 768px) {
+  .admin-modern {
+    padding: 20px 14px;
+    align-items: stretch;
+  }
+
+  /* 헤더 세로 배치 */
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding-bottom: 14px;
+  }
+
+  .admin-header h1 {
+    font-size: 22px;
+  }
+
+  .admin-header p {
+    font-size: 13px;
+  }
+
+  /* 검색창 width 확장 */
+  .search-input {
+    width: 100%;
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+
+  /* 테이블 컨테이너 모바일 최적화 */
+  .table-container {
+    padding: 14px;
+    border-radius: 14px;
+    box-shadow: none;
+    max-width: 100%;
+    overflow-x: auto; /* 📌 좌우 스크롤 */
+  }
+
+  /* 테이블 font 크기 축소 */
+  .members-table {
+    min-width: 720px; /* 📌 깨짐 방지 */
+    font-size: 13px;
+  }
+
+  .members-table th,
+  .members-table td {
+    padding: 10px 6px;
+  }
+
+  /* inline input도 줄이기 */
+  .input-edit {
+    padding: 5px 8px;
+    font-size: 13px;
+  }
+
+  /* 버튼 크기 축소 */
+  .btn-edit,
+  .btn-save {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  /* 로딩 */
+  .loading-state {
+    padding: 60px 10px;
+  }
+}
+
+/* ============================================
+   📱 Smaller Phones (max-width: 480px)
+============================================ */
+@media (max-width: 480px) {
+  .admin-modern {
+    padding: 16px 10px;
+  }
+
+  .admin-header h1 {
+    font-size: 20px;
+  }
+
+  .admin-header p {
+    font-size: 12px;
+  }
+
+  /* 테이블 최소 너비 강화 */
+  .members-table {
+    min-width: 680px;
+  }
+
+  .btn-edit,
+  .btn-save {
+    font-size: 11px;
+    padding: 5px 9px;
+  }
 }

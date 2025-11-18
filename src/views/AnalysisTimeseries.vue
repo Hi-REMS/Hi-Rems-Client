@@ -2,7 +2,7 @@
 <template>
   <div class="ts-page">
     <!-- SEARCH BAR -->
-    <section class="toolbar">
+    <section class="toolbar" v-if="isAdmin">
       <div class="tool-left">
         <!--  IMEI: 항상 표시 -->
             <template v-if="isAdmin">
@@ -12,7 +12,7 @@
           @keyup.enter="onSearch"
           class="input"
           type="text"
-          placeholder="예) 03-58-48-00-70-54-06-06"
+          placeholder="예) 01-01-01-01-01-01-01-01"
             :readonly="!isAdmin"
         />
         </template>
@@ -394,50 +394,46 @@
         </div>
       </article>
 
-      <article class="card col-3">
-        <div class="card-hd"><h3>효율지표</h3></div>
+<article class="card col-3 status-card">
 
-        <!-- 상단 상태 배지 -->
-        <div class="eff-head">
-          <span class="badge" :class="statusBadgeClass">
-            데이터 상태 · {{ overallStatusText }}
-          </span>
-          <span v-if="energyField==='03'" class="badge" :class="stateBadgeClass">
-            상태 · {{ overallStateText }}
-          </span>
-        </div>
+  <!-- 제목 -->
+  <div class="status-header">
+    <h3>장비 상태</h3>
+  </div>
 
-        <!-- 메인 게이지 (있을 때만) -->
-        <div v-if="effRing.show" class="eff-gauge">
-          <div class="eff-gauge__ring" :style="ringStyle(effRing.pct || 0)"></div>
-          <div class="eff-gauge__center">
-            <div class="eff-gauge__value">
-              {{ effRing.pct==null ? '—' : number(effRing.pct,1) }}<small>%</small>
-            </div>
-            <div class="eff-gauge__label">{{ effRing.title }}</div>
-          </div>
-        </div>
+  <!-- 📌 내용 전체: 조회 전에 숨김 -->
+  <div v-if="isSearched && mets">
 
-        <!-- 건강도 (텍스트 배지형) -->
-        <div class="eff-health">
-          <span :class="['eff-status', effHealthClass]">{{ effHealthText }}</span>
-        </div>
+    <!-- 상태 원형 -->
+    <div class="status-indicator-container left-align">
+      <div class="status-circle" :class="statusClass">
+        <i class="mdi" :class="statusIcon"></i>
+        <span>{{ overallStatusText }}</span>
+      </div>
+    </div>
 
-        <!-- 핵심 타일 그리드 -->
-        <div class="eff-grid">
-          <div v-for="t in effTiles" :key="t.key" class="eff-tile">
-            <div class="eff-tile__label">{{ t.label }}</div>
-            <div class="eff-tile__value">
-              {{ t.value==null ? '—' : number(t.value, t.digits||0) }}
-              <small v-if="t.unit">{{ t.unit }}</small>
-            </div>
-            <div v-if="t.sub" class="eff-tile__sub">{{ t.sub }}</div>
-          </div>
-        </div>
+    <!-- 상태 요약 -->
+    <div class="status-summary-box">
+      <div class="summary-title">상태 요약</div>
+      <div class="summary-info">
+        <span>{{ overallStatusText }} 상태입니다.</span>
+      </div>
+    </div>
 
-        <!-- 경고/메모 -->
-        <div v-if="effNotes" class="eff-note">{{ effNotes }}</div>
-      </article>
+    <!-- 상세 인버터 상태 -->
+    <div class="status-detail-box" v-if="inverterStatusList.length">
+      <div class="detail-title">상세 인버터 상태</div>
+      <ul class="detail-list">
+        <li v-for="(s, idx) in inverterStatusList" :key="idx">
+          <i class="mdi mdi-alert-circle-outline"></i>
+          {{ s }}
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</article>
+
     </section>
     <section class="row">
       <!-- ▼ 추가 정보 -->
@@ -600,13 +596,6 @@
     </li>
   </template>
 </ul>
-      </article>
-
-            <article class="card col-3">
-          <div class="qa-main">
-            <div class="qa-title"></div>
-            <div class="qa-desc"></div>
-          </div>
       </article>
     </section>
     
@@ -833,6 +822,8 @@ export default {
   components: { EnergyDashboard },
   data () {
     return {
+        mets: null,
+    isSearched: false,
     loadingKpis: false,
 loadingHourly: false,
 loadingLatest: false,
@@ -943,6 +934,13 @@ loadingWeather: false,
     }
   },
   computed: {
+  inverterStatusList() {
+  const list = this.mets?.statusList;
+  if (!Array.isArray(list) || list.length === 0) {
+    return ['정상'];   // 비트가 0이면 정상
+  }
+  return list; // 그대로 상태 문자열 리턴
+},
     inspectData () {
       const i = this.inspectIdx;
       const arr = this.wxStripPoints || [];
@@ -1520,42 +1518,102 @@ loadingWeather: false,
     }
   },
 
-  watch: {
-    imeiField (v) {
-    if (!this.isAdmin && v && v.trim()) {
-      // 즉시(지연 0ms) 조회 스케줄
-      this.scheduleSearch(0);
+watch: {
+  /* 이름을 입력하면 IMEI 삭제 */
+  nameField(v) {
+    if (v && this.imeiField) {
+      this.imeiField = '';
     }
   },
-    nameField (v) {
-      if (v && this.imeiField) {
-        // 이름 기반 검색을 의도한 것으로 보고 IMEI를 비워서 충돌 방지
-        this.imeiField = '';
-      }
-    },
-    '$route.query.imei'(v) {
-      const next = (typeof v === 'string') ? v.trim() : ''
-      if (!next) return
-      if (next === this.imeiUse || next === this.imeiField) return
-      this.imeiField = next
-      this.selectedMulti = ''
-      this.onSearch()
-    },
-  energyField() {
-    if (this.energyField !== '01') this.selectedMulti = '';
-    if (this.imeiUse || this.imeiField || this.nameField) this.scheduleSearch();
-    this.syncQuery();
+
+  /* URL에서 IMEI 변경 감지 */
+  '$route.query.imei'(v) {
+    const next = (typeof v === 'string') ? v.trim() : '';
+
+    // 빈 값이면 무시 (API 날리면 안 됨)
+    if (!next) return;
+
+    // 이미 동일한 IMEI면 무시
+    if (next === this.imeiUse || next === this.imeiField) return;
+
+    // 내부 IMEI 세팅
+    this.imeiField = next;
+
+    // 멀티 초기화
+    this.selectedMulti = '';
+
+    // ⭐ 즉시 API 호출 X → 안정되고 나서 호출 ✔
+    this.scheduleSearch();  
   },
-  typeField() {
-    this.syncQuery();
-    if (this.imeiUse) this.scheduleSearch();
+
+  /* 에너지 변경 */
+  energyField(nv) {
+    if (nv !== '01') {
+      this.selectedMulti = '';
+    }
+
+    // 에너지 변경 후 IMEI가 있으면 자동 검색
+    if (this.imeiField) {
+      this.scheduleSearch();
+    }
   }
-  },
-created () {
+},
+async created () {
   this.syncAdminFromStorage()
-  this.enforceUserImei()
+
+  await this.enforceUserImei()   // URL 세팅 끝날 때까지 기다림
+
+  this.scheduleSearch(80)        // 검색 실행
 },
   methods: {
+async loadFastAndRenderImmediate() {
+  if (!this.imeiUse) return;
+
+  // 모든 기존 요청 중단
+  this.abortAll();
+  const myReq = ++this.currentReqId;
+
+  // 1단계: 즉시 렌더해야 하는 API
+  this.loadingKpis = true;
+  this.loadingHourly = true;
+  this.loadingLatest = true;
+
+  await Promise.allSettled([
+    this.loadKpis(myReq),
+    this.loadHourly(myReq),
+    this.loadLatest(myReq)
+  ]);
+
+  this.loadingKpis = false;
+  this.loadingHourly = false;
+  this.loadingLatest = false;
+
+  // 2단계: 중간 속도 API (대기 없이 백그라운드)
+  this.loadingDriver = true;
+  this.loadDriverUnits(myReq)
+    .finally(() => { this.loadingDriver = false });
+
+  // 3단계: 느린 API 2개를 백그라운드로
+  this.loadingFacility = true;
+  this.loadingMaint = true;
+  Promise.allSettled([
+    this.loadFacility(myReq),
+    this.loadMaintenance(myReq)
+  ]).finally(() => {
+    this.loadingFacility = false;
+    this.loadingMaint = false;
+  });
+
+  // 4단계: 가장 느린 Weather (120ms 지연 후 시작)
+  setTimeout(() => {
+    if (this.currentReqId !== myReq) return;
+
+    this.loadingWeather = true;
+    this.loadWeather(myReq)
+      .finally(() => { this.loadingWeather = false });
+  }, 120);
+},
+
 async onFacilityImageChange(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -1606,22 +1664,38 @@ resolveImg(path) {
     } catch { this.isAdmin = false }
   },
 
-enforceUserImei () {
+enforceUserImei() {
   const userImei = localStorage.getItem('userImei')
-  const urlParams = new URLSearchParams(window.location.hash.split('?')[1] || '')
-  const urlImei = urlParams.get('imei')
+  const urlQ = this.$route.query
 
   if (!this.isAdmin) {
-    if (userImei) {
-      // URL에 imei 쿼리 안 보이게 (숨김)
-      this.imeiField = userImei
-      window.history.replaceState(null, '', '#/analysis/timeseries') // ❌ imei 제거
-    } else {
+    if (!userImei) {
       console.warn('[보안] 사용자 IMEI가 localStorage에 없습니다.')
+      return
     }
+
+    // 사용자 → 필수 쿼리 유지
+    const baseQuery = {
+      imei: userImei,
+      energy: urlQ.energy || '01',
+      type: urlQ.type || '',
+      multi: urlQ.multi || ''
+    }
+
+    // ⭐ 쿼리를 URL에 항상 유지해야 F5해도 정상 작동함
+    this.$router.replace({ query: baseQuery })
+
+    // v-model 적용
+    this.imeiField = userImei
+    this.energyField = baseQuery.energy
+    this.typeField = baseQuery.type
+    this.multiField = baseQuery.multi
   } else {
-    // 관리자만 URL imei 사용 허용
-    if (urlImei) this.imeiField = urlImei
+    // 관리자
+    if (urlQ.imei) this.imeiField = urlQ.imei
+    if (urlQ.energy) this.energyField = urlQ.energy
+    if (urlQ.type) this.typeField = urlQ.type
+    if (urlQ.multi) this.multiField = urlQ.multi
   }
 },
       scheduleSearch(delay = 180) {
@@ -1830,13 +1904,6 @@ onViewAll() {
       return { signal: this.newController(key), credentials: 'include' }
     },
 
-    syncAdminFromStorage () {
-      try {
-        const flag = (localStorage.getItem('isAdmin') === 'true');
-        const email = (localStorage.getItem('email') || '').trim().toLowerCase();
-        this.isAdmin = flag || (email === 'admin@company.com');
-      } catch { this.isAdmin = false; }
-    },
 
     async initImeiFlow () {
       if (this._inited) return
@@ -1968,76 +2035,95 @@ onViewAll() {
     },
     onLeave () { this.hoverIdx = null; },
 
-    // === 조회 ===
-    async onSearch () {
-      if (this.searching) return;
-      this.searching = true;
-      this.loading = true;
-      try {
-        const imeiInput = (this.imeiField || '').trim();
-        const nameInput = (this.nameField || '').trim();
+async onSearch() {
+  if (this.searching) return;
+  this.searching = true;
+  this.loading = true;
 
-        if (!imeiInput && !nameInput) { this.resetAll(); return; }
+  try {
+    const imeiInput = (this.imeiField || "").trim();
+    const nameInput = (this.nameField || "").trim();
 
-        // 1) 이름 검색 우선
-        if (nameInput) {
-          const resolved = await this.probeResolveByName(nameInput);
-          if (resolved?.action === 'modal') {
-            this.openSearchModal(resolved.matches || []);
-            return;
-          }
-          if (!resolved?.imei) {
-            alert('이름으로 장비를 찾을 수 없습니다.');
-            return;
-          }
+    if (!imeiInput && !nameInput) {
+      this.resetAll();
+      this.isSearched = false;
+      return;
+    }
 
-          if (resolved.energy && resolved.energy !== this.energyField) {
-            this.energyField = resolved.energy;
-          }
+    if (nameInput) {
+      const resolved = await this.probeResolveByName(nameInput);
 
-          this.abortAll();
-          this.currentReqId += 1;
-          this.imeiUse = resolved.imei;
-          this.imeiField = resolved.imei;
-          this.selectedMulti = '';
-
-          await this.syncQuery(true);
-          this.clearForLoading();
-          await this.loadAll();
-          return;
-        }
-
-        // 2) IMEI 직접 조회
-        if (imeiInput) {
-          const probeUrl =
-            `/api/energy/${this.apiNS}/instant?imei=${encodeURIComponent(imeiInput)}&energy=${this.energyField || '01'}`;
-          const probe = await fetch(probeUrl, this.fopts('probe'));
-
-          if (!probe.ok) {
-            if (probe.status === 404) {
-              let j = {}; try { j = JSON.parse(await probe.text()); } catch {}
-              alert(j?.error || '해당 IMEI 장비를 찾을 수 없습니다.');
-              return;
-            }
-            alert(`요청 실패 (${probe.status})`);
-            return;
-          }
-
-          this.abortAll();
-          this.currentReqId += 1;
-          this.imeiUse = imeiInput;
-          this.imeiField = imeiInput;
-          this.selectedMulti = '';
-          await this.syncQuery(true);
-          this.clearForLoading();
-          await this.loadAll();
-          return;
-        }
-      } finally {
-        this.loading = false;
-        this.searching = false;
+      // (A) 여러 개 → 모달
+      if (resolved?.action === "modal") {
+        this.openSearchModal(resolved.matches || []);
+        this.isSearched = false;
+        return;
       }
-    },
+      // (B) 없음
+      if (!resolved?.imei) {
+        alert("이름으로 장비를 찾을 수 없습니다.");
+        this.isSearched = false;
+        return;
+      }
+
+      // (C) 에너지 동기화
+      if (resolved.energy && resolved.energy !== this.energyField) {
+        this.energyField = resolved.energy;
+      }
+
+      // (D) IMEI 확정
+      this.abortAll();
+      this.currentReqId += 1;
+
+      this.imeiUse = resolved.imei;
+      this.imeiField = resolved.imei;
+      this.selectedMulti = "";
+
+      this.clearForLoading();
+
+      await this.loadFastAndRenderImmediate();
+
+      this.isSearched = true;
+      await this.syncQuery();
+      return;
+    }
+
+    if (imeiInput) {
+      const probeUrl = `/api/energy/${this.apiNS}/instant?imei=${encodeURIComponent(
+        imeiInput
+      )}&energy=${this.energyField || "01"}`;
+
+      const probe = await fetch(probeUrl, this.fopts("probe"));
+
+      if (!probe.ok) {
+        let j = {};
+        try { j = JSON.parse(await probe.text()); } catch {}
+        alert(j?.error || "IMEI 장비를 찾을 수 없습니다.");
+        this.isSearched = false;
+        return;
+      }
+
+      // 정상 처리
+      this.abortAll();
+      this.currentReqId += 1;
+
+      this.imeiUse = imeiInput;
+      this.imeiField = imeiInput;
+      this.selectedMulti = "";
+
+      this.clearForLoading();
+
+      await this.loadFastAndRenderImmediate();
+
+      this.isSearched = true;
+      await this.syncQuery();
+      return;
+    }
+  } finally {
+    this.loading = false;
+    this.searching = false;
+  }
+},
 
     async probeResolveByName(name) {
       const combos = [
@@ -2078,89 +2164,79 @@ onViewAll() {
       return null;
     },
 
-async loadAll () {
+async loadAll() {
   if (!this.imeiUse) return;
 
   this.abortAll();
   const myReq = ++this.currentReqId;
 
-  //
-  // 🔵 1) 빠른 API 먼저 (KPI + Hourly)
-  //
-  this.loadingHourly = true;
+  // ===============================
+  // 🔵 1단계 – 빠른 API (UI 즉시 구성)
+  // ===============================
   this.loadingKpis = true;
-
-  try {
-    await Promise.all([
-      this.loadHourly(myReq),
-      this.loadKpis(myReq),
-    ]);
-  } catch (e) {
-    console.warn('fast APIs failed', e);
-  } finally {
-    this.loadingHourly = false;
-    this.loadingKpis = false;
-  }
-
-  //
-  // 🔵 2) 중간급 API (latest, driver)
-  //
+  this.loadingHourly = true;
   this.loadingLatest = true;
-  this.loadLatest(myReq)
-    .catch(() => {})
-    .finally(() => { this.loadingLatest = false });
 
+  await Promise.allSettled([
+    this.loadKpis(myReq),
+    this.loadHourly(myReq),
+    this.loadLatest(myReq)
+  ]);
+
+  this.loadingKpis = false;
+  this.loadingHourly = false;
+  this.loadingLatest = false;
+
+  // ===============================
+  // 🔵 2단계 – 중간 속도 API (대기 없음, 뒤에서 병렬)
+  // ===============================
   this.loadingDriver = true;
   this.loadDriverUnits(myReq)
-    .catch(() => {})
     .finally(() => { this.loadingDriver = false });
 
-  //
-  // 🔵 3) 느린 API (facility, maintenance)
-  //
-  setTimeout(() => {
-    this.loadingFacility = true;
-    this.loadFacility(myReq)
-      .catch(() => {})
-      .finally(() => { this.loadingFacility = false });
+  // ===============================
+  // 🔵 3단계 – 느린 API 2개 (대기 없이 병렬)
+  // ===============================
+  this.loadingFacility = true;
+  this.loadingMaint = true;
 
-    this.loadingMaint = true;
+  Promise.allSettled([
+    this.loadFacility(myReq),
     this.loadMaintenance(myReq)
-      .catch(() => {})
-      .finally(() => { this.loadingMaint = false });
-  }, 200);
+  ]).finally(() => {
+    this.loadingFacility = false;
+    this.loadingMaint = false;
+  });
 
-  //
-  // 🔵 4) 가장 느린 Weather
-  //
+  // ===============================
+  // 🔵 4단계 – 가장 느린 Weather (100ms 지연)
+  // ===============================
   setTimeout(() => {
+    if (this.currentReqId !== myReq) return;
+
     this.loadingWeather = true;
 
     this.loadWeather(myReq)
-      .catch(() => {})
       .finally(() => { this.loadingWeather = false });
-  }, 500);
+  }, 120);
 },
 
 // KPI
-async loadKpis (reqId) {
-  // 🔵 KPI 로딩 시작 → 스켈레톤 ON
+async loadKpis(reqId) {
   this.loadingKpis = true;
 
   try {
     const params = new URLSearchParams({
-      rtuImei: this.imeiUse,
       imei: this.imeiUse,
-      energy: this.energyField || '01'
+      energy: this.energyField || '01',
     });
 
-    if (this.typeField && !this.isHeat) params.set('type', this.typeField);
-
-    // 멀티코드를 2자리 hex로 정규화
+    // multi 지원
     const hexMulti = this.normMulti(this.selectedMulti);
     if (hexMulti) params.set('multi', hexMulti);
 
-    const url = `/api/energy/${this.apiNS}?${params.toString()}`;
+    // ⚡ 빠른 KPI 조회
+    const url = `/api/energy/kpi-fast?${params.toString()}`;
     const r = await fetch(url, this.fopts('kpis'));
 
     if (!r.ok) return;
@@ -2169,21 +2245,34 @@ async loadKpis (reqId) {
     const j = await r.json();
     const k = j.kpis || {};
 
+    // co2(kg → ton)
+    const co2_ton = (k.co2_kg != null)
+      ? Math.round((k.co2_kg / 1000) * 100) / 100
+      : null;
+
+    // ⚡ fast KPI로 기본 값 채우기
     this.kpi = {
       now_kw: k.now_kw ?? null,
-      today_kwh: k.today_kwh ?? null,
+      today_kwh: k.today_kwh ?? null,   // 서버에서 제공되면 사용 (없으면 null)
       total_kwh: k.total_kwh ?? null,
-      co2_ton: k.co2_ton ?? null,
-      last_month_avg_kw: k.last_month_avg_kw ?? null,
+      co2_ton,
+      last_month_avg_kw: null,          // fast는 제공 안 함
       inverter_efficiency_pct: k.inverter_efficiency_pct ?? null,
       _updatedAt: j.deviceInfo?.latestAt || null
     };
 
+    // ------------------------------------------------------------------
+    // ⭐ 금일 발전량 보정
+    //    hourly 데이터가 이미 로드된 경우 chartTodaySum 합계를 today_kwh에 덮어쓰기
+    // ------------------------------------------------------------------
+    if (this.chartTodaySum != null) {
+      this.kpi.today_kwh = this.chartTodaySum;
+    }
+
   } catch (err) {
-    console.warn('loadKpis error:', err);
+    console.warn("loadKpis error:", err);
 
   } finally {
-    // 🔵 KPI 로딩 종료 → 스켈레톤 OFF → 실제 KPI 표시
     this.loadingKpis = false;
   }
 },
@@ -2597,48 +2686,32 @@ _lastQueryKey: '',
 async syncQuery() {
   try {
     if (!this.$router) return;
+
     const cur = this.$route?.query || {};
 
-    // multi를 항상 2자리 HEX로 정규화
     const hexMulti = this.normMulti(this.selectedMulti);
-
     const isAdmin = this.isAdmin;
 
     const next = {
-      ...cur,
-      ...(isAdmin ? (this.imeiUse ? { imei: this.imeiUse } : {}) : {}),
+      ...(this.imeiUse ? { imei: this.imeiUse } : {}), // ⭐ 관리자/사용자 모두 IMEI 유지
       ...(this.energyField ? { energy: this.energyField } : {}),
       ...(this.typeField ? { type: this.typeField } : {}),
       ...(hexMulti ? { multi: hexMulti } : {})
     };
 
-    if (!isAdmin && 'imei' in next) delete next.imei;
+    // ❌ 사용자 imei 제거 코드 삭제
+    // if (!isAdmin && 'imei' in next) delete next.imei;
 
-    // 문자열 비교용 key
     const nextKey = JSON.stringify(next);
-
-    // 🔥 1) 최근 라우팅과 완전히 동일하면 무시 (성능 핵심)
     if (this._lastQueryKey === nextKey) return;
+    this._lastQueryKey = nextKey;
 
-    // 🔥 2) debounce 적용
-    if (this._syncQueryTimer) clearTimeout(this._syncQueryTimer);
+    if (JSON.stringify(cur) === nextKey) return;
 
-    this._syncQueryTimer = setTimeout(async () => {
-      // 최종 라우트 상태 캐싱
-      this._lastQueryKey = nextKey;
+    await this.$router.replace({ query: next });
 
-      // cur와 next가 실제로 동일하면 router.replace 생략
-      const same = JSON.stringify(cur) === nextKey;
-      if (same) return;
-
-      try {
-        await this.$router.replace({ query: next });
-      } catch (e) {
-        console.warn('router.replace failed', e);
-      }
-    }, 120); // <-- 80~150ms 추천
   } catch (e) {
-    console.warn('syncQuery failed', e);
+    console.warn("syncQuery failed", e);
   }
 },
 
