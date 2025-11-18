@@ -10,7 +10,7 @@
       <span class="sub-badge">v1.0</span>
     </div>
 
-    <div class="hdr-actions"> 
+    <div class="hdr-actions">
       <button
         v-if="canGoBack"
         class="hdr-btn hdr-back"
@@ -18,7 +18,8 @@
         title="뒤로가기"
       >
         <span class="hdr-ico">
-          <svg xmlns="http:            <path
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path
               d="M15 18l-6-6 6-6"
               stroke="currentColor"
               stroke-width="2"
@@ -29,6 +30,7 @@
           </svg>
         </span>
       </button>
+
       <button
         v-if="isAdmin"
         class="hdr-admin-btn"
@@ -36,7 +38,8 @@
         title="사용자 관리"
       >
         <i class="hdr-admin-ico">
-          <svg xmlns="http:            <path
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path
               d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-4 5c-5 0-8 2.5-8 5v2h16v-2c0-2.5-3-5-8-5Z"
             />
           </svg>
@@ -51,12 +54,14 @@
         title="테마 전환"
       >
         <i class="hdr-ico">
-          <svg v-if="isDark" xmlns="http:            <circle cx="12" cy="12" r="5" />
+          <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5" />
             <path
               d="M12 1v2M12 21v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M1 12h2M21 12h2"
             />
           </svg>
-          <svg v-else xmlns="http:            <path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z" />
+          <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z" />
           </svg>
         </i>
       </button>
@@ -154,6 +159,7 @@ import '@/assets/css/header.css'
 
 export default {
   name: 'AppHeader',
+
   data() {
     return {
       isDark: false,
@@ -165,19 +171,24 @@ export default {
       entryUrl: null
     }
   },
+
   mounted() {
-        const saved = localStorage.getItem('theme')
+    const saved = localStorage.getItem('theme')
     const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches
     const initial = saved || (prefersDark ? 'dark' : 'light')
     this.applyTheme(initial)
+
     this.fetchMe()
-        document.addEventListener('click', this.onOutsideClick, true)
-        if (!sessionStorage.getItem('entryUrl')) {
+
+    document.addEventListener('click', this.onOutsideClick, true)
+
+    if (!sessionStorage.getItem('entryUrl')) {
       sessionStorage.setItem('entryUrl', window.location.href)
     }
     this.entryUrl = sessionStorage.getItem('entryUrl')
     this.updateCanGoBack()
   },
+
   beforeDestroy() {
     document.removeEventListener('click', this.onOutsideClick, true)
   },
@@ -187,6 +198,7 @@ export default {
       this.updateCanGoBack()
     }
   },
+
   computed: {
     requiresAuthRoute() {
       return this.$route?.matched?.some(r => r.meta?.requiresAuth) || false
@@ -202,6 +214,7 @@ export default {
       return (this.email || this.username || 'User').split('@')[0] || 'User'
     }
   },
+
   methods: {
     async fetchMe() {
       try {
@@ -216,20 +229,25 @@ export default {
         this.isAdmin = false
       }
     },
+
     applyTheme(mode) {
       document.documentElement.setAttribute('data-theme', mode)
       localStorage.setItem('theme', mode)
       this.isDark = (mode === 'dark')
     },
+
     toggleTheme() {
       this.applyTheme(this.isDark ? 'light' : 'dark')
     },
+
     goUserManage() {
       this.$router.push('/admin/members')
     },
+
     goChangePassword() {
       this.$router.push('/change-password')
     },
+
     logout() {
       api.post('/auth/logout').finally(() => {
         ['isAdmin','username','email','worker','phoneNumber'].forEach(k =>
@@ -239,13 +257,16 @@ export default {
         this.$router.replace('/login')
       })
     },
+
     toggleMenu() {
       this.menuOpen = !this.menuOpen
     },
+
     closeMenu() {
       this.menuOpen = false
     },
-        onOutsideClick(e) {
+
+    onOutsideClick(e) {
       const btn = this.$refs.profileButton
       const menu = this.$refs.menuRoot
 
@@ -254,9 +275,11 @@ export default {
 
       this.closeMenu()
     },
+
     updateCanGoBack() {
       this.canGoBack = window.location.href !== this.entryUrl
     },
+
     goBack() {
       if (this.canGoBack) this.$router.back()
     }
