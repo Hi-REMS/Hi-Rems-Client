@@ -4,10 +4,8 @@
     :style="{ '--auth-bg': `url(${require('@/assets/auth.jpg')})` }"
   >
     <div class="auth-inner">
-      <!-- LEFT: 배경 일러스트 -->
       <div class="art-pad" aria-hidden="true"></div>
-
-      <!-- RIGHT: 로그인 카드 -->
+      
       <section class="auth-panel">
         <img 
     src="@/assets/haeinlogo.png"
@@ -128,7 +126,6 @@ export default {
         this.loading = true
         this.error = ''
 
-        // 1) 로그인
         const { data: loginRes } = await api.post('/auth/login', {
           username: this.username,
           password: this.password
@@ -137,7 +134,6 @@ export default {
 
         const admin = isAdminUser(loginUser)
 
-        // 기본 정보 저장
         try {
           localStorage.setItem('isAdmin', String(!!admin))
           localStorage.setItem('username', loginUser.username || '')
@@ -151,25 +147,20 @@ export default {
           return
         }
 
-        // 2) 내 IMEI 조회
         let defaultImei = ''
         try {
-          const { data: imeiRes } = await api.get('/user/imeis') // 쿠키 인증
+          const { data: imeiRes } = await api.get('/user/imeis')
           defaultImei = imeiRes?.defaultImei || ''
           if (defaultImei) {
             localStorage.setItem('defaultImei', defaultImei)
           } else {
-            // ❗️IMEI가 없으면 이전 값 제거
             localStorage.removeItem('defaultImei')
             sessionStorage.removeItem('defaultImei')
           }
         } catch (e) {
-          // 조용히 실패 허용 (IMEI가 아직 없거나 매칭 실패)
           localStorage.removeItem('defaultImei')
           sessionStorage.removeItem('defaultImei')
         }
-
-        // 3) redirect 파라미터가 안전하면 우선
         const raw = this.$route.query.redirect
         let to = ''
         try { to = raw ? decodeURIComponent(String(raw)) : '' } catch { to = '' }
@@ -182,11 +173,9 @@ export default {
           return
         }
 
-        // 4) 기본 목적지
         if (defaultImei) {
           this.$router.replace(`/analysis/timeseries?imei=${encodeURIComponent(defaultImei)}`)
         } else {
-          // ❗️IMEI가 없으면 깨끗한 경로로
           this.$router.replace({ path: '/analysis/timeseries', query: {} })
         }
       } catch (err) {

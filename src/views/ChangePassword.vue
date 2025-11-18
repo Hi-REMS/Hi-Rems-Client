@@ -23,7 +23,6 @@
           </header>
 
           <form class="cardc-form" @submit.prevent="onSubmit" novalidate>
-            <!-- 현재 비밀번호 -->
             <div class="field">
               <label for="current">현재 비밀번호</label>
               <div class="pill" :class="{ error: curTouched && !curValid }">
@@ -41,8 +40,7 @@
               </div>
               <p v-if="curTouched && !curValid" class="pw-error-text">현재 비밀번호를 입력하세요.</p>
             </div>
-
-            <!-- 새 비밀번호 -->
+          
             <div class="field">
               <label for="newPw">새 비밀번호</label>
               <div class="pill" :class="{ error: newTouched && !newValid }">
@@ -62,8 +60,7 @@
                 <li v-for="(err, i) in newErrors" :key="i">{{ err }}</li>
               </ul>
             </div>
-
-            <!-- 새 비밀번호 확인 -->
+          
             <div class="field">
               <label for="confirmPw">새 비밀번호 확인</label>
               <div class="pill" :class="{ error: confTouched && !confValid }">
@@ -78,14 +75,12 @@
               </div>
               <p v-if="confTouched && !confValid" class="pw-error-text">비밀번호가 일치하지 않습니다.</p>
             </div>
-
-            <!-- 제출 -->
+         
             <button class="btn-teal modern-btn" :disabled="loading || !canSubmit">
               <span v-if="!loading">비밀번호 변경</span>
               <span v-else class="spinner" aria-hidden="true"></span>
             </button>
-
-            <!-- 안내 문구 -->
+        
             <p class="foot mt8 info-text strong-text">
               ⚠️ 비밀번호는 대문자, 숫자, 특수문자를 포함해야 합니다.<br />
             </p>

@@ -1,32 +1,19 @@
-/* =========================================================================
-   Hi-REMS Auth · Modern Minimal — Register (Refined)
-   - Single-line inputs (no double borders)
-   - Clear focus ring, better spacing & readability
-   - Consistent autofill, error states, mobile friendly (iOS zoom safe)
-   ========================================================================== */
-
-/* ===== Tokens ===== */
 :root {
-  /* base */
   --bg: #f6f7f9;
   --text: #0f172a;
   --muted: #606a75;
   --border: #dfe3ea;
-
   --card-bg: color-mix(in oklab, #fff 88%, transparent);
   --elev-shadow: 0 8px 24px rgba(15, 23, 42, .10);
-
   --surface-1: color-mix(in oklab, #fff 86%, transparent);
   --surface-err: color-mix(in oklab, #fee2e2 70%, #fff 30%);
   --ring: #4f46e5;
   --ring-weak: color-mix(in oklab, var(--ring) 20%, transparent);
   --error: #ef4444;
   --ok: #10b981;
-
   --brand: #10b981;
   --brand-600: #059669;
   --brand-700: #047857;
-
   --r-lg: 16px; --r-md: 12px; --r-sm: 10px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
   --shadow-md: 0 10px 28px rgba(15, 23, 42, .14);
@@ -255,14 +242,12 @@
     inset 0 0 0 1px color-mix(in oklab, var(--ring) 70%, transparent) !important;
 }
 
-/* --- label 개선 --- */
 .field label {
   font-weight: 600 !important;
   color: #4c5561 !important;
   margin-bottom: 2px !important;
 }
 
-/* --- 로그인 버튼 개선 --- */
 .btn-teal {
   background: linear-gradient(180deg, var(--brand) 0%, var(--brand-600) 100%) !important;
   box-shadow: 0 8px 18px color-mix(in oklab, var(--brand) 35%, transparent) !important;
@@ -332,11 +317,11 @@
     display: block !important;
   }
 }
-/* === 로그인 하단 액션 메뉴 === */
+
 .auth-actions {
   margin-top: 14px;
   display: flex;
-  justify-content: center;    /* 🔥 가장 현대적인 패턴: 중앙 정렬 */
+  justify-content: center;    
   align-items: center;
   gap: 14px;
   font-size: 14px;
@@ -363,7 +348,6 @@
   font-size: 13px;
 }
 
-/* === 로그인 하단 액션 메뉴 === */
 .auth-actions {
   margin-top: 14px;
   display: flex;
@@ -373,7 +357,6 @@
   font-size: 14px;
 }
 
-/* 공통 링크 스타일 */
 .auth-actions .auth-link {
   color: var(--muted);
   font-weight: 600;
@@ -382,7 +365,6 @@
   transition: color .20s ease;
 }
 
-/* 밑줄 효과 (애니메이션 포함) */
 .auth-actions .auth-link::after {
   content: "";
   position: absolute;
@@ -394,28 +376,23 @@
   transition: width .18s ease;
 }
 
-/* hover 시 밑줄 */
 .auth-actions .auth-link:hover::after {
   width: 100%;
 }
 
-/* hover 시 색상 살짝 강조 */
 .auth-actions .auth-link:hover {
   color: color-mix(in oklab, var(--brand) 40%, var(--muted));
 }
 
-/* 회원가입 — 기본 강조 색 */
 .auth-actions .auth-link.strong {
   color: var(--brand);
   font-weight: 700;
 }
 
-/* 회원가입 hover — 더 진한 브랜드 색 */
 .auth-actions .auth-link.strong:hover {
   color: var(--brand-600);
 }
 
-/* 구분 점 */
 .auth-actions .divider {
   color: color-mix(in oklab, var(--muted) 70%, transparent);
   font-size: 13px;
@@ -439,12 +416,12 @@
 
 .act-label {
   color: #7c8a96;
-  font-size: 13.3px;   /* 버튼보다 약간 작게 */
+  font-size: 13.3px;   
   line-height: 1.4;
 }
 
 .auth-link {
-  color: #0c9f77;  /* 현재 너의 메인 초록색 */
+  color: #0c9f77;  
   font-weight: 500;
   text-decoration: none;
   transition: 0.15s ease;
@@ -464,7 +441,7 @@
 }
 
 .auth .pill input {
-  color: #0f172a !important; /* 짙은 글자 */
+  color: #0f172a !important; 
 }
 
 .auth .pill input::placeholder {

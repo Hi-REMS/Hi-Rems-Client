@@ -1,4 +1,3 @@
-/* ───────────────────────── Topbar Base ───────────────────────── */
 .hdr-topbar {
   position: sticky;
   top: 0;
@@ -13,7 +12,6 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
-/* 브랜드 */
 .hdr-brand {
   display: flex;
   align-items: center;
@@ -64,7 +62,6 @@
 
 .hdr-actions { display: flex; align-items: center; gap: 10px; }
 
-/* 버튼 공통 */
 .hdr-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 38px; height: 38px; border-radius: 50%;
@@ -82,14 +79,9 @@
 .hdr-btn--pill { width:auto; height:36px; border-radius:9999px; padding:0 12px; gap:8px; white-space:nowrap; }
 .hdr-label { font-size:13px; font-weight:700; line-height:1; }
 .hdr-btn[disabled]{ opacity:.5; cursor:not-allowed!important; transform:none!important; box-shadow:none!important; }
-
 .hdr-ico svg { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:2; }
-
-/* 뒤로가기/로그아웃 톤 */
 .hdr-btn.hdr-logout:hover{ background: rgba(239,68,68,.12); color:#ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.15); }
 .hdr-btn.hdr-back{ cursor: pointer; }
-
-/* ───────────────────────── Profile Button ────────────────────── */
 .hdr-profile { position: relative; }
 .hdr-profile-btn { gap:10px; padding-right:10px; }
 .hdr-avatar{
@@ -102,8 +94,6 @@
 .hdr-name { max-width: 180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:700; font-size:13px; }
 .hdr-caret { width:16px; height:16px; opacity:.7; transition: transform .2s ease; }
 .hdr-caret.is-open { transform: rotate(180deg); }
-
-/* ───────────────────────── Dropdown (Glass) ──────────────────── */
 .hdr-pop-enter-active, .hdr-pop-leave-active { transition: opacity .16s ease, transform .16s ease; }
 .hdr-pop-enter-from, .hdr-pop-leave-to { opacity: 0; transform: translateY(6px) scale(0.98); }
 
@@ -127,7 +117,6 @@
   filter: drop-shadow(0 2px 1px rgba(0,0,0,.03));
 }
 
-/* 유저 카드 */
 .menu-user{
   display:flex; gap:12px; align-items:center;
   padding:12px;
@@ -158,7 +147,6 @@
   border-color: rgba(34,197,94,.28);
 }
 
-/* 메뉴 아이템 */
 .menu-section { padding:4px; }
 .hdr-menu-item{
   width:100%; display:flex; align-items:center; gap:12px;
@@ -175,41 +163,35 @@
 }
 .hdr-menu-item:hover .mi-chevron{ opacity:.8; transform: translateX(2px); }
 
-/* 키보드 포커스 링 */
+
 .hdr-menu-item:focus-visible{
   outline: none;
   box-shadow: 0 0 0 3px var(--ring-2);
 }
 
-/* 디바이더 */
 .hdr-menu-sep{ height:1px; margin:8px; background: var(--menu-border); border-radius:1px; }
 
-/* 위험 버튼 */
 .hdr-menu-danger{ color: var(--text); }
 .hdr-menu-danger:hover{ background: rgba(239,68,68,.12); color:#ef4444; }
 .hdr-menu-danger:focus-visible{ box-shadow: 0 0 0 3px rgba(239,68,68,.25); }
 
-/* ───────────────────────── Theme Tokens ──────────────────────── */
 html[data-theme="light"] {
   --hdr-bg: rgba(255, 255, 255, 0.88);
   --hdr-border: #e2e8f0;
   --surface: #f9fafb;
   --text: #0f172a;
   --accent: #22d3ee;
-
   --menu-bg: rgba(255,255,255,.86);
   --menu-border: #e5e7eb;
   --menu-shadow: rgba(2,6,23,.12);
   --ring-2: rgba(34,211,238,.35);
 }
-
 html[data-theme="dark"] {
   --hdr-bg: rgba(17, 24, 39, 0.82);
   --hdr-border: rgba(148, 163, 184, 0.18);
   --surface: #0f172a;
   --text: #e5e7eb;
   --accent: #22d3ee;
-
   --menu-bg: rgba(17,24,39,.86);
   --menu-border: rgba(148,163,184,.22);
   --menu-shadow: rgba(0,0,0,.45);
@@ -277,20 +259,17 @@ html[data-theme="dark"] {
 }
 
 @media (max-width: 480px) {
-  /* 헤더 자체: 높이/패딩 축소 + 그림자/블러 완화 */
   .hdr-topbar{
-    height: 54px;                 /* 균일 높이 */
+    height: 54px;                 
     padding: 8px 12px;
     gap: 6px;
     backdrop-filter: blur(10px) saturate(120%);
-    box-shadow: 0 1px 6px rgba(0,0,0,.05);   /* 과한 그림자 ↓ */
+    box-shadow: 0 1px 6px rgba(0,0,0,.05);   
     border-bottom-color: color-mix(in srgb, var(--hdr-border) 80%, transparent);
   }
-
   .hdr-brand{ gap: 8px; font-size: 16px; }
   .hdr-badge{ display: none; }
   .hdr-dot{ width: 8px; height: 8px; box-shadow: 0 0 4px var(--accent); }
-
   .hdr-actions{ gap: 8px; }
   .hdr-btn{
     width: 32px; height: 32px;
@@ -302,14 +281,12 @@ html[data-theme="dark"] {
     height: 32px; padding: 0 8px;
   }
   .hdr-ico svg{ width: 18px; height: 18px; }
-
   .hdr-btn:hover{
     background: color-mix(in srgb, var(--accent) 10%, var(--surface));
     color: var(--accent);
     transform: none;
     box-shadow: none;
   }
-
   .hdr-profile-btn{
     padding-right: 6px;
     background: color-mix(in srgb, var(--surface) 78%, transparent);
@@ -344,9 +321,8 @@ html[data-theme="dark"] {
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
-    padding-right: 6px; /* 살짝만 */
+    padding-right: 6px; 
   }
-
   .hdr-avatar{
     width: 24px;
     height: 24px;
@@ -359,20 +335,14 @@ html[data-theme="dark"] {
     box-shadow: none !important;
     outline: none;
   }
-
-  /* 3) hover 효과는 아바타에만 약하게 (덩어리감 최소화) */
   .hdr-profile-btn:hover .hdr-avatar{
     background: color-mix(in srgb, var(--accent) 20%, var(--surface));
     border-color: color-mix(in srgb, var(--accent) 50%, transparent);
     transform: none; box-shadow: none;
   }
-
-  /* 4) 포커스 링은 버튼 대신 아바타에만 (원형 유지) */
   .hdr-profile-btn:focus-visible .hdr-avatar{
     box-shadow: 0 0 0 3px rgba(34,211,238,.28);
   }
-
-  /* 5) 잔상/중첩 제거용 안전장치 */
   .hdr-profile .hdr-avatar,
   .hdr-profile .hdr-avatar::before,
   .hdr-profile .hdr-avatar::after {
@@ -381,12 +351,10 @@ html[data-theme="dark"] {
   }
 }
 
-/* 초소형(≤380px): 더 타이트하게 */
 @media (max-width: 380px) {
   .hdr-avatar{ width: 22px; height: 22px; font-size: 11px; }
 }
 
-/* === 모바일(≤480px): 프로필/테마 버튼 크기·정렬 통일 === */
 @media (max-width: 480px) {
   .hdr-actions { gap: 10px; }
   .hdr-btn,
@@ -439,7 +407,7 @@ html[data-theme="dark"] {
     visibility: hidden !important;
   }
 }
-/* ─────────────── 관리자 전용 버튼 (고유 스타일) ─────────────── */
+
 .hdr-admin-btn {
   display: inline-flex;
   align-items: center;
@@ -466,7 +434,6 @@ html[data-theme="dark"] {
   stroke-width: 2;
 }
 
-/* Hover / Active 효과 */
 .hdr-admin-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 191, 165, 0.3);
@@ -477,7 +444,6 @@ html[data-theme="dark"] {
   box-shadow: 0 2px 6px rgba(0, 191, 165, 0.25);
 }
 
-/* 다크모드 대응 */
 [data-theme="dark"] .hdr-admin-btn {
   color:white;
   box-shadow: 0 2px 8px rgba(0, 255, 204, 0.12);
@@ -488,18 +454,16 @@ html[data-theme="dark"] {
   box-shadow: 0 4px 14px rgba(0, 255, 204, 0.25);
 }
 
-/* 텍스트 */
 .hdr-admin-txt {
   white-space: nowrap;
   line-height: 1;
 }
 
-/* 다크/라이트 테마에서도 잘 어울리게 살짝 톤다운 */
 .hdr-admin-btn:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(0, 191, 165, 0.3);
 }
-/* 🔙 768px 이하에서도 항상 뒤로가기 버튼 보이게 */
+
 @media (max-width: 768px) {
   .hdr-btn.hdr-back {
     display: inline-flex !important;
@@ -514,25 +478,23 @@ html[data-theme="dark"] {
 }
 
 .brand-logo {
-  width: 110px;         /* 🔥 로고를 확실히 더 크게 */
+  width: 110px;         
   height: auto;
 }
 
-/* 브랜드 텍스트 */
 .sub-name {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text);       /* ✔ 다크모드 자동 반영 */
-  opacity: .75;             /* ✔ 약한 느낌 유지 */
+  color: var(--text);       
+  opacity: .75;             
 }
 
-/* 버전 배지 */
 .sub-badge {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--accent) 15%, var(--surface)); /* ✔ 테마 따른 배경 */
-  color: var(--accent);      /* ✔ 포인트 컬러 */
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface)); 
+  color: var(--accent);      
   border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   opacity: .85;
 }

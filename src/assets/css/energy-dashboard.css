@@ -1,17 +1,8 @@
-/* ================================================
-   EnergyDashboard v2 (2025 리디자인 완전판)
-   반응형 / 라이트·다크 테마 지원 / 모던 UI
-   ================================================ */
-
-/* ─────────────────────────────────────────────
-   0. 기본 세팅
-   ───────────────────────────────────────────── */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
-
 html, body, #app {
   height: 100%;
   margin: 0;
@@ -21,33 +12,24 @@ html, body, #app {
   color: var(--p-text);
   -webkit-font-smoothing: antialiased;
 }
-
 :root {
   --space-xs: 6px;
   --space-sm: 10px;
   --space-md: 16px;
   --space-lg: 22px;
   --space-xl: 32px;
-
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 18px;
-
   --transition: all .2s ease;
-
-  /* 기본 색상 토큰 */
   --accent: #22d3ee;
   --accent-soft: #67e8f9;
-
-  /* 라이트 모드 */
   --bg-light: #f8fafc;
   --panel-light: #ffffff;
   --surface-light: #f1f5f9;
   --text-light: #0f172a;
   --muted-light: #64748b;
   --border-light: #e2e8f0;
-
-  /* 다크 모드 */
   --bg-dark: #0b1220;
   --panel-dark: #0f172a;
   --surface-dark: #1e293b;
@@ -56,9 +38,6 @@ html, body, #app {
   --border-dark: #334155;
 }
 
-/* ─────────────────────────────────────────────
-   1. 테마 (라이트 / 다크)
-   ───────────────────────────────────────────── */
 html[data-theme="light"], :root[data-theme="light"] {
   --p-bg: var(--bg-light);
   --p-panel: var(--panel-light);
@@ -77,9 +56,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   --p-line: var(--border-dark);
 }
 
-/* ─────────────────────────────────────────────
-   2. 페이지 레이아웃
-   ───────────────────────────────────────────── */
 .edb-page {
   background: var(--p-bg);
   color: var(--p-text);
@@ -94,9 +70,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   gap: var(--space-lg);
 }
 
-/* ─────────────────────────────────────────────
-   3. 카드 (공통)
-   ───────────────────────────────────────────── */
 .edb-card {
   background: var(--p-panel);
   border: 1px solid var(--p-line);
@@ -122,9 +95,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   margin: 0;
 }
 
-/* ─────────────────────────────────────────────
-   4. KPI 요약 카드 (상단)
-   ───────────────────────────────────────────── */
 .edb-metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -158,9 +128,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   opacity: 0.75;
 }
 
-/* ─────────────────────────────────────────────
-   5. 3단 차트 (주간·월간·연간)
-   ───────────────────────────────────────────── */
 .edb-charts3 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
@@ -183,9 +150,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   overflow: visible;
 }
 
-/* ─────────────────────────────────────────────
-   6. 요약 + 상세 테이블 (하단)
-   ───────────────────────────────────────────── */
 .edb-bottom2 {
   display: grid;
   grid-template-columns: 1fr 1.1fr;
@@ -229,9 +193,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   background: color-mix(in srgb, var(--p-accent) 10%, transparent);
 }
 
-/* ─────────────────────────────────────────────
-   7. 버튼
-   ───────────────────────────────────────────── */
 .edb-btn {
   border-radius: 10px;
   border: 1px solid var(--p-line);
@@ -263,9 +224,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   background: color-mix(in srgb, var(--p-text) 4%, transparent);
 }
 
-/* ─────────────────────────────────────────────
-   8. 반응형 대응
-   ───────────────────────────────────────────── */
 @media (max-width: 1280px) {
   .edb-inner {
     max-width: 100%;
@@ -309,11 +267,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
   }
 }
 
-/* ─────────────────────────────────────────────
-   9. 다크 모드용 추가 효과
-   ───────────────────────────────────────────── */
-
-
 html[data-theme="dark"] .edb-tbl tbody tr:hover {
   background: rgba(255,255,255,0.05);
 }
@@ -331,9 +284,7 @@ html[data-theme="dark"] .edb-btn--primary {
 html[data-theme="dark"] .edb-btn--ghost:hover {
   background: rgba(255,255,255,0.08);
 }
-/* ─────────────────────────────────────────────
-   1. 주간·월간·연간 차트 (3열 → 1열 반응형)
-   ───────────────────────────────────────────── */
+
 .edb-charts3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -354,7 +305,7 @@ html[data-theme="dark"] .edb-btn--ghost:hover {
   }
 }
 
-/* 카드 헤더 개선 */
+
 .edb-card-hd {
   display: flex;
   align-items: center;
@@ -387,9 +338,6 @@ html[data-theme="dark"] .edb-btn--ghost:hover {
   opacity: .8;
 }
 
-/* ─────────────────────────────────────────────
-   2. 그래프 가독성 & 반응형 향상
-   ───────────────────────────────────────────── */
 .edb-chart__body {
   aspect-ratio: 16 / 9;
   min-height: 260px;
@@ -428,9 +376,6 @@ html[data-theme="dark"] .edb-btn--ghost:hover {
   stroke-width: 2.5px;
 }
 
-/* ─────────────────────────────────────────────
-   3. 카드 레이아웃/배경/그림자 강화
-   ───────────────────────────────────────────── */
 .edb-card {
   border-radius: 18px;
   border: 1px solid color-mix(in srgb, var(--p-line) 60%, transparent);
@@ -442,9 +387,6 @@ html[data-theme="dark"] .edb-btn--ghost:hover {
 
 }
 
-/* ─────────────────────────────────────────────
-   4. 주간예보 버튼 (Modern / 반응형)
-   ───────────────────────────────────────────── */
 .wx-forecast-btn {
   display: inline-flex;
   align-items: center;
@@ -477,13 +419,13 @@ html[data-theme="dark"] .edb-btn--ghost:hover {
 
 }
 
-/* 다크 모드용 */
+
 html[data-theme="dark"] .wx-forecast-btn {
   background: linear-gradient(90deg, #1dd6e9, #09b0db);
   color: #001a1e;
 }
 
-/* ── 모바일 환경에서는 아이콘형 버튼으로 축소 ── */
+
 @media (max-width: 640px) {
   .wx-forecast-btn {
     width: 42px;
@@ -504,9 +446,6 @@ html[data-theme="dark"] .wx-forecast-btn {
   }
 }
 
-/* ─────────────────────────────────────────────
-   5. 반응형 미세조정
-   ───────────────────────────────────────────── */
 @media (min-width: 1800px) {
   .edb-inner {
     max-width: 2100px;
@@ -533,10 +472,6 @@ html[data-theme="dark"] .wx-forecast-btn {
     min-height: 280px;
   }
 }
-/* ===============================================
-   TOP KPI (주간·월간·연간 발전량) 정렬 개선
-   데스크톱 3열 / 모바일 1열
-   =============================================== */
 
 .edb-stat-row--triple {
   display: grid;
@@ -557,7 +492,7 @@ html[data-theme="dark"] .wx-forecast-btn {
   }
 }
 
-/* 개별 카드 비주얼 */
+
 .edb-stat {
   display: flex;
   flex-direction: column;
@@ -611,7 +546,7 @@ html[data-theme="dark"] .wx-forecast-btn {
   color: color-mix(in srgb, var(--p-muted) 90%, var(--p-text) 10%);
 }
 
-/* 다크모드 */
+
 html[data-theme="dark"] .edb-stat {
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   border: 1px solid rgba(255,255,255,0.08);
@@ -625,9 +560,7 @@ html[data-theme="dark"] .edb-stat-sub.edb-ok {
 html[data-theme="dark"] .edb-stat-value b {
   color: #f0f9ff;
 }
-/* =====================================================
-   주간예보 버튼 (modern minimalist)
-   ===================================================== */
+
 .edb-detail-actions {
   display: flex;
   align-items: center;
@@ -649,7 +582,6 @@ html[data-theme="dark"] .edb-stat-value b {
   transition: all 0.25s ease;
 }
 
-/* 아이콘 스타일 */
 .edb-week-btn svg {
   width: 16px;
   height: 16px;
@@ -659,7 +591,6 @@ html[data-theme="dark"] .edb-stat-value b {
   transition: transform 0.25s ease;
 }
 
-/* hover 효과 */
 .edb-week-btn:hover {
   color: color-mix(in srgb, var(--p-accent) 90%, white 10%);
   transform: translateY(-1px);
@@ -669,14 +600,12 @@ html[data-theme="dark"] .edb-stat-value b {
   transform: translateX(3px);
 }
 
-/* 비활성화 상태 */
 .edb-week-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
 
-/* 다크 모드 */
 [data-theme="dark"] .edb-week-btn {
   color: #22d3ee;
 }
@@ -684,7 +613,6 @@ html[data-theme="dark"] .edb-stat-value b {
   color: #38e8ff;
 }
 
-/* 모바일: 텍스트 숨기고 아이콘만 표시 */
 @media (max-width: 768px) {
   .edb-week-btn span {
     display: none;
@@ -717,9 +645,7 @@ html[data-theme="dark"] .edb-stat-value b {
   flex-direction: column;
   animation: slideUp 0.3s ease;
 }
-/* =====================================================
-   공통 모달 스타일
-   ===================================================== */
+
 .edb-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -744,7 +670,6 @@ html[data-theme="dark"] .edb-stat-value b {
   flex-direction: column;
 }
 
-/* 모달 헤더 */
 .edb-modal-hd {
   display: flex;
   align-items: center;
@@ -781,7 +706,6 @@ html[data-theme="dark"] .edb-stat-value b {
   color: var(--p-text);
 }
 
-/* 모달 본문 */
 .edb-modal-body {
   padding: 28px 32px;
   line-height: 1.6;
@@ -792,7 +716,6 @@ html[data-theme="dark"] .edb-stat-value b {
   margin-bottom: 20px;
 }
 
-/* 모달 푸터 */
 .edb-modal-ftr {
   display: flex;
   justify-content: flex-end;
@@ -802,9 +725,6 @@ html[data-theme="dark"] .edb-stat-value b {
   background: var(--p-panel-2);
 }
 
-/* =====================================================
-   CSV 다운로드 모달 전용
-   ===================================================== */
 .edb-modal:not(.edb-modal--forecast) {
   max-width: 460px;
 }
@@ -836,10 +756,9 @@ html[data-theme="dark"] .edb-stat-value b {
   font-size: 15px;
 }
 
-/* 🌦 이번주 날씨 예보 모달 (확장 버전) */
 .edb-modal--forecast {
-  width: 960px;               /* 기존 800 → 960으로 확대 */
-  max-width: 95vw;            /* 반응형 보완 */
+  width: 960px;               
+  max-width: 95vw;            
   background: var(--surface);
   color: var(--text);
   border-radius: 16px;
@@ -848,12 +767,11 @@ html[data-theme="dark"] .edb-stat-value b {
   flex-direction: column;
 }
 
-/* 헤더 */
 .edb-modal--forecast .edb-modal-hd {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 18px 28px;         /* 상단 여백 확장 */
+  padding: 18px 28px;         
   border-bottom: 1px solid var(--border);
   background: var(--surface-2);
 }
@@ -871,9 +789,8 @@ html[data-theme="dark"] .edb-stat-value b {
   cursor: pointer;
 }
 
-/* 본문 */
 .edb-modal--forecast .edb-modal-body {
-  padding: 28px 36px 24px;     /* 내부 여백 확장 */
+  padding: 28px 36px 24px;     
 }
 
 .edb-modal--forecast .edb-modal-desc {
@@ -882,14 +799,12 @@ html[data-theme="dark"] .edb-stat-value b {
   color: var(--muted);
 }
 
-/* SVG 차트 크기 확대 */
 .edb-modal--forecast .edb-svg-chart {
   width: 100%;
-  height: 320px;               /* 기존 260 → 320 */
+  height: 320px;               
   overflow: visible;
 }
 
-/* 온도 라벨 */
 .wx-label {
   font-size: 14px;
   font-weight: 600;
@@ -900,7 +815,6 @@ html[data-theme="dark"] .edb-stat-value b {
 .wx-label--hi { fill: #ef4444; }
 .wx-label--lo { fill: #3b82f6; }
 
-/* 하단 밴드 */
 .wx-bottom-band {
   margin-top: 28px;
   border-top: 1px solid var(--border);
@@ -916,7 +830,7 @@ html[data-theme="dark"] .edb-stat-value b {
 .wx-row {
   display: flex;
   justify-content: space-between;
-  width: 88%;            /* 가운데 정렬, 전체보다 살짝 좁혀서 정돈 */
+  width: 88%;            
   max-width: 720px;
   margin: 2px 0;
 }
@@ -939,23 +853,20 @@ html[data-theme="dark"] .edb-stat-value b {
   max-width: 720px;
   display: flex;
   justify-content: center;
-  align-items: center;   /* 세로축 가운데 정렬 */
+  align-items: center;   
 }
 
-/* 범례 */
 .edb-legend {
   margin-top: 14px;
   font-size: 14px;
   color: var(--muted);
 }
 
-/* 푸터 버튼 */
 .edb-modal--forecast .edb-modal-ftr {
   padding: 16px 24px;
   border-top: 1px solid var(--border);
 }
 
-/* 반응형 */
 @media (max-width: 720px) {
   .edb-modal--forecast {
     width: 95vw;
@@ -966,9 +877,6 @@ html[data-theme="dark"] .edb-stat-value b {
   .wx-bottom-band { font-size: 13px; }
 }
 
-/* ==========================================================
-   ✅ 강제 오버라이드: 그래프 폭 넘침/잘림 완전 방지 (최신 적용)
-   ========================================================== */
 .edb-chart__body {
   position: relative !important;
   width: 100% !important;
@@ -990,26 +898,20 @@ html[data-theme="dark"] .edb-stat-value b {
   display: block !important;
   overflow: visible !important;
 }
-/* ==========================================================
-   📱 모바일용 그래프 크기 최적화 (너무 작지 않게)
-   ========================================================== */
-/* ==========================================================
-   📱 모바일 그래프 최적화 (가독성 + 크기 밸런스 개선)
-   ========================================================== */
+
 @media (max-width: 768px) {
   .edb-chart__body {
     padding: 0 !important;
     margin: 0 auto !important;
     height: auto !important;
-    min-height: 240px !important; /* 카드 높이 확보 */
+    min-height: 240px !important; 
   }
 
   .edb-svg-chart {
-    transform: scale(1.05);         /* ✅ 약간 확대 (0.97 → 1.05) */
+    transform: scale(1.05);         
     transform-origin: center top;
   }
-
-  /* ✅ 축/라벨 글씨 크기 복원 */
+  
   .edb-svg-chart .axis text {
     font-size: 30px !important;
     font-weight: 500;
@@ -1021,33 +923,22 @@ html[data-theme="dark"] .edb-stat-value b {
     font-weight: 600;
     fill: var(--p-text);
   }
-
-  /* ✅ 카드 간격/패딩 보정 */
+  
   .edb-card {
     padding: 18px 16px !important;
   }
 
-  /* ✅ X축 라벨과 수치 간격 확보 */
   .edb-svg-chart .axis-bottom text {
     dy: 10px;
   }
 }
-/* ==========================================================
-   📊 그래프 폰트 반응형 (기준: 768px = 30px)
-   ========================================================== */
 
-/* ==========================================================
-   📊 반응형 그래프 폰트 재조정 (데스크톱 축소 / 모바일 유지)
-   ========================================================== */
-
-/* 축 텍스트 (X/Y축) */
 .edb-svg-chart .axis text {
   font-size: clamp(13px, 1.6vw, 24px);
   font-weight: 600;
   fill: var(--p-text);
 }
 
-/* 막대 위 숫자 라벨 */
 .edb-bar-label,
 .edb-bar-labels text {
   font-size: clamp(14px, 1.8vw, 26px);
@@ -1058,20 +949,15 @@ html[data-theme="dark"] .edb-stat-value b {
   stroke-width: 2.5px;
 }
 
-/* 카드 제목 (예: 월간발전량) */
 .edb-card-hd h3 {
   font-size: clamp(15px, 1.7vw, 24px);
 }
 
-/* 부가 텍스트 (단위, 집계기간 등) */
 .edb-card span,
 .edb-card p {
   font-size: clamp(13px, 1.3vw, 20px);
 }
 
-/* ==========================================================
-   💻 데스크톱 전용: 큰 화면에서 살짝 축소
-   ========================================================== */
 @media (min-width: 1440px) {
   .edb-svg-chart .axis text {
     font-size: clamp(12px, 1vw, 18px);
@@ -1089,12 +975,10 @@ html[data-theme="dark"] .edb-stat-value b {
   }
 }
 
-/* 그래프 높이 자동 스케일 */
 .edb-chart__body {
   min-height: clamp(260px, 45vw, 420px);
 }
 
-/* 🔹 초소형 휴대폰에서는 살짝 확대 */
 @media (max-width: 480px) {
   .edb-svg-chart {
     transform: scale(1.1);
@@ -1103,15 +987,12 @@ html[data-theme="dark"] .edb-stat-value b {
 }
 html[data-theme="dark"] .edb-bar-label,
 html[data-theme="dark"] .edb-bar-labels text {
-  stroke: none !important;       /* 외곽선 제거 */
+  stroke: none !important;       
   paint-order: normal !important;
-  fill: #e2e8f0 !important;      /* 밝은 회색으로 텍스트 표현 */
-  text-shadow: none !important;  /* 혹시 있을 그림자 제거 */
+  fill: #e2e8f0 !important;      
+  text-shadow: none !important;  
 }
 
-/* ==========================================================
-   📱 데이터 다운로드 버튼 (375px 이하 반응형)
-   ========================================================== */
 @media (max-width: 640px) {
   .edb-card-actions .edb-btn.edb-btn--primary.edb-btn--sm {
     width: 42px !important;
@@ -1126,33 +1007,27 @@ html[data-theme="dark"] .edb-bar-labels text {
     align-items: center !important;
     background: none;
   }
-
-  /* 아이콘 삽입 */
+  
   .edb-card-actions .edb-btn.edb-btn--primary.edb-btn--sm::before {
     content: "⬇️" !important;
     font-size: 18px !important;
     line-height: 1 !important;
   }
 
-  /* 텍스트 숨김 */
   .edb-card-actions .edb-btn.edb-btn--primary.edb-btn--sm span,
   .edb-card-actions .edb-btn.edb-btn--primary.edb-btn--sm .ico {
     display: none !important;
   }
 }
-/* ==========================================================
-   💻 EnergyDashboard — 하단 카드/그래프 좌우 확장 (25% 축소 대응)
-   ========================================================== */
+
 @media (min-width: 1440px) {
 
-  /* 상단 3 KPI (주간/월간/연간) */
   .edb-stat-row--triple {
     grid-template-columns: repeat(3, minmax(420px, 1fr)) !important;
     gap: clamp(16px, 1.5vw, 32px) !important;
     width: 100% !important;
   }
 
-  /* 중간 그래프 (주간/월간/연간 차트) */
   .edb-charts3 {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)) !important;
@@ -1161,16 +1036,14 @@ html[data-theme="dark"] .edb-bar-labels text {
     justify-content: stretch !important;
   }
 
-  /* 하단 테이블 (요약정보 / 상세정보) */
   .edb-bottom2 {
     display: grid !important;
-    grid-template-columns: 1fr 1.2fr !important; /* ✅ 좌우 균형 조정 */
+    grid-template-columns: 1fr 1.2fr !important; 
     gap: clamp(20px, 2vw, 40px) !important;
     width: 100% !important;
     justify-content: stretch !important;
   }
 
-  /* 카드 자체 폭 강제 확장 */
   .edb-card {
     width: 100% !important;
     max-width: none !important;
@@ -1179,37 +1052,27 @@ html[data-theme="dark"] .edb-bar-labels text {
   }
 }
 
-/* 그래프 hover 시 */
-/* ==========================================
-   📌 Energy Dashboard Custom Tooltip
-   ========================================== */
 .edb-tip {
   position: absolute;
   min-width: 110px;
   max-width: 220px;
-
   padding: 10px 14px;
   background: color-mix(in srgb, var(--p-panel) 92%, black 8%);
   color: var(--p-text);
-
   border: 1px solid var(--p-line);
   border-radius: 10px;
   backdrop-filter: blur(8px);
-
   font-size: 14px;
   font-weight: 600;
   line-height: 1.3;
-
   pointer-events: none;
   white-space: nowrap;
-
   z-index: 9999;
   opacity: 0;
   transform: translateY(-4px);
   animation: tipFadeIn .18s ease-out forwards;
 }
 
-/* 타이틀 & 값 */
 .edb-tip-title {
   font-size: 13px;
   font-weight: 500;
@@ -1222,14 +1085,12 @@ html[data-theme="dark"] .edb-bar-labels text {
   font-weight: 700;
 }
 
-/* 다크모드 */
 html[data-theme="dark"] .edb-tip {
   background: rgba(30, 41, 59, 0.88);
   border-color: rgba(255,255,255,0.1);
   color: #f8fafc;
 }
 
-/* Fade-in animation */
 @keyframes tipFadeIn {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -1265,7 +1126,6 @@ html[data-theme="dark"] .edb-range-val {
   color: var(--text);
 }
 
-/* 버튼 위치 (테이블 헤더 오른쪽) */
 .edb-detail-actions {
   position: static !important;
   top: 8px;
@@ -1308,7 +1168,6 @@ html[data-theme="dark"] .edb-range-val {
   to { transform: rotate(360deg); }
 }
 
-/* 다크모드 추가 보정 */
 html[data-theme="dark"] .edb-week-btn {
   background: #0f1a2b;
   border-color: #203048;
@@ -1326,118 +1185,3 @@ html[data-theme="dark"] .edb-week-btn:hover:not(:disabled) {
   }
 }
 
-/* ================================
-   월간 날씨/발전량 비교 카드 전체
-   ================================ */
-.wx-month-card {
-  margin-top: 28px;
-  background: var(--surface);
-  border-radius: 18px;
-  padding: 24px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-  border: 1px solid var(--border);
-}
-
-/* 제목 */
-.wx-month-card h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text);
-  margin-bottom: 20px;
-}
-
-/* ================================
-   그래프 영역
-   ================================ */
-.wx-chart-box {
-  width: 100%;
-  height: 320px;
-  position: relative;
-  padding: 0 10px;
-  margin-bottom: 32px;
-}
-
-.wx-chart-box canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* ================================
-   날씨 아이콘 (커스텀 스타일)
-   ================================ */
-.wx-icon {
-  font-size: 18px;
-  margin-right: 3px;
-}
-
-/* ================================
-   요약 카드 (맑음/흐림/비/최고/최저)
-   ================================ */
-.wx-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  margin-top: 10px;
-}
-
-.wx-summary-item {
-  flex: 1;
-  min-width: 180px;
-  background: var(--surface-2);
-  border-radius: 16px;
-  padding: 18px 20px;
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.wx-summary-item .label {
-  font-size: 14px;
-  color: var(--muted);
-}
-
-.wx-summary-item .value {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.wx-summary-item .sub {
-  font-size: 13px;
-  color: var(--text);
-  opacity: 0.8;
-}
-
-/* ================================
-   차트 커스텀 스타일 (라인, 포인트)
-   ================================ */
-.chart-line-orange {
-  stroke: #ff8c42 !important;
-  stroke-width: 3px !important;
-}
-
-.chart-point-gray {
-  background-color: #9ca3af !important;
-  border: 2px solid var(--surface) !important;
-  width: 9px !important;
-  height: 9px !important;
-  border-radius: 50%;
-}
-
-/* 바 그래프 스타일 */
-.chart-bar-blue {
-  background: linear-gradient(180deg, #4ac7ff, #009dff) !important;
-  border-radius: 8px !important;
-}
-
-/* 툴팁 */
-.chart-tooltip {
-  background: var(--surface);
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-}

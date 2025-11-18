@@ -1,4 +1,3 @@
-<!-- src/views/ForgotPassword.vue (또는 FindPassword.vue) -->
 <template>
   <div
     class="auth"
@@ -31,7 +30,6 @@
             </p>
           </header>
 
-          <!-- 요청 폼 (전송 전) -->
           <form
             v-if="!sent"
             class="cardc-form"
@@ -73,7 +71,6 @@
             </p>
           </form>
 
-          <!-- 전송 완료 화면 -->
           <section v-else class="cardc-form" aria-live="polite">
             <div class="field">
               <p class="sub" style="line-height:1.6; color:black; font-size:">
@@ -106,7 +103,6 @@ import { api } from '@/api'
 import '@/assets/css/register.css'
 
 export default {
-  // 파일명이 무엇이든 name은 이렇게 권장
   name: 'ForgotPassword',
   data() {
     return {
@@ -141,7 +137,6 @@ export default {
     goToLogin() {
       this.$router.replace('/login')
     },
-// methods: { onSubmit() { ... } } 부분만 교체
 
 async onSubmit() {
   if (this.loading || !this.usernameValid) return
@@ -149,16 +144,14 @@ async onSubmit() {
   try {
     this.loading = true
     await api.post('/auth/forgot', {
-      username: this.username.trim().toLowerCase()   // 🔹 정규화
+      username: this.username.trim().toLowerCase()
     })
-    // 성공: sent 화면
     this.sent = true
   } catch (err) {
     const status = err?.response?.status
     const msg = err?.response?.data?.message || err?.message || '요청 실패'
 
     if (status === 404) {
-      // 없는 계정 → 에러 표시
       this.error = '등록된 이메일이 없습니다.'
       this.sent = false
     } else {

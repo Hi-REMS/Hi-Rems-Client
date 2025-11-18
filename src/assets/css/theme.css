@@ -1,4 +1,4 @@
-/* 전역 테마 변수: html[data-theme="..."] 기준 */
+
 html[data-theme="light"]{
   --bg:#f6f8fb;
   --surface:#ffffff;
@@ -21,10 +21,8 @@ html[data-theme="dark"]{
   --ok:#22c55e; --idle:#93c5fd; --paused:#60a5fa; --warn:#f59e0b; --danger:#ef4444;
 }
 
-/* 페이지 기본색은 변수만 참조 (모든 뷰 공통) */
 body{ background:var(--bg); color:var(--text); }
 
-/* ========= Light ========= */
 :root,
 html[data-theme="light"]{
   --bg: #f3f6fb;
@@ -34,18 +32,13 @@ html[data-theme="light"]{
   --text: #0f172a;
   --muted: #60708a;
   --accent: #0ea5e9;
-
-  /* controls / chips */
   --chip-bg: #ffffff;
   --chip-border: #dbe4f0;
   --chip-text: #0f172a;
   --chip-hover-bg: #eef6ff;
-
-  /* select 전용 */
   --select-text: var(--text);
 }
 
-/* ========= Dark ========= */
 html[data-theme="dark"]{
   --bg: #0b1220;
   --surface: #0f1a2b;
@@ -54,8 +47,6 @@ html[data-theme="dark"]{
   --text: #e7eefc;
   --muted: #8fa3bf;
   --accent: #7dd3fc;
-
-  /* controls / chips */
   --chip-bg: #111f34;
   --chip-border: #203048;
   --chip-text: #e7eefc;
@@ -64,5 +55,4 @@ html[data-theme="dark"]{
   --select-text: var(--text);
 }
 
-/* 페이지 기본 */
 html, body{ background: var(--bg); color: var(--text); }

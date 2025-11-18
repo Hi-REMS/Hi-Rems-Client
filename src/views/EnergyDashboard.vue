@@ -1,12 +1,9 @@
-<!-- src/views/EnergyDashboard.vue -->
 <template>
   <main class="edb-page">
     <div class="edb-inner">
 
-      <!-- TOP KPIs: 주간 · 월간 · 연간 -->
       <section class="edb-stat-row edb-center edb-stat-row--triple">
-        <!-- 주간 -->
-        <article class="edb-stat edb-card">
+                <article class="edb-stat edb-card">
           <div class="edb-stat-main">
             <div class="edb-stat-title">주간발전량</div>
             <div class="edb-stat-value">
@@ -19,8 +16,7 @@
           </div>
         </article>
 
-        <!-- 월간 -->
-        <article class="edb-stat edb-card">
+                <article class="edb-stat edb-card">
           <div class="edb-stat-main">
             <div class="edb-stat-title">월간발전량</div>
             <div class="edb-stat-value">
@@ -33,8 +29,7 @@
           </div>
         </article>
 
-        <!-- 연간(YTD) -->
-        <article class="edb-stat edb-card">
+                <article class="edb-stat edb-card">
           <div class="edb-stat-main">
             <div class="edb-stat-title">연간발전량</div>
             <div class="edb-stat-value">
@@ -48,12 +43,9 @@
         </article>
       </section>
 
-      <!-- 1행: 주간 · 월간(주차) · 연간 -->
-<!-- 1행: 주간 · 월간(주차) · 연간 -->
-<section class="edb-charts3">
+      <section class="edb-charts3">
 
-  <!-- ▒▒▒▒▒ 주간 ▒▒▒▒▒ -->
-  <article class="edb-card edb-chart edb-week">
+    <article class="edb-card edb-chart edb-week">
     <div class="edb-card-hd">
       <h3><span class="edb-dot edb-dot--cyan"></span>주간발전량</h3>
       <span v-if="bars.length" class="edb-chip edb-chip--strong">
@@ -127,8 +119,7 @@
         </g>
       </svg>
 
-      <!-- 🔥 로딩/에러/빈데이터 분기 -->
-      <div v-else class="edb-empty">
+            <div v-else class="edb-empty">
         <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
         <div v-else-if="loading" class="edb-loading">
           <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
@@ -138,8 +129,7 @@
         </div>
       </div>
 
-      <!-- Tooltip -->
-      <div
+            <div
         v-if="tip.show && tip.chart==='week'"
         class="edb-tip"
         :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
@@ -153,8 +143,7 @@
     <p class="edb-range" v-if="weekRangeText">집계기간: {{ weekRangeText }}</p>
   </article>
 
-  <!-- ▒▒▒▒▒ 월간 ▒▒▒▒▒ -->
-  <article class="edb-card edb-chart edb-week">
+    <article class="edb-card edb-chart edb-week">
     <div class="edb-card-hd">
       <h3><span class="edb-dot edb-dot--amber"></span>월간발전량(주차)</h3>
       <div class="edb-card-actions">
@@ -233,8 +222,7 @@
         </g>
       </svg>
 
-      <!-- 🔥 수정된 로딩/에러/빈데이터 UI -->
-      <div v-else class="edb-empty">
+            <div v-else class="edb-empty">
         <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
         <div v-else-if="loading" class="edb-loading">
           <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
@@ -258,8 +246,7 @@
     <p class="edb-range" v-if="monthRangeText">집계기간: {{ monthRangeText }}</p>
   </article>
 
-  <!-- ▒▒▒▒▒ 연간 ▒▒▒▒▒ -->
-  <article class="edb-card edb-chart edb-week">
+    <article class="edb-card edb-chart edb-week">
     <div class="edb-card-hd">
       <h3><span class="edb-dot edb-dot--cyan"></span>연간발전량</h3>
       <span class="edb-chip">kWh</span>
@@ -328,8 +315,7 @@
         </g>
       </svg>
 
-      <!-- 🔥 수정된 로딩/에러/빈데이터 UI -->
-      <div v-else class="edb-empty">
+            <div v-else class="edb-empty">
         <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
         <div v-else-if="loading" class="edb-loading">
           <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
@@ -356,10 +342,8 @@
 </section>
 
 
-      <!-- 2행: 요약 · 날짜별 상세 -->
-      <section class="edb-grid edb-bottom2">
-        <!-- 요약 -->
-        <section class="edb-card edb-summary">
+            <section class="edb-grid edb-bottom2">
+                <section class="edb-card edb-summary">
           <div class="edb-sum-hd">
             <h4 class="edb-sum__title">요약 정보</h4>
           </div>
@@ -402,8 +386,7 @@
               </div>
             </article>
 
-            <!-- 환경 기여도 -->
-            <article class="edb-sum-block">
+                        <article class="edb-sum-block">
               <div class="edb-detail-hd"><h3 class="edb-detail__title">환경 기여도</h3></div>
               <div class="edb-table-wrap edb-thin-scroll">
                 <table class="edb-tbl edb-tbl--kpi">
@@ -475,8 +458,7 @@
   </button>
 </div>
 
-    </div> <!-- /.edb-detail-hd -->
-
+    </div> 
     <div class="edb-detail-body">
       <div v-if="!detailRows.length && loading" class="edb-detail-empty">
         <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
@@ -507,19 +489,16 @@
           * 풍력 장비가 하트비트(상태 보고)만 보내는 경우 시간대 발전량이 0으로 표시될 수 있습니다.
         </p>
       </div>
-    </div> <!-- /.edb-detail-body -->
-  </section>
+    </div>   </section>
       </section>
 
-      <!-- 로딩 오버레이 -->
-      <div v-if="loading" class="edb-loading-overlay" role="status" aria-live="polite">
+            <div v-if="loading" class="edb-loading-overlay" role="status" aria-live="polite">
         <div class="edb-spinner-neo"></div>
         <div class="edb-loading-text">불러오는 중…</div>
       </div>
     </div>
 
-    <!-- ===== 다운로드 모달 ===== -->
-    <div v-if="showDl" class="edb-modal-backdrop" @click.self="closeDownloadModal">
+        <div v-if="showDl" class="edb-modal-backdrop" @click.self="closeDownloadModal">
       <div class="edb-modal">
         <header class="edb-modal-hd">
           <div class="edb-modal-ico">⬇</div>
@@ -560,15 +539,13 @@
 
  <div v-if="showWx" class="edb-modal-backdrop" @click.self="closeWxModal">
   <div class="edb-modal edb-modal--forecast">
-    <!-- 헤더 -->
-    <header class="edb-modal-hd">
+        <header class="edb-modal-hd">
       <div class="edb-modal-ico">🌦</div>
       <div class="edb-modal-title">이번주 날씨 예보</div>
       <button class="edb-modal-x" @click="closeWxModal">✕</button>
     </header>
 
-    <!-- 본문 -->
-    <div class="edb-modal-body">
+        <div class="edb-modal-body">
       <p class="edb-modal-desc">최저/최고 기온 추세와 강수확률을 함께 확인하세요.</p>
 
       <div v-if="wxLoading" class="edb-loading" style="min-height:180px;">
@@ -578,15 +555,13 @@
       <template v-else>
         <div v-if="wxErr" class="edb-empty-msg">{{ wxErr }}</div>
 
-        <!-- ✅ 차트 영역 -->
-        <div v-else-if="wxWeek.length" class="wx-chart-wrap">
+                <div v-else-if="wxWeek.length" class="wx-chart-wrap">
           <svg
             :viewBox="`0 0 ${wxVb.w} ${wxVb.h}`"
             class="edb-svg-chart"
             :style="axisStyle"
           >
-            <!-- 격자 & 축 -->
-            <g class="grid">
+                        <g class="grid">
               <line v-for="(t,i) in wxYTicks" :key="'wgy'+i"
                     :x1="wxPad.l" :x2="wxVb.w-wxPad.r" :y1="t.y" :y2="t.y"/>
             </g>
@@ -604,8 +579,7 @@
               </g>
             </g>
 
-            <!-- 최고/최저 라인 -->
-            <defs>
+                        <defs>
               <filter id="wxShadow" x="-20%" y="-20%" width="140%" height="140%">
                 <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.25"/>
               </filter>
@@ -614,14 +588,12 @@
             <polyline :points="wxPointsMax" fill="none" stroke="#ef4444" stroke-width="3" filter="url(#wxShadow)" />
             <polyline :points="wxPointsMin" fill="none" stroke="#3b82f6" stroke-width="3" filter="url(#wxShadow)" />
 
-            <!-- 점 -->
-            <g>
+                        <g>
               <circle v-for="(p,i) in wxGeom" :key="'dot-max'+i" :cx="p.x" :cy="p.yMax" r="4" fill="#ef4444"/>
               <circle v-for="(p,i) in wxGeom" :key="'dot-min'+i" :cx="p.x" :cy="p.yMin" r="4" fill="#3b82f6"/>
             </g>
 
-            <!-- 온도 라벨 -->
-            <g class="wx-point-labels">
+                        <g class="wx-point-labels">
               <text v-for="(p,i) in wxGeom" :key="'lbl-max'+i"
                     :x="p.x" :y="p.yMax - 8"
                     text-anchor="middle" class="wx-label wx-label--hi">
@@ -635,8 +607,7 @@
             </g>
           </svg>
 
-          <!-- ✅ 네이버 날씨형 밴드 -->
-          <div class="wx-bottom-band">
+                    <div class="wx-bottom-band">
             <div class="wx-row wx-dates">
               <span v-for="(d,i) in wxWeek" :key="'d'+i">{{ d.label }}</span>
             </div>
@@ -652,8 +623,7 @@
           </div>
         </div>
 
-        <!-- 폴백 테이블 -->
-        <div v-else class="edb-table-wrap edb-thin-scroll">
+                <div v-else class="edb-table-wrap edb-thin-scroll">
           <table class="edb-tbl">
             <thead>
               <tr>
@@ -678,8 +648,7 @@
       </template>
     </div>
 
-    <!-- 푸터 -->
-    <footer class="edb-modal-ftr">
+        <footer class="edb-modal-ftr">
       <button class="edb-btn edb-btn--ghost" @click="closeWxModal">닫기</button>
     </footer>
   </div>
@@ -690,10 +659,9 @@
 <script>
 import '@/assets/css/energy-dashboard.css'
 
-// 계산 상수 (전기/열원 분리)
-const CO2_ELECTRIC = 0.4747;  // kg/kWh (태양광/풍력/연료전지/ESS=전력)
-const CO2_THERMAL  = 0.198;   // kg/kWh (태양열/지열=열원)
-const TREE_KG = 6.6;          // 1그루 연간 CO₂(kg) 가정
+const CO2_ELECTRIC = 0.4747;
+const CO2_THERMAL  = 0.198;
+const TREE_KG = 6.6;
 const DUMMY_CAP_KW = 3;
 
 const SKY_LABEL = { '1':'맑음', '3':'구름많음', '4':'흐림' };
@@ -717,19 +685,13 @@ export default {
     const m = now.getMonth() + 1;
 
     return {
-      // 관리자 여부
       isAdmin: false,
-
       imeiField: DEFAULT_IMEI,
-      energyField: '01', // 기본 태양광
+      energyField: '01',
       typeField: '',
-      multiField: '', // '' | '00'|'01'|'02'|'03'
-
-      // 주간
+      multiField: '',
       bars: [], totalKwh: 0, weekRangeUtc: null,
       detailDay: '', detailRows: [],
-
-      // 요약
       summary: {
         capacity_kw: DUMMY_CAP_KW,
         today_kwh: 0, month_kwh: 0, year_kwh: 0,
@@ -737,41 +699,28 @@ export default {
         install_date: null, monitor_start: null
       },
 
-      // 월/연
       monthSeries: [], yearSeries: [],
       monthRangeUtc: null, yearRangeUtc: null,
-
-      // KPI 캐시
       kpis: { totalKwh: 0, totalCo2: 0, totalTrees: 0 },
-
       avgEff: null,
-
       loading: false, errorMsg: '',
       vb: { w: 1000, h: 420 }, pad: { t: 24, r: 32, b: 60, l: 44 },
       axisXFontPx: 20, axisYFontPx: 16, resizeObserver: null,
 
       tip: { show:false, x:0, y:0, chart:null, label:'', value:0 },
       showValueLabels: true,
-
-      // 다운로드 모달
       showDl: false,
       dlYear: y,
       dlMonth: m,
       downloading: false,
       yearOptions: Array.from({ length: 11 }, (_, i) => y - i),
-
       hasSearched: false,
-
-      // 레이스 방지
       searching: false,
       currentReqId: 0,
-
       showWx: false,
       wxLoading: false,
       wxErr: '',
       wxWeek: [],
-
-      // 날씨 차트 뷰박스
       wxVb: { w: 1200, h: 380 },wxPad: { t: 28, r: 36, b: 72, l: 56 },
     }
   },
@@ -799,8 +748,6 @@ export default {
       return last >= 0 ? filtered.slice(0, last + 1) : filtered
     },
     isWind(){ return this.energyField === '04'; },
-
-    /* ===== 주간 ===== */
     maxY(){ return Math.max(...this.bars.map(b => b.y || 0), 1) },
     inner(){ return { w: this.vb.w - this.pad.l - this.pad.r, h: this.vb.h - this.pad.t - this.pad.b } },
     stepW(){ return this.bars.length ? this.inner.w / this.bars.length : 0 },
@@ -829,8 +776,6 @@ export default {
     },
     valuesWeek(){ return this.bars.map(b=>b.y||0) },
     bucketsWeek(){ return this.bars.map(b=>b.x) },
-
-    /* ===== 월(주차) ===== */
     maxMonth(){ return Math.max(...this.monthSeries.map(b=>b.y||0),1) },
     stepWMonth(){ return this.monthSeries.length ? this.inner.w / this.monthSeries.length : 0 },
     barWMonth(){ return Math.max(10, this.stepWMonth*0.6) },
@@ -856,8 +801,6 @@ export default {
     },
     valuesMonth(){ return this.monthSeries.map(s=>s.y||0) },
     bucketsMonth(){ return this.monthSeries.map(s=>s.label) },
-
-    /* ===== 연(YTD) ===== */
     maxYear(){ return Math.max(...this.yearSeries.map(b=>b.y||0),1) },
     stepWYear(){ return this.yearSeries.length ? this.inner.w / this.yearSeries.length : 0 },
     barWYear(){ return Math.max(10, this.stepWYear*0.6) },
@@ -898,15 +841,11 @@ export default {
     weekRangeText(){ return this.rangeText(this.weekRangeUtc) },
 
     axisStyle(){ return {'--axis-x-font': this.axisXFontPx+'px','--axis-y-font': this.axisYFontPx+'px'} },
-
-    // ===== 에너지별 CO₂ 계수 =====
     co2Factor(){
       return (this.energyField === '02' || this.energyField === '03')
-        ? CO2_THERMAL   // 태양열/지열
-        : CO2_ELECTRIC; // 태양광/풍력/연료전지/ESS
+        ? CO2_THERMAL
+        : CO2_ELECTRIC;
     },
-
-    // ===== KPI (차트 집계에 100% 일치) =====
     kpiWeek(){
       const kwh = this.totalKwh || 0;
       return { kwh, co2: this.co2(kwh), trees: this.treesFromKwh(kwh) };
@@ -920,14 +859,12 @@ export default {
       return { kwh: round2(kwh), co2: this.co2(kwh), trees: this.treesFromKwh(kwh) };
     },
 
-    // 멀티 라벨
     multiLabel(){
       if (!this.multiField) return '';
       const map = { '00': '설비 0', '01': '설비 1', '02': '설비 2', '03': '설비 3' };
       return map[this.multiField] || `설비 ${this.multiField}`;
     },
 
-    /* ===== 다운로드 가능 여부 ===== */
     hasAnyData(){
       return (this.bars && this.bars.length)
           || (this.monthSeries && this.monthSeries.length)
@@ -937,7 +874,6 @@ export default {
       return this.hasSearched && !!this.hasAnyData;
     },
 
-    /* ===== 이번주 날씨 차트 계산 ===== */
     wxInner(){ return { w: this.wxVb.w - this.wxPad.l - this.wxPad.r, h: this.wxVb.h - this.wxPad.t - this.wxPad.b } },
     wxXStep(){ return this.wxWeek.length ? this.wxInner.w / this.wxWeek.length : 0 },
     wxTempMin(){
@@ -984,22 +920,18 @@ export default {
     wxPointsMin(){ return this.wxGeom.map(p => `${p.x},${p.yMin}`).join(' ') },
   },
 watch: {
-  // ✅ 상위 컴포넌트에서 전달된 multi prop 변경 시
   async multi(nv) {
     this.multiField = nv
-
-    // imei가 존재해야만 검색 수행
     if (this.imeiField) {
       this.loading = true
       try {
-        await this.onSearch()   // 👈 이제 multiField가 반영된 뒤 호출됨
+        await this.onSearch()
       } finally {
         this.loading = false
       }
     }
   },
 
-  // 에너지 변경 시 타입/멀티 초기화(태양광만 사용)
   energyField(nv) {
     if (nv !== '01') {
       this.typeField = ''
@@ -1029,7 +961,6 @@ watch: {
 },
 
   methods: {
-    // === 관리자 동기화 ===
     syncAdminFromStorage(){
       try{
         const flag  = (localStorage.getItem('isAdmin') === 'true')
@@ -1043,7 +974,6 @@ watch: {
     formatDay(ymd){ const m=ymd?.match?.(/^(\d{4})-(\d{2})-(\d{2})$/); return m?`${Number(m[3])}일`:(ymd||'') },
     rangeText(r){ if(!r?.start||!r?.end) return ''; const f=(iso)=>new Date(iso).toLocaleDateString('ko-KR',{timeZone:'Asia/Seoul'}); return `${f(r.start)} ~ ${f(r.end)}`; },
 
-    //  에너지별 계수 사용
     co2(kwh){ return round2((Number(kwh) || 0) * this.co2Factor) },
     treesFromKwh(kwh){ return Math.round(this.co2(kwh) / TREE_KG) },
 
@@ -1147,12 +1077,10 @@ watch: {
       return out
     },
 
-    // 공통: energy에 따라 시리즈 엔드포인트 (집계용은 공용 라우터를 사용한다고 가정)
     _seriesEndpoint() {
       return '/api/energy/series'
     },
 
-    // 시간별 라우트: 백엔드와 1:1 매핑
     _hourlyEndpoint() {
       switch (this.energyField) {
         case '01': return '/api/energy/electric/hourly'
@@ -1165,7 +1093,6 @@ watch: {
       }
     },
 
-    /* ===== API ===== */
     async fetchRange(range, withHourly = false, imeiOverride = null) {
       const imei = imeiOverride || this.imeiField?.trim()
       const params = new URLSearchParams({ rtuImei: imei, imei, range })
@@ -1179,7 +1106,6 @@ watch: {
       return r.json()
     },
 
-    // 시간별(오늘)
     async fetchHourlyForToday () {
       const imei = this.imeiField?.trim()
       if (!imei) return []
@@ -1204,7 +1130,6 @@ watch: {
       }
     },
 
-    // 기존: 시간대별 날씨(오늘)
     async fetchWeatherHourlyByImei(){
       const imei = this.imeiField?.trim();
       if(!imei) return { base_date:null, base_time:null, hourly: [] };
@@ -1227,7 +1152,6 @@ watch: {
       }
     },
 
-    // 7일 예보 (우선 daily=1 엔드포인트 시도, 실패 시 폴백 메시지)
 async fetchWeatherWeek(){
   const imei = this.imeiField?.trim()
   if (!imei) return []
@@ -1240,10 +1164,10 @@ async fetchWeatherWeek(){
 
     // j.daily = [{ date:'YYYYMMDD', tmin, tmax, pop_max, wind_max, sky, pty, summary, ... }]
     return (j.daily || []).map(d => ({
-      date: d.date,                           // '20251103'
+      date: d.date,
       label: this.kDateLabel?.(d.date) ?? d.date,
       tmin: d.tmin, tmax: d.tmax,
-      pop:  d.pop_max,                        // ← 이름 주의(pop_max)
+      pop:  d.pop_max,
       wind: d.wind_max,
       cond: [d.sky, d.pty !== '없음' ? d.pty : null].filter(Boolean).join(' ')
     }))
@@ -1280,15 +1204,12 @@ kDateLabel(iso){
   if (!iso) return '';
   let s = String(iso).trim();
 
-  // 1) YYYYMMDD → YYYY-MM-DD 로 보정
   if (/^\d{8}$/.test(s)) {
     s = `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
   }
 
-  // 2) 유효성 체크
   const d = new Date(`${s}T00:00:00+09:00`);
   if (isNaN(d.getTime())) {
-    // 그래도 파싱 안되면 원문을 그대로 라벨로 사용
     return iso;
   }
 
@@ -1297,7 +1218,6 @@ kDateLabel(iso){
   return `${md}(${wd})`;
 },
     wxCodeToText(code){
-      // 간단 매핑(원한다면 확장 가능)
       const c = Number(code)
       if ([0,1].includes(c)) return '맑음'
       if ([2,3].includes(c)) return '구름'
@@ -1320,9 +1240,6 @@ async onSearch(options = {}) {
   this.errorMsg = '';
   const myReq = ++this.currentReqId;
 
-  /* -------------------------------------------------
-   * 1) 즉시 렌더링용 초기화 (바로 this.xxx 로 넣어줌)
-   * ------------------------------------------------- */
   this.bars = [];
   this.totalKwh = 0;
   this.monthSeries = [];
@@ -1348,12 +1265,8 @@ async onSearch(options = {}) {
   this.kpis = { totalKwh: 0, totalCo2: 0, totalTrees: 0 };
   this.avgEff = null;
 
-  /* 즉시 렌더: 초기화된 상태로 화면 갱신 → 스피너 활성화 */
   await this.$nextTick();
 
-  /* -------------------------------------------------
-   * 2) 라우터 쿼리 sync
-   * ------------------------------------------------- */
   try {
     const cur = this.$route?.query || {};
     const nextQ = {
@@ -1367,9 +1280,6 @@ async onSearch(options = {}) {
     }
   } catch {}
 
-  /* -------------------------------------------------
-   * 3) 병렬 API
-   * ------------------------------------------------- */
   try {
     const weeklyP = this.fetchRange('weekly', false, imei);
     const hourlyP = this.fetchHourlyForToday();
@@ -1382,9 +1292,6 @@ async onSearch(options = {}) {
 
     if (myReq !== this.currentReqId) return;
 
-    /* -------------------------------------------------
-     * 4) 결과 버퍼(next)에 데이터 조립
-     * ------------------------------------------------- */
     const next = {
       bars: [],
       totalKwh: 0,
@@ -1401,7 +1308,6 @@ async onSearch(options = {}) {
       hasSearched: true
     };
 
-    /* ---------- 주간 ---------- */
     const wSeries = Array.isArray(weekly?.series)
       ? weekly.series
       : Array.isArray(weekly?.data?.series)
@@ -1420,7 +1326,6 @@ async onSearch(options = {}) {
 
     next.weekRangeUtc = weekly?.range_utc || weekly?.range || null;
 
-    /* ---------- 상세 ---------- */
     const today = this.todayKstYmd();
     next.detailDay = today;
 
@@ -1437,7 +1342,6 @@ async onSearch(options = {}) {
     );
     next.avgEff = 13.9;
 
-    /* ---------- 날씨 ---------- */
     if (weather?.hourly?.length) {
       const wmap = new Map(weather.hourly.map(h => [this.toHH(h.hour), h]));
       next.detailRows = rows.map(r => {
@@ -1447,7 +1351,6 @@ async onSearch(options = {}) {
       });
     }
 
-    /* ---------- 월간 ---------- */
     const mSeries = Array.isArray(monthly?.series)
       ? monthly.series
       : Array.isArray(monthly?.data?.series)
@@ -1465,7 +1368,6 @@ async onSearch(options = {}) {
 
     next.monthSeries = monthAgg.series;
 
-    /* ---------- 연간 ---------- */
     const now = new Date();
     const y = now.getFullYear();
 
@@ -1484,7 +1386,6 @@ async onSearch(options = {}) {
 
     next.yearRangeUtc = yearly?.range_utc || yearly?.range || null;
 
-    /* ---------- KPI ---------- */
     next.summary.month_kwh = round2(
       mSeries.reduce((s, r) => s + Number(r.kwh ?? r.y ?? 0), 0)
     );
@@ -1500,9 +1401,6 @@ async onSearch(options = {}) {
     next.summary.co2_kg = this.co2(next.totalKwh);
     next.summary.trees = this.treesFromKwh(next.totalKwh);
 
-    /* -------------------------------------------------
-     * 5) 최종 렌더링
-     * ------------------------------------------------- */
     Object.assign(this, next);
 
   } catch (e) {
@@ -1557,7 +1455,6 @@ async onSearch(options = {}) {
       return Array.isArray(rows) && rows.some(r => Number(r?.kwh) > 0)
     },
 
-    /* CSV 다운로드 */
     openDownloadModal(){
       if(!this.canDownload){
         alert('먼저 조회를 수행하여 데이터를 불러와 주세요.')
@@ -1632,7 +1529,6 @@ async onSearch(options = {}) {
       }
     },
 
-    // 개발용 가드: 연간 ≥ 월간 ≥ 주간 확인
     assertAggregateOrder(){
       const w = this.kpiWeek.kwh || 0;
       const m = this.kpiMonth.kwh || 0;
@@ -1642,7 +1538,6 @@ async onSearch(options = {}) {
       }
     },
 
-    /* ===== 이번주 날씨 모달 제어 ===== */
     async openWxModal(){
       if (!this.imeiField?.trim()) {
         alert('IMEI를 먼저 입력해주세요.')
@@ -1669,7 +1564,6 @@ async onSearch(options = {}) {
     closeWxModal(){ this.showWx = false },
   },
   mounted() {
-    // 관리자 동기화 + 스토리지 변경 반영
     this.syncAdminFromStorage()
     this._storageHandler = (e) => {
       if (e.key === 'isAdmin' || e.key === 'email') this.syncAdminFromStorage()

@@ -1,7 +1,6 @@
 <template>
   <div class="rems-dashboard">
     <section class="rems-grid">
-      <!-- 1행: 요약 / 전기 / 열 -->
       <article class="rems-card rems-col-4 rems-kpi-card">
         <div class="rems-card-hd">
           <h3>전국 발전소 모니터링 운영 현황</h3>
@@ -26,7 +25,6 @@
               </div>
             </div>
 
-            <!-- ✅ grid 안으로 이동 (클릭 시 이상 모달) -->
             <div
               class="kpi-mini kpi-mini--alert"
               role="button"
@@ -60,7 +58,6 @@
         </div>
       </article>
 
-      <!-- 전국 전기에너지 -->
       <article class="rems-card rems-col-4">
         <div class="rems-card-hd"><h3>전국 태양광 에너지</h3></div>
         <div class="rems-stat-tiles">
@@ -96,7 +93,6 @@
         <div v-if="energyError" class="rems-loading-note rems-txt-warn" style="margin-top:8px;">⚠️ 전기 집계 로딩 실패: {{ energyError }}</div>
       </article>
 
-      <!-- 전국 열에너지 -->
       <article class="rems-card rems-col-4">
         <div class="rems-card-hd"><h3>전국 비태양광 에너지</h3></div>
         <div class="rems-stat-tiles">
@@ -118,12 +114,10 @@
         <div v-if="energyError" class="rems-loading-note rems-txt-warn" style="margin-top:8px;">⚠️ 열 집계 로딩 실패: {{ energyError }}</div>
       </article>
 
-      <!-- 2행: 지도 + 지역별 요약 -->
       <article class="rems-card rems-col-8 rems-row-2 rems-map-card">
         <div class="rems-card-hd rems-map-breadcrumbs">
           <div class="rems-map-hd-flex">
             <h3>대한민국 지도</h3>
-            <!-- ✅ 지도 모드 전환 버튼 -->
             <div class="map-mode-tabs">
               <button :class="['map-tab', {active: mapMode==='ABNORMAL'}]" @click="setMapMode('ABNORMAL')">이상 보기</button>
               <button :class="['map-tab', {active: mapMode==='NORMAL'}]" @click="setMapMode('NORMAL')">정상 보기</button>
@@ -147,7 +141,6 @@
         
           <div ref="kmap" class="rems-kmap" tabindex="0" @keydown.esc="resetAll"></div>
 
-          <!-- ✅ 오른쪽 사이드 리스트 -->
           <aside class="rems-map-panel">
             <div class="rems-panel-hd" @click="resetAll" style="cursor:pointer;">전국으로 돌아가기</div>
             <ul>
@@ -167,7 +160,6 @@
             <span class="rems-lg rems-lg-ok">정상</span>
           </div>
 
-          <!-- ✅ 우측 상세 패널 (마커 클릭 시) -->
           <aside v-if="selectedPoint" class="rems-detail-panel">
             <header class="detail-hd">
               <div class="detail-title">상세 정보</div>
@@ -209,9 +201,6 @@
 <div class="rems-card-hd" style="gap:8px; position: relative;">
   <h3>지역별 요약</h3>
 
-<!-- ✅ 커스텀 드롭다운 -->
-<!-- ✅ 개선된 커스텀 드롭다운 -->
-<!-- ✅ 커스텀 드롭다운 -->
 <div class="rems-dropdown rems-dropdown--enhanced">
   <button
     class="rems-dropdown-btn"
@@ -229,9 +218,7 @@
     </svg>
   </button>
 
-  <!-- 🔽 드롭다운 목록 -->
   <div v-if="dropdownOpen" class="rems-dropdown-panel">
-    <!-- 🔍 검색창 -->
     <input
       v-model="regionQuery"
       class="rems-dropdown-search"
@@ -239,7 +226,6 @@
       @keydown.esc="dropdownOpen = false"
     />
 
-    <!-- 🔸 특별시/광역시 -->
     <div class="rems-group">
       <h4>특별시 / 광역시</h4>
       <ul>
@@ -265,7 +251,6 @@
       </ul>
     </div>
 
-    <!-- 🔹 도 / 특별자치도 -->
     <div class="rems-group">
       <h4>도 / 특별자치도</h4>
       <ul>
@@ -290,11 +275,10 @@
         </li>
       </ul>
     </div>
-  </div> <!-- ✅ 여기서 rems-dropdown-panel 닫힘 -->
-</div> <!-- ✅ rems-dropdown 전체 닫힘 -->
-
+  </div>
 </div>
 
+</div>
 
 <div class="rems-table-wrap rems-table-sticky">
   <table class="rems-table rems-table-compact">
@@ -330,7 +314,6 @@
 
       </article>
 
-      <!-- 3행: 빠른 이동 -->
       <article class="rems-card rems-col-12">
         <div class="rems-card-hd"><div class="rems-hint">주요 분석/검색 페이지로 바로 이동</div></div>
         <div class="rems-quick-actions">
@@ -345,9 +328,6 @@
       </article>
     </section>
 
-    <!-- =======================
-     이상 리스트 모달
-     ======================= -->
     <div
       v-if="abnModal.open"
       class="modal-backdrop"
@@ -367,7 +347,6 @@
           <button class="modal__close" @click="closeAbnModal" aria-label="닫기">✕</button>
         </header>
 
-        <!-- 사유 필터 -->
         <div class="modal__tools">
           <div class="rems-seg seg-modern" role="tablist" aria-label="이상 사유 필터">
             <button
@@ -404,7 +383,6 @@
             </button>
           </div>
 
-          <!-- IMEI 빠른 필터 -->
           <div class="modal__search">
             <input
               class="modal__input"
@@ -414,7 +392,6 @@
           </div>
         </div>
 
-        <!-- 요약 라인 -->
         <div class="rems-abn-summaryline modal__summary">
           <span class="abn-chip danger"><i aria-hidden="true">●</i> OFFLINE <b>{{ nFmt(abn.summary.OFFLINE) }}</b></span>
           <span class="abn-chip warn"><i aria-hidden="true">●</i> OPMODE_ABNORMAL <b>{{ nFmt(abn.summary.OPMODE_ABNORMAL) }}</b></span>
@@ -427,7 +404,6 @@
           </span>
         </div>
 
-        <!-- 표 -->
         <div class="rems-table-wrap rems-table-sticky modal__table">
           <table class="rems-table rems-table-compact">
             <thead>
@@ -483,7 +459,7 @@ import '@/assets/css/dashboard.css'
 import '@/assets/css/dashboard_modal.css'
 const SIGUN_LEVEL  = 8
 const FOCUS_LEVEL  = 7
-const REGION_BUBBLE_LEVEL = 9 // level > 8 에서 버블 표시
+const REGION_BUBBLE_LEVEL = 9
 
 const PROVINCE_CENTERS = {
   '서울특별시': { lat: 37.5665, lng: 126.9780 },
@@ -514,45 +490,31 @@ data () {
     mapMode: 'ABNORMAL',
     abnModal: { open: false },
     mapLoading: false,
-
-    // 집계
     sidos: [],
     regions: [],
     loadingRegions: false,
     selectedSido: '',
     selectedSigungu: '',
     sideList: [],
-
-    // 지역별 이상수 캐시
     abnByRegion: {},
-
-    // 맵
     map: null,
     markers: [],
     regionBubbles: [],
     clusterer: null,
     geoCache: {},
-
-    // 우측 상세 패널
     selectedPoint: null,
-
-    // 요약
     loadingDash: true,
     totals: { total_plants: 0, normal_plants: 0, abnormal_plants: 0 },
     today:  { total_messages: 0, devices: 0 },
     refreshMs: 3600000,
     timerId: null,
     lastUpdated: null,
-
-    // 전기/열
     energyLoading: true,
     energyError: '',
     energy: {
       electric: { today_kwh: 0, today_co2_ton: 0, capacity_kw: 0, cumulative_kwh: 0 },
       thermal:  { today_kwh: 0, today_co2_ton: 0, collector_area_m2: 0, output_kw: 0, cumulative_kwh: 0 },
     },
-
-    // 이상 발전소
     abn: {
       loading: false,
       offlineMin: 90,
@@ -571,12 +533,12 @@ data () {
     this.loadSidos().then(() => this.loadRegions())
   },
 async mounted () {
-  if (this.map) return  // ✅ 이미 초기화된 경우 방지
+  if (this.map) return
   try {
     await this.loadKakaoFromServerKey()
     await this.$nextTick()
     this.initMap()
-    await this.refreshMapPoints()  // renderMap보다 먼저
+    await this.refreshMapPoints()
     this.renderMap()
     this.ensureMapReady()
     window.addEventListener('resize', this.onWindowResize)
@@ -591,8 +553,6 @@ beforeDestroy () {
   this.clearRegionBubbles()
   this.clearFocus()
   window.removeEventListener('resize', this.onWindowResize)
-
-  // ✅ 외부 클릭 감지 해제
   document.removeEventListener('click', this.handleOutsideClick)
 },
   computed: {
@@ -612,10 +572,9 @@ beforeDestroy () {
     }
   },
   watch: {
-    // 필터 바뀌면 마커 즉시 갱신
 reasonFilter () {
-  if (this.mapMode !== 'ABNORMAL') return;  // 🔒 정상보기(NORMAL)일 땐 무시
-  this.refreshMapPoints(); // 중앙화 (sido/sigungu 판단은 내부에서 처리)
+  if (this.mapMode !== 'ABNORMAL') return;
+  this.refreshMapPoints();
 }
   },
   methods: {
@@ -663,7 +622,7 @@ reasonFilter () {
     this.selectedSido = name
     this.dropdownOpen = false
     this.regionQuery = ''
-    this.onSelectSido() // 기존 메서드 호출 유지
+    this.onSelectSido()
   },
   handleOutsideClick (e) {
     const dropdown = this.$el.querySelector('.rems-dropdown')
@@ -678,32 +637,25 @@ setMapMode(mode) {
   this.refreshMapPoints()
 },
 async refreshMapPoints() {
-  // 🔒 중복 호출 방지 (줌/필터 이벤트 연속 호출 대비)
   if (this._refreshing) return
   this._refreshing = true
   this.mapLoading = true
   this.selectedPoint = null
 
-  // 기존 마커, 버블 정리
   this.clearMarkers()
   this.clearRegionBubbles()
 
   try {
-    // ✅ 지도 객체가 없을 경우 방지
     if (!this.map) return
 
-    const currentMode = this.mapMode // 중간에 모드 바뀌는 것 감지용
+    const currentMode = this.mapMode
 
     if (this.mapMode === 'ABNORMAL') {
       const level = this.map.getLevel()
-
-      // 확대 레벨(지역 단위 이상) → 시도/시군 버블
       if (level > REGION_BUBBLE_LEVEL) {
         await this.loadRegions()
-        // 버블 표시 중 다시 호출될 수 있으므로 await 필요
         await this.drawRegionClusters()
       } else {
-        // ✅ 상세 이상 포인트 렌더링
         await this.drawAbnormalPoints({
           reason: this.reasonFilter,
           sido: this.selectedSido,
@@ -711,11 +663,8 @@ async refreshMapPoints() {
         })
       }
     } else if (this.mapMode === 'NORMAL') {
-      // ✅ 정상 보기 모드 → 클러스터 표시
       await this.drawNormalPoints()
     }
-
-    // ✅ 중간에 모드가 바뀌면 중단 (이전 그리기 무시)
     if (this.mapMode !== currentMode) {
       console.warn('[refreshMapPoints] mode changed during render → skip stale result')
       return
@@ -728,7 +677,6 @@ async refreshMapPoints() {
   }
 },
 
-    /* ========== NORMAL 포인트 (클러스터) ========== */
     async drawNormalPoints() {
       if (!this.map) return
       this.clearMarkers()
@@ -789,7 +737,6 @@ async refreshMapPoints() {
       this.markers = markers
     },
 
-    /* ========== 공통 포맷터 ========== */
     nFmt (n) { if (n==null || Number.isNaN(Number(n))) return '—'; try {return Number(n).toLocaleString()} catch {return String(n)} },
     dFmt (n, digits = 3) { if (n==null || Number.isNaN(Number(n))) return '—'; if (n>1e9) return (n/1e9).toLocaleString(undefined,{maximumFractionDigits:digits}); return Number(n).toLocaleString(undefined,{maximumFractionDigits:digits}) },
     rawTip (n, unit='') { if (n==null || Number.isNaN(Number(n))) return ''; return `${n} ${unit}`.trim() },
@@ -821,7 +768,6 @@ async loadBasic () {
   }
 },
 
-    /* ===== API: 전기/열 ===== */
     async loadEnergy () {
       this.energyLoading = true; this.energyError = ''
       try {
@@ -837,7 +783,6 @@ async loadBasic () {
       finally { this.energyLoading = false }
     },
 
-    /* ===== API: 이상 발전소 ===== */
     async loadAbnormal () {
       this.abn.loading = true
       try {
@@ -852,7 +797,6 @@ async loadBasic () {
     },
     onOfflineMinChange () { this.loadAbnormal() },
 
-    /* ===== 지역별 이상수 로딩 ===== */
     async loadAbnormalByRegion () {
       const params = {
         lookbackDays: 3,
@@ -875,7 +819,6 @@ async loadBasic () {
       }
     },
 
-    /* ===== 지도/지역 ===== */
     async loadSidos () {
       try {
         const { data } = await api.get('/rems/agg/sido')
@@ -884,7 +827,6 @@ async loadBasic () {
       } catch (e) { console.error('loadSidos failed:', e); this.sidos = [] }
     },
 
-    // 전체/시군구 집계 + 이상수 결합 → 가동률 계산
     async loadRegions () {
       this.loadingRegions = true
       try {
@@ -900,7 +842,6 @@ async loadBasic () {
 
         await this.loadAbnormalByRegion()
 
-        // 가동률 합성
         if (!this.selectedSido) {
           this.regions = this.regions.map(r => {
             const abnormal = this.abnByRegion[r.name] || 0
@@ -916,7 +857,6 @@ async loadBasic () {
           })
         }
 
-        // 지도 포커스/UI만 갱신
         this.renderMap()
       } catch (e) {
         console.error('loadRegions failed:', e)
@@ -943,8 +883,6 @@ async loadBasic () {
     initMap () {
       const kakao = window.kakao
       this.map = new kakao.maps.Map(this.$refs.kmap, { center: new kakao.maps.LatLng(36.5, 127.8), level: 12 })
-
-      // ✅ 줌 변경 시 버블/포인트 자동 전환
       kakao.maps.event.addListener(this.map, 'zoom_changed', async () => {
         const level = this.map.getLevel()
         if (this.mapMode === 'ABNORMAL') {
@@ -957,10 +895,9 @@ async loadBasic () {
             await this.drawAbnormalPoints({ reason: this.reasonFilter, sido: this.selectedSido, sigungu: this.selectedSigungu })
           }
         } else {
-          // NORMAL: 포인트 클러스터만
           this.clearRegionBubbles()
         }
-        this.renderMap() // 포커스 링 유지
+        this.renderMap()
       })
     },
 
@@ -970,9 +907,7 @@ async loadBasic () {
     },
     onWindowResize () { if (this.map) window.kakao.maps.event.trigger(this.map, 'resize') },
 
-    /* ====== 마커/버블/포커스 ====== */
     clearMarkers () {
-      // overlay(CustomOverlay) 또는 Marker 모두 안전 해제
       this.markers.forEach(m => {
         if (!m) return
         if (m.setMap) m.setMap(null)
@@ -992,21 +927,19 @@ async loadBasic () {
     },
 
 reasonColor (reason) {
-  if (!reason) return '#22c55e' // 기본: 초록 (정상)
+  if (!reason) return '#22c55e'
   const R = String(reason).toUpperCase()
-  if (R === 'OFFLINE') return '#ef4444'             // 🔴 빨간색
-  if (R === 'OPMODE_ABNORMAL' || R === 'OPMODE') return '#64748b' // 회색 (대기 등)
-  return '#22c55e'                                  // NORMAL 초록색
+  if (R === 'OFFLINE') return '#ef4444'
+  if (R === 'OPMODE_ABNORMAL' || R === 'OPMODE') return '#64748b'
+  return '#22c55e'
 },
 makeMarkerEl (pt) {
   const el = document.createElement('div')
   el.className = 'rems-marker rems-marker-fadein'
 
-  // ✅ 색상 지정 (OFFLINE → 빨강)
   const color = this.reasonColor(pt?.reason)
   el.style.borderColor = color
 
-  // ✅ 원형 마커만 표시 (텍스트 제거)
   el.innerHTML = `
     <div class="rems-marker-dot" style="
       background:${color};
@@ -1016,8 +949,6 @@ makeMarkerEl (pt) {
       box-shadow:0 0 6px ${color}80;
     "></div>
   `
-
-  // ✅ 클릭 시 상세 패널 표시
   el.onclick = () => {
     console.log('🔍[MarkerClick] 원본 pt 객체:', pt)
 
@@ -1046,7 +977,6 @@ makeMarkerEl (pt) {
       const kakao = window.kakao
       const el = this.makeMarkerEl(pt)
 
-      // ✅ Hover 툴팁
       const tip = document.createElement('div')
       tip.className = 'rems-marker-tooltip'
       const addr = pt.address || '(주소 미등록)'
@@ -1080,12 +1010,11 @@ makeMarkerEl (pt) {
         zIndex: z,
       })
       overlay.setMap(this.map)
-      this.markers.push({ overlay, tip: tipOverlay }) // 둘 다 추적
+      this.markers.push({ overlay, tip: tipOverlay })
     },
 
 
 async ensureCoordForPoint(pt) {
-  // ✅ 정상 좌표가 있는 경우 빠르게 반환 (0,0 방지)
   if (pt.lat && pt.lon && pt.lat !== 0 && pt.lon !== 0) {
     const c = { lat: pt.lat, lng: pt.lon }
     localStorage.setItem(`coord:imei:${pt.imei}`, JSON.stringify(c))
@@ -1096,7 +1025,6 @@ async ensureCoordForPoint(pt) {
   let c = JSON.parse(localStorage.getItem(k1) || 'null')
   if (c && c.lat && c.lng) return c
 
-  // 주소 기반 키 캐시 조회
   const hint = pt.address || `${pt.sido || ''} ${pt.sigungu || ''}`.trim()
   const k2 = `coord:addr:${hint}`
   c = JSON.parse(localStorage.getItem(k2) || 'null')
@@ -1104,7 +1032,6 @@ async ensureCoordForPoint(pt) {
   if (!c) {
     try {
       let data
-      // ✅ 주소 또는 IMEI 기준으로 지오코딩
       if (hint) {
         const q = pt.address ? pt.address : `대한민국 ${hint}`.trim()
         const res = await api.get('/rems/geocode', { params: { query: q } })
@@ -1114,14 +1041,11 @@ async ensureCoordForPoint(pt) {
         data = res.data
       }
 
-      // ✅ 다양한 포맷 대응
       const d0 = (data?.results || [])[0] || data
       if (d0?.lat && d0?.lon)
         c = { lat: d0.lat, lng: d0.lon }
       else if (d0?.y && d0?.x)
         c = { lat: d0.y, lng: d0.x }
-
-      // ✅ 캐싱 (주소 + imei 키 모두)
       if (c) {
         localStorage.setItem(k2, JSON.stringify(c))
         localStorage.setItem(k1, JSON.stringify(c))
@@ -1132,22 +1056,19 @@ async ensureCoordForPoint(pt) {
     }
   }
 
-  // ✅ 반환 전에 최종 검증
   if (!c || !c.lat || !c.lng) return null
   return c
 },
 async drawAbnormalPoints ({ reason = 'ALL', sido = '', sigungu = '' } = {}) {
-  if (!this.map || this.mapMode !== 'ABNORMAL') return // ✅ 모드 가드
+  if (!this.map || this.mapMode !== 'ABNORMAL') return
   this.clearMarkers()
   this.clearRegionBubbles()
 
-  // ✅ 기본 파라미터
   const params = {
     offlineMin: this.abn.offlineMin || 90,
     lookbackDays: 3,
   }
 
-  // ✅ reason 처리 로직 (기본은 OFFLINE만 표시)
   if (reason === 'ALL') {
     params.reason = 'OFFLINE'
   } else {
@@ -1180,24 +1101,17 @@ async drawAbnormalPoints ({ reason = 'ALL', sido = '', sigungu = '' } = {}) {
   }
 },
 
-
-/* ====== 시·도 요약 대신 OFFLINE 마커 표시 ====== */
 async drawRegionClusters () {
   const kakao = window.kakao
-
-  // ✅ 기존 버블 제거
   this.clearRegionBubbles()
   this.clearMarkers()
 
-  // ✅ 전국 OFFLINE 상태만 표시
   try {
     const params = {
-      reason: 'OFFLINE',   // 🔴 오프라인 상태만
-      offlineMin: this.abn?.offlineMin || 30,  // (필요시 유지)
+      reason: 'OFFLINE',
+      offlineMin: this.abn?.offlineMin || 30,
       lookbackDays: 3
     }
-
-    // 선택된 시도/시군구가 있으면 필터 추가
     if (this.selectedSido) params.sido = this.selectedSido
     if (this.selectedSigungu) params.sigungu = this.selectedSigungu
 
@@ -1228,8 +1142,6 @@ async drawRegionClusters () {
 
 
 showFocus (latlng, radius=8000, label='') {
-  // 🔒 파란 원형 포커스 버블 제거 (지도 이동/줌만 유지)
-  // 기존 focusCircle, focusPulse 생성을 막음
   this.clearFocus()
   return
 },
@@ -1265,7 +1177,6 @@ async focusImei (ptOrRow) {
   this.selectedPoint = pt
 },
 
-    /* ===== 버블 제거: renderMap은 포커스만 유지 ===== */
     async renderMap () {
       if (!this.map) return
       if (this.selectedSigungu) {
@@ -1308,9 +1219,9 @@ async onRowClick (name) {
   if (!this.selectedSido) {
     this.selectedSido = name;
     this.selectedSigungu = '';
-    await this.onSelectSido();   // 내부에서 refreshMapPoints() 호출
+    await this.onSelectSido();
   } else {
-    await this.focusSigungu(name); // 내부에서 refreshMapPoints() 호출
+    await this.focusSigungu(name);
   }
 },
 
@@ -1345,7 +1256,7 @@ resetAll () {
   this.selectedSido = ''
   this.selectedSigungu = ''
   this.selectedPoint = null
-  this.onSelectSido()            // 내부에서 refreshMapPoints 호출
+  this.onSelectSido()
 },
 resetToSido () {
   if (!this.selectedSido) return
@@ -1353,8 +1264,6 @@ resetToSido () {
   this.selectedPoint = null
   this.onSelectSido()
 },
-
-    // (선택) 가동률 색상 강조
     rateClass (rate) {
       if (rate == null) return ''
       if (rate >= 95) return 'rate-ok'

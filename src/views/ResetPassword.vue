@@ -1,4 +1,3 @@
-<!-- src/views/ResetPassword.vue -->
 <template>
   <div
     class="auth"
@@ -8,14 +7,12 @@
       <div class="art-pad" aria-hidden="true"></div>
 
       <section class="auth-panel">
-        <!-- 로고 -->
         <img 
           src="@/assets/haeinlogo.png"
           alt="Hi-REMS 로고"
           class="auth-logo"
         />
 
-        <!-- 플랫폼 소개 -->
         <header class="platform-head" aria-labelledby="heroMain">
           <h1 id="heroMain" class="hero-title">
             지속가능한 에너지 <br />모니터링 플랫폼
@@ -25,7 +22,6 @@
           </p>
         </header>
 
-        <!-- 비밀번호 재설정 카드 -->
         <main class="auth-card" role="main" aria-labelledby="resetTitle">
           <header class="cardc-hd">
             <h2 id="resetTitle">비밀번호 재설정</h2>
@@ -38,16 +34,13 @@
             </p>
           </header>
 
-          <!-- 토큰 없음 화면 -->
           <section v-if="tokenMissing" class="cardc-form">
             <button class="btn-teal" type="button" @click="$router.replace('/findpassword')">
               비밀번호 찾기 화면으로 이동
             </button>
           </section>
 
-          <!-- 토큰 정상 화면 -->
           <form v-else class="cardc-form" @submit.prevent="onSubmit" novalidate>
-            <!-- 새 비밀번호 -->
             <div class="field">
               <label for="password">새 비밀번호</label>
               <div class="pill" :class="{ error: passwordTouched && !passwordValid }">
@@ -66,18 +59,15 @@
                 </button>
               </div>
 
-              <!-- 강도 바 -->
               <div class="pw-strength slim">
                 <div class="bar" :style="{ width: strengthPercent + '%' }"></div>
               </div>
 
-              <!-- 비밀번호 조건 -->
               <ul v-if="passwordTouched && passwordErrors.length" class="pw-errors compact">
                 <li v-for="(err, i) in passwordErrors" :key="i">{{ err }}</li>
               </ul>
             </div>
 
-            <!-- 비밀번호 확인 -->
             <div class="field">
               <label for="confirm">비밀번호 확인</label>
               <div class="pill" :class="{ error: confirmTouched && !confirmValid }">
@@ -139,7 +129,6 @@ export default {
     }
   },
   computed: {
-    /* 비밀번호 강도 */
     strengthPercent() {
       let s = 0
       if (this.password.length >= 8) s += 25
@@ -149,7 +138,6 @@ export default {
       return s
     },
 
-    /* 비밀번호 검증 */
     passwordErrors() {
       const e = []
       const pw = this.password

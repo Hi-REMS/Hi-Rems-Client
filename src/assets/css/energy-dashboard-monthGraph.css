@@ -1,7 +1,3 @@
-/* ============================================
-   월간 날씨/발전량 비교 차트 (wxm-*)
-   ============================================ */
-
 .wxm-card {
   background: var(--surface);
   border-radius: 18px;
@@ -65,14 +61,13 @@
   height: 310px;
 }
 
-/* Grid lines */
 .wxm-grid line {
   stroke: var(--border);
   stroke-width: 1;
   opacity: 0.35;
 }
 
-/* Y-axis */
+
 .wxm-axis-y line {
   stroke: var(--border);
   stroke-width: 1.4;
@@ -83,7 +78,7 @@
   font-size: 12px;
 }
 
-/* X-axis */
+
 .wxm-axis-x line {
   stroke: var(--border);
   stroke-width: 1.4;
@@ -94,7 +89,6 @@
   font-size: 12px;
 }
 
-/* Bars */
 .wxm-bars rect {
   fill: linear-gradient(180deg, #34d5ff 0%, rgba(0,119,255,0.35) 100%);
   fill: #38bdf8;
@@ -106,7 +100,6 @@
   opacity: 0.95;
 }
 
-/* Line (일사량) */
 .wxm-line polyline {
   stroke: #f97316;
   stroke-width: 3;
@@ -116,7 +109,6 @@
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));
 }
 
-/* Cloud points */
 .wxm-cloud-points circle {
   fill: #64748b;
   opacity: 0.9;

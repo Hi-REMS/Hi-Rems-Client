@@ -1,4 +1,3 @@
-// frontend/.eslintrc.cjs
 module.exports = {
   root: true,
   env: {

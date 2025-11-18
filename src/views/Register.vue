@@ -1,4 +1,3 @@
-<!-- src/views/Register.vue -->
 <template>
   <div
     class="auth"
@@ -29,7 +28,6 @@
           </header>
 
           <form class="cardc-form" @submit.prevent="onSubmit" novalidate>
-            <!-- 아이디(이메일) -->
             <div class="field">
               <label for="username">아이디(이메일)</label>
               <div class="pill" :class="{ error: usernameTouched && !usernameValid }">
@@ -50,7 +48,6 @@
               </ul>
             </div>
 
-            <!-- 담당자(이름) -->
             <div class="field">
               <label for="worker">담당자(이름)</label>
               <div class="pill" :class="{ error: workerTouched && !workerValid }">
@@ -69,7 +66,6 @@
               </p>
             </div>
 
-            <!-- 전화번호 -->
             <div class="field">
               <label for="phoneNumber">전화번호</label>
               <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
@@ -88,7 +84,6 @@
               </p>
             </div>
 
-            <!-- 비밀번호 -->
             <div class="field">
               <label for="password">비밀번호</label>
               <div class="pill" :class="{ error: passwordTouched && !passwordValid }">
@@ -115,7 +110,6 @@
               </ul>
             </div>
 
-            <!-- 비밀번호 확인 -->
             <div class="field">
               <label for="confirm">비밀번호 확인</label>
               <div class="pill" :class="{ error: confirmTouched && !confirmValid }">
@@ -134,7 +128,6 @@
               </p>
             </div>
 
-            <!-- 제출 -->
             <button class="btn-teal" :disabled="loading || !canSubmit">
               <span v-if="!loading">회원가입</span>
               <span v-else class="spinner" aria-hidden="true"></span>
@@ -160,7 +153,7 @@ export default {
     return {
       username: '', usernameTouched: false,
       worker: '', workerTouched: false,
-      phoneNumber: '', phoneTouched: false, // ✅ 변경
+      phoneNumber: '', phoneTouched: false,
       password: '', passwordTouched: false,
       confirm: '', confirmTouched: false,
       showPassword: false, capsOn: false, loading: false,
