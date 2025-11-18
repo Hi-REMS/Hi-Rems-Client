@@ -349,8 +349,6 @@
 
 <div class="modal__tools">
   <div class="rems-seg seg-modern" role="tablist" aria-label="이상 사유 필터">
-
-    <!-- 전체 버튼 -->
     <button
       class="seg-pill"
       :class="{active: reasonFilter==='ALL'}"

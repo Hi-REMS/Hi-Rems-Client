@@ -121,7 +121,7 @@
 
             <div v-else class="edb-empty">
         <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
-        <div v-else-if="loading" class="edb-loading">
+        <div v-else-if="loadingWeek" class="edb-loading">
           <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
         </div>
         <div v-else class="edb-empty-msg">
@@ -224,7 +224,7 @@
 
             <div v-else class="edb-empty">
         <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
-        <div v-else-if="loading" class="edb-loading">
+        <div v-else-if="loadingMonth" class="edb-loading">
           <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
         </div>
         <div v-else class="edb-empty-msg">
@@ -317,7 +317,7 @@
 
             <div v-else class="edb-empty">
         <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
-        <div v-else-if="loading" class="edb-loading">
+        <div v-else-if="loadingYear" class="edb-loading">
           <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
         </div>
         <div v-else class="edb-empty-msg">
@@ -460,7 +460,7 @@
 
     </div> 
     <div class="edb-detail-body">
-      <div v-if="!detailRows.length && loading" class="edb-detail-empty">
+      <div v-if="!detailRows.length && loadingHourly" class="edb-detail-empty">
         <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
       </div>
 
@@ -491,11 +491,6 @@
       </div>
     </div>   </section>
       </section>
-
-            <div v-if="loading" class="edb-loading-overlay" role="status" aria-live="polite">
-        <div class="edb-spinner-neo"></div>
-        <div class="edb-loading-text">불러오는 중…</div>
-      </div>
     </div>
 
         <div v-if="showDl" class="edb-modal-backdrop" @click.self="closeDownloadModal">
@@ -685,6 +680,10 @@ export default {
     const m = now.getMonth() + 1;
 
     return {
+      loadingWeek: false,
+      loadingMonth: false,
+      loadingYear: false,
+      loadingHourly: false,
       isAdmin: false,
       imeiField: DEFAULT_IMEI,
       energyField: '01',
@@ -920,17 +919,12 @@ export default {
     wxPointsMin(){ return this.wxGeom.map(p => `${p.x},${p.yMin}`).join(' ') },
   },
 watch: {
-  async multi(nv) {
-    this.multiField = nv
-    if (this.imeiField) {
-      this.loading = true
-      try {
-        await this.onSearch()
-      } finally {
-        this.loading = false
-      }
-    }
-  },
+multi(nv) {
+  this.multiField = nv
+  if (this.imeiField) {
+    this.onSearch()
+  }
+},
 
   energyField(nv) {
     if (nv !== '01') {
@@ -1236,10 +1230,16 @@ async onSearch(options = {}) {
   if (this.searching) return;
 
   this.searching = true;
-  this.loading = true;
   this.errorMsg = '';
   const myReq = ++this.currentReqId;
 
+  // 🔥 로딩 스피너 ON
+  this.loadingWeek = true;
+  this.loadingMonth = true;
+  this.loadingYear = true;
+  this.loadingHourly = true;
+
+  // 기존 초기화
   this.bars = [];
   this.totalKwh = 0;
   this.monthSeries = [];
@@ -1252,6 +1252,7 @@ async onSearch(options = {}) {
   this.monthRangeUtc = null;
   this.yearRangeUtc = null;
   this.weekRangeUtc = null;
+
   this.summary = {
     capacity_kw: DUMMY_CAP_KW,
     today_kwh: 0,
@@ -1262,6 +1263,7 @@ async onSearch(options = {}) {
     install_date: null,
     monitor_start: null
   };
+
   this.kpis = { totalKwh: 0, totalCo2: 0, totalTrees: 0 };
   this.avgEff = null;
 
@@ -1275,38 +1277,19 @@ async onSearch(options = {}) {
       ...(this.typeField && this.energyField === '01' ? { type: this.typeField } : {}),
       ...(this.multiField && this.energyField === '01' ? { multi: this.multiField } : {})
     };
+
     if (JSON.stringify(cur) !== JSON.stringify(nextQ)) {
       await this.$router.replace({ query: nextQ });
     }
-  } catch {}
+  } catch (e) {
+    console.warn("Query sync error:", e);
+  }
 
   try {
-    const weeklyP = this.fetchRange('weekly', false, imei);
-    const hourlyP = this.fetchHourlyForToday();
-    const weatherP = this.fetchWeatherHourlyByImei();
-    const monthlyP = this.fetchRange('monthly', false, imei);
-    const yearlyP = this.fetchRange('yearly', false, imei);
-
-    const [weekly, hourly, weather, monthly, yearly] =
-      await Promise.all([weeklyP, hourlyP, weatherP, monthlyP, yearlyP]);
+    // 🔥 주간 즉시 로딩
+    const weekly = await this.fetchRange('weekly', false, imei);
 
     if (myReq !== this.currentReqId) return;
-
-    const next = {
-      bars: [],
-      totalKwh: 0,
-      detailDay: '',
-      detailRows: [],
-      monthSeries: [],
-      yearSeries: [],
-      monthRangeUtc: null,
-      yearRangeUtc: null,
-      weekRangeUtc: null,
-      summary: { ...this.summary },
-      kpis: { totalKwh: 0, totalCo2: 0, totalTrees: 0 },
-      avgEff: null,
-      hasSearched: true
-    };
 
     const wSeries = Array.isArray(weekly?.series)
       ? weekly.series
@@ -1314,94 +1297,141 @@ async onSearch(options = {}) {
       ? weekly.data.series
       : [];
 
-    next.bars = wSeries.map(s => ({
+    this.bars = wSeries.map(s => ({
       x: s.bucket || s.date || s.x,
       y: Number(s.kwh ?? s.y ?? 0)
     })).filter(r => r.x != null);
 
-    next.totalKwh = round2(
-      Number(weekly?.summary?.total_kwh) ||
-      next.bars.reduce((a, c) => a + (c.y || 0), 0)
-    );
+    this.totalKwh =
+      round2(weekly?.summary?.total_kwh) ||
+      round2(this.bars.reduce((a, c) => a + (c.y || 0), 0));
 
-    next.weekRangeUtc = weekly?.range_utc || weekly?.range || null;
+    this.weekRangeUtc = weekly?.range_utc || weekly?.range || null;
 
     const today = this.todayKstYmd();
-    next.detailDay = today;
+    this.detailDay = today;
 
-    const rows = (hourly || []).map(h => ({
-      hour: `${h.hour}:00`,
-      kwh: h.kwh == null ? null : round2(h.kwh),
-      co2_kg: h.kwh == null ? null : round2(this.co2(h.kwh)),
-      weather: '—'
-    }));
+    // 🔥 주간 로딩 스피너 OFF
+    this.loadingWeek = false;
 
-    next.detailRows = rows;
-    next.summary.today_kwh = round2(
-      rows.reduce((s, x) => (x.kwh != null ? s + x.kwh : s), 0)
-    );
-    next.avgEff = 13.9;
+    // =============================
+    // ⏳ 월간/연간/시간별 상세정보 백그라운드 로딩
+    // =============================
+    (async () => {
+      try {
+        const [hourly, weather, monthly, yearly] = await Promise.all([
+          this.fetchHourlyForToday(),
+          this.fetchWeatherHourlyByImei(),
+          this.fetchRange('monthly', false, imei),
+          this.fetchRange('yearly', false, imei)
+        ]);
 
-    if (weather?.hourly?.length) {
-      const wmap = new Map(weather.hourly.map(h => [this.toHH(h.hour), h]));
-      next.detailRows = rows.map(r => {
-        const key = this.toHH(r.hour);
-        const w = key ? wmap.get(key) : null;
-        return w ? { ...r, weather: this.makeWeatherLabel(w) } : r;
-      });
-    }
+        if (myReq !== this.currentReqId) return;
 
-    const mSeries = Array.isArray(monthly?.series)
-      ? monthly.series
-      : Array.isArray(monthly?.data?.series)
-      ? monthly.data.series
-      : [];
+        // =============================
+        // 시간별 상세
+        // =============================
+        const rows = (hourly || []).map(h => ({
+          hour: `${h.hour}:00`,
+          kwh: h.kwh == null ? null : round2(h.kwh),
+          co2_kg: h.kwh == null ? null : round2(this.co2(h.kwh)),
+          weather: '—'
+        }));
 
-    next.monthRangeUtc = monthly?.range_utc || monthly?.range || null;
+        if (weather?.hourly?.length) {
+          const wmap = new Map(weather.hourly.map(h => [this.toHH(h.hour), h]));
+          this.detailRows = rows.map(r => {
+            const key = this.toHH(r.hour);
+            const w = key ? wmap.get(key) : null;
+            return w ? { ...r, weather: this.makeWeatherLabel(w) } : r;
+          });
+        } else {
+          this.detailRows = rows;
+        }
 
-    const monthAgg = this.aggregateWeeksFromDaily(
-      mSeries.map(r => ({
-        bucket: r.bucket || r.date || r.x,
-        kwh: Number(r.kwh ?? r.y ?? 0)
-      }))
-    );
+        this.summary.today_kwh = round2(
+          this.detailRows.reduce((s, x) => (x.kwh != null ? s + x.kwh : s), 0)
+        );
 
-    next.monthSeries = monthAgg.series;
+        // 🔥 시간별 로딩 OFF
+        this.loadingHourly = false;
 
-    const now = new Date();
-    const y = now.getFullYear();
+        // =============================
+        // 월간
+        // =============================
+        const mSeries = Array.isArray(monthly?.series)
+          ? monthly.series
+          : Array.isArray(monthly?.data?.series)
+          ? monthly.data.series
+          : [];
 
-    const ySeries = Array.isArray(yearly?.series)
-      ? yearly.series
-      : Array.isArray(yearly?.data?.series)
-      ? yearly.data.series
-      : [];
+        this.monthRangeUtc = monthly?.range_utc || monthly?.range || null;
 
-    next.yearSeries = this.ensureYearMonths(
-      ySeries.map(r => ({
-        bucket: r.bucket || r.date || r.x,
-        kwh: Number(r.kwh ?? r.y ?? 0)
-      })), y
-    );
+        const monthAgg = this.aggregateWeeksFromDaily(
+          mSeries.map(r => ({
+            bucket: r.bucket || r.date || r.x,
+            kwh: Number(r.kwh ?? r.y ?? 0)
+          }))
+        );
 
-    next.yearRangeUtc = yearly?.range_utc || yearly?.range || null;
+        this.monthSeries = monthAgg.series;
+        this.summary.month_kwh = round2(
+          mSeries.reduce((s, r) => s + Number(r.kwh ?? r.y ?? 0), 0)
+        );
 
-    next.summary.month_kwh = round2(
-      mSeries.reduce((s, r) => s + Number(r.kwh ?? r.y ?? 0), 0)
-    );
+        // 🔥 월간 로딩 OFF
+        this.loadingMonth = false;
 
-    next.summary.year_kwh = round2(
-      next.yearSeries.reduce((s, r) => s + (r.y || 0), 0)
-    );
+        // =============================
+        // 연간
+        // =============================
+        const now = new Date();
+        const yearNum = now.getFullYear();
 
-    next.kpis.totalKwh = next.summary.year_kwh;
-    next.kpis.totalCo2 = this.co2(next.kpis.totalKwh);
-    next.kpis.totalTrees = this.treesFromKwh(next.kpis.totalKwh);
+        const ySeries = Array.isArray(yearly?.series)
+          ? yearly.series
+          : Array.isArray(yearly?.data?.series)
+          ? yearly.data.series
+          : [];
 
-    next.summary.co2_kg = this.co2(next.totalKwh);
-    next.summary.trees = this.treesFromKwh(next.totalKwh);
+        this.yearSeries = this.ensureYearMonths(
+          ySeries.map(r => ({
+            bucket: r.bucket || r.date || r.x,
+            kwh: Number(r.kwh ?? r.y ?? 0)
+          })), yearNum
+        );
 
-    Object.assign(this, next);
+        this.yearRangeUtc = yearly?.range_utc || yearly?.range || null;
+
+        this.summary.year_kwh = round2(
+          this.yearSeries.reduce((s, r) => s + (r.y || 0), 0)
+        );
+
+        // 🔥 연간 로딩 OFF
+        this.loadingYear = false;
+
+        // =============================
+        // KPI
+        // =============================
+        this.kpis.totalKwh = this.summary.year_kwh;
+        this.kpis.totalCo2 = this.co2(this.kpis.totalKwh);
+        this.kpis.totalTrees = this.treesFromKwh(this.kpis.totalKwh);
+
+        this.summary.co2_kg = this.co2(this.totalKwh);
+        this.summary.trees = this.treesFromKwh(this.totalKwh);
+
+        this.avgEff = 13.9;
+
+        this.$nextTick(() => this.updateAxisFonts());
+
+      } catch (e) {
+        console.warn("Background loading error:", e);
+        // 스피너 강제 OFF
+        this.loadingMonth = false;
+        this.loadingYear = false;
+        this.loadingHourly = false;
+      }
+    })();
 
   } catch (e) {
     this.errorMsg = e?.message || '오류가 발생했습니다.';
@@ -1409,8 +1439,6 @@ async onSearch(options = {}) {
 
   } finally {
     this.searching = false;
-    this.loading = false;
-    this.$nextTick(this.updateAxisFonts);
   }
 },
 

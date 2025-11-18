@@ -1820,19 +1820,31 @@ onViewAll() {
       if (Number(v) === 0) return '0';
       return Number(v).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     },
-    abortAll() {
-      for (const k of Object.keys(this.controllers)) {
-        try { this.controllers[k]?.abort(); } catch (e) { void 0; }
-        this.controllers[k] = null;
-      }
-    },
-    newController(key) {
-      this.controllers[key]?.abort();
-      const c = new AbortController();
-      this.controllers[key] = c;
-      return c.signal;
-    },
+_abortStamp: 0,
 
+abortAll() {
+  // abort 실행
+  for (const k of Object.keys(this.controllers)) {
+    try {
+      this.controllers[k]?.abort();
+    } catch (_) {}
+    this.controllers[k] = null;
+  }
+
+  this._abortStamp = Date.now();
+},
+
+newController(key) {
+  const now = Date.now();
+
+  if (this._abortStamp && now - this._abortStamp < 40) {
+    return new AbortController().signal;
+  }
+
+  const c = new AbortController();
+  this.controllers[key] = c;
+  return c.signal;
+},
     emptyKpi () {
       return {
         now_kw: null, today_kwh: null, total_kwh: null,
@@ -2598,51 +2610,73 @@ async syncQuery() {
       return row?.weather || row?.condition || null;
     },
 
-async clearMulti () {
-  if (!this.selectedMulti) {
-    await Promise.all([
-      this.loadHourly(this.currentReqId),
-      this.loadKpis(this.currentReqId)
-    ])
-    return
-  }
+async clearMulti() {
+  this.abortAll();
 
-  this.selectedMulti = ''
-  await this.syncQuery(true)
+  const myReq = ++this.currentReqId;
 
-  this.hoverIdx = null
-  this.hourly = []
-  this.chartTodaySum = null
+  // 1) 로딩 UI 먼저 반영
+  this.loadingHourly = true;
+  this.loadingKpis = true;
+  this.selectedMulti = '';
+  this.hoverIdx = null;
+  this.hourly = [];
+  this.chartTodaySum = null;
 
-  await Promise.all([
-    this.loadHourly(this.currentReqId),
-    this.loadKpis(this.currentReqId)
-  ])
+  await this.$nextTick(); // UI 먼저 업데이트
+
+  await this.syncQuery(true);
+
+  // 2) fetch 시작 (abort 전염 방지)
+  await Promise.allSettled([
+    this.loadHourly(myReq),
+    this.loadKpis(myReq)
+  ]);
+
+  this.loadingHourly = false;
+  this.loadingKpis = false;
 },
-async onSelectUnit (hex) {
-  const next = this.normMulti(hex)
-  if (!next) return this.clearMulti()
+async onSelectUnit(hex) {
+  const next = this.normMulti(hex);
+  if (!next) return this.clearMulti();
 
+  this.abortAll();
+  const myReq = ++this.currentReqId;
+
+  // 1) 로딩 UI 먼저 띄우기
+  this.loadingHourly = true;
+  this.loadingKpis = true;
+  await this.$nextTick();
+
+  // 같은 멀티를 다시 클릭하면 → 새로고침
   if (this.selectedMulti === next) {
-    await Promise.all([
-      this.loadHourly(this.currentReqId),
-      this.loadKpis(this.currentReqId)
-    ])
-    return
+    await Promise.allSettled([
+      this.loadHourly(myReq),
+      this.loadKpis(myReq)
+    ]);
+
+    this.loadingHourly = false;
+    this.loadingKpis = false;
+    return;
   }
 
-  this.selectedMulti = next
-  await this.syncQuery(true)
+  // 2) 새로운 멀티 적용
+  this.selectedMulti = next;
+  await this.syncQuery(true);
 
-  this.hoverIdx = null
-  this.hourly = []
-  this.chartTodaySum = null
+  this.hoverIdx = null;
+  this.hourly = [];
+  this.chartTodaySum = null;
 
-  await Promise.all([
-    this.loadHourly(this.currentReqId),
-    this.loadKpis(this.currentReqId)
-  ])
-},
+  // 3) 데이터 로딩
+  await Promise.allSettled([
+    this.loadHourly(myReq),
+    this.loadKpis(myReq)
+  ]);
+
+  this.loadingHourly = false;
+  this.loadingKpis = false;
+}
   },
 mounted () {
   this.syncAdminFromStorage();
