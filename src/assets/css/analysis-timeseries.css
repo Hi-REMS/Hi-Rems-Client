@@ -1223,7 +1223,7 @@ html[data-theme="dark"] .weather-card .wx-inspect{
 }
 
 .status-summary-box {
-  background: #f9fafc; border-radius: 14px; padding: 16px; transition: background 0.25s ease;
+  border-radius: 14px; padding: 16px; transition: background 0.25s ease;
 }
 
 .summary-title {
@@ -1235,7 +1235,7 @@ html[data-theme="dark"] .weather-card .wx-inspect{
 }
 
 .status-detail-box {
-  background: #fafafa; border-radius: 14px; padding: 16px; transition: background 0.25s ease;
+   border-radius: 14px; padding: 16px; transition: background 0.25s ease;
 }
 
 .detail-title {
@@ -1271,7 +1271,7 @@ html[data-theme="dark"] .weather-card .wx-inspect{
 }
 
 html[data-theme='dark'] .status-card {
-  background: #1e252f; box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.4);
 }
 
 html[data-theme='dark'] .status-header h3 {
@@ -1299,17 +1299,9 @@ html[data-theme='dark'] .status-circle.error {
 }
 
 
-html[data-theme='dark'] .status-summary-box {
-  background: #232a35;
-}
 
 html[data-theme='dark'] .summary-info {
   color: #d0d7e3;
-}
-
-
-html[data-theme='dark'] .status-detail-box {
-  background: #232a35;
 }
 
 html[data-theme='dark'] .detail-title {

@@ -684,7 +684,6 @@ export default {
       loadingMonth: false,
       loadingYear: false,
       loadingHourly: false,
-      isAdmin: false,
       imeiField: DEFAULT_IMEI,
       energyField: '01',
       typeField: '',
@@ -1439,6 +1438,7 @@ async onSearch(options = {}) {
 
   } finally {
     this.searching = false;
+    this.hasSearched = true;
   }
 },
 

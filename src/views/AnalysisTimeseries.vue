@@ -1626,19 +1626,25 @@ normMulti(v) {
 onViewAll() {
   this.selectedMulti = ''
 },
-    onWxMove (e) {
-      if (this.wxPinned) return;
-      const box = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - box.left;
-      const pts = this.wxStripPoints;
-      if (!pts.length) { this.inspectIdx = null; return; }
-      let idx = 0, min = Infinity;
-      for (let i=0;i<pts.length;i++){
-        const d = Math.abs(pts[i].x - x);
-        if (d < min){ min = d; idx = i; }
-      }
-      this.inspectIdx = idx;
-    },
+onWxMove (e) {
+  if (this.wxPinned) return;
+  const box = e.currentTarget.getBoundingClientRect();
+  const xPx = e.clientX - box.left;
+
+  // SVG viewBox(0,0,720,140) 기준 좌표로 변환
+  const xSvg = (xPx / box.width) * 720;
+
+  const pts = this.wxStripPoints;
+  if (!pts.length) { this.inspectIdx = null; return; }
+
+  let idx = 0, min = Infinity;
+  for (let i=0; i<pts.length; i++){
+    const d = Math.abs(pts[i].x - xSvg);
+    if (d < min){ min = d; idx = i; }
+  }
+
+  this.inspectIdx = idx;
+},
     onWxLeave () {
       if (this.wxPinned) return;
       this.inspectIdx = null;
