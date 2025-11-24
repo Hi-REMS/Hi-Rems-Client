@@ -125,6 +125,34 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
 
 .ts-page .row{ display:grid; grid-template-columns: repeat(12,minmax(0,1fr)); gap:16px; margin-top:16px; }
 .ts-page .col-9{ grid-column: span 9; } .ts-page .col-3{ grid-column: span 3; } .ts-page .col-6{ grid-column: span 6; }
+.ts-page .col-4{ grid-column: span 4; }
+
+/* =========================================
+   하단 3개 카드(추가정보, 환경데이터, 유지보수) 모바일 전용 스타일
+   ========================================= */
+@media (max-width: 768px) {
+  
+  /* 1. 해당 섹션(row)을 세로 정렬로 변경 */
+  .ts-page .bottom-info-row {
+    display: flex !important;
+    flex-direction: column !important; /* 세로로 쌓기 */
+    gap: 16px !important; /* 카드 사이 간격 */
+  }
+
+  /* 2. 그 안의 모든 카드(.card) 너비를 100%로 강제 확장 */
+  .ts-page .bottom-info-row .card {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none !important; /* grid나 flex 비율 무시 */
+    margin: 0 !important;
+  }
+
+  /* 3. (선택사항) 환경 데이터 카드 헤더 내부 정렬 보정 */
+  .ts-page .bottom-info-row .weather-card .card-hd {
+    flex-direction: row !important; /* 헤더 내용은 가로 유지 */
+    justify-content: space-between !important;
+  }
+}
 .ts-page .card{
   background: var(--card);
   border:1px solid var(--border-1);
@@ -153,7 +181,7 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
 .ts-page .kpi-hd{ display:flex; justify-content:space-between; align-items:center; color:var(--muted-1); font-size:12px; }
 .ts-page .kpi-title{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:80%; }
 .ts-page .kpi-main{ display:flex; align-items:baseline; gap:6px; flex-wrap: wrap; }
-.ts-page .kpi-value{ font-size:20px; font-weight:800; line-height:1; min-width:0; }
+.ts-page .kpi-value{ font-weight:800; line-height:1; min-width:0; }
 .ts-page .kpi-unit{ font-size:12px; color:var(--muted-1); white-space:nowrap; }
 .ts-page .kpi-sub{ color:var(--muted-1); font-size:12px; margin-top:4px; }
 .ts-page .kpi-ico{ opacity:.45; }
@@ -295,7 +323,6 @@ html[data-theme="light"] .ts-page .toolbar {
   .ts-page .input{ padding:8px 10px; font-size:14px; }
   .ts-page .btn{ padding:8px 10px; font-size:14px; }
   .ts-page .card-hd h3{ font-size:12.5px; }
-  .ts-page .kpi-value{ font-size: clamp(17px, 7vw, 20px); }
   .ts-page .kpi-sub{ font-size:11px; }
   .ts-page .svg-chart{ height:260px; }
   .ts-page .svg-chart .axis text{ font-size:9.5px; }

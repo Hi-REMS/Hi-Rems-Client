@@ -396,8 +396,8 @@
       </article>
 
     </section>
-    <section class="row">
-      <article class="card col-3">
+    <section class="row bottom-info-row">
+      <article class="card col-4">
         <div class="card-hd"><h3>추가 정보</h3></div>
         <ul class="kv">
           <li><span>총 {{ labelEnergy }}</span><strong>{{ fmt(kpi.total_kwh, 2) }} {{ unitEnergy }}</strong></li>
@@ -405,7 +405,7 @@
         </ul>
       </article>
 
-      <article class="card col-3 weather-card">
+      <article class="card col-4 weather-card">
    <template v-if="loadingWeather">
     <div class="weather-skel">
       <div class="wx-temp-skel"></div>
@@ -513,7 +513,7 @@
   </template>
       </article>
 
-      <article class="card col-3">
+      <article class="card col-4">
         <div class="card-hd">
           <h3>유지보수</h3>
           <div class="card-actions">

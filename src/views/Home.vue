@@ -494,7 +494,7 @@ data () {
     abn: {
       loading: false,
       offlineMin: 90,
-      limit: 200,
+      limit: 200, 
       summary: { OFFLINE: 0 },
       items: [],
       msgs24hMax: 1,
@@ -1253,6 +1253,11 @@ showFocus (latlng, radius=8000, label='') {
 async focusImei (ptOrRow) {
   const kakao = window.kakao
 
+  if (this.abnModal.open && this.mapMode !== 'ABNORMAL') {
+    this.mapMode = 'ABNORMAL' 
+    await this.refreshMapPoints() 
+  }
+
   const pt = {
     imei: ptOrRow.imei,
     reason: ptOrRow.reason || 'NORMAL',
@@ -1271,14 +1276,24 @@ async focusImei (ptOrRow) {
 
   const latlng = new kakao.maps.LatLng(coord.lat, coord.lng)
 
-  const currentLevel = this.map.getLevel()
-  this.map.setLevel(currentLevel, { animate: false })
-
+  if (this.abnModal.open) {
+     this.map.setLevel(7, { animate: true }) 
+  }
   this.map.panTo(latlng)
 
   this.showFocus(latlng, 3000, pt.imei)
-
   this.selectedPoint = pt
+
+  if (this.abnModal.open) {
+    this.closeAbnModal()
+  }
+
+  this.$nextTick(() => {
+    const mapEl = this.$refs.kmap
+    if (mapEl) {
+      mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
 },
 
     async renderMap () {

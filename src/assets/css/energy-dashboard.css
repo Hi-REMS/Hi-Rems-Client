@@ -57,9 +57,7 @@ html[data-theme="dark"], :root[data-theme="dark"] {
 }
 
 .edb-page {
-
   color: var(--p-text);
-  padding: var(--space-lg);
 }
 
 .edb-inner {
@@ -243,9 +241,6 @@ html[data-theme="dark"], :root[data-theme="dark"] {
 }
 
 @media (max-width: 600px) {
-  .edb-page {
-    padding: var(--space-md);
-  }
   .metric {
     padding: var(--space-sm) var(--space-md);
   }
@@ -508,7 +503,7 @@ html[data-theme="dark"] .wx-forecast-btn {
 }
 
 .edb-stat-value {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--p-text);
   display: flex;
