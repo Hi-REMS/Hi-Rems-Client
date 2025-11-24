@@ -1244,7 +1244,6 @@ async drawRegionClusters () {
   }
 },
 
-
 showFocus (latlng, radius=8000, label='') {
   this.clearFocus()
   return
@@ -1295,7 +1294,6 @@ async focusImei (ptOrRow) {
     }
   })
 },
-
     async renderMap () {
       if (!this.map) return
       if (this.selectedSigungu) {

@@ -684,6 +684,7 @@ export default {
       loadingMonth: false,
       loadingYear: false,
       loadingHourly: false,
+      isAdmin: false,
       imeiField: DEFAULT_IMEI,
       energyField: '01',
       typeField: '',
@@ -807,14 +808,20 @@ export default {
       for(let i=0;i<=4;i++){ const v=step*i; const y=this.pad.t+(1-v/max)*this.inner.h; arr.push({y,label:this.fmt(v, v>=10?0:1)}) }
       return arr
     },
-    xTicksYear(){
-      const out=[], n=this.yearSeries.length, every=n>12?Math.ceil(n/12):1
-      for(let i=0;i<n;i+=every){
-        const x=this.pad.l+i*this.stepWYear+this.stepWYear/2
-        out.push({ x, label: this.yearSeries[i].x })
-      }
-      return out
-    },
+xTicksYear() {
+  const out = [];
+  const n = this.yearSeries.length;
+
+  for (let i = 0; i < n; i++) {
+    const x = this.pad.l + i * this.stepWYear + this.stepWYear / 2;
+    out.push({
+      x,
+      label: this.yearSeries[i].x   // 예: "10월", "11월"
+    });
+  }
+
+  return out;
+},
     barsGeomYear(){
       const g=[], max=this.maxYear
       for(let i=0;i<this.yearSeries.length;i++){
@@ -1035,41 +1042,6 @@ multi(nv) {
       return { series }
     },
 
-    ensureYearMonths(yearSeriesRaw, targetYear){
-      const y = Number(targetYear) || new Date().getFullYear()
-      const map = new Map()
-
-      if (Array.isArray(yearSeriesRaw)) {
-        for (const row of yearSeriesRaw) {
-          const b = String(row.bucket || row.x || '')
-          const m = b.match(/^(\d{4})-(\d{2})(?:-\d{2})?$/)
-          if (!m) continue
-          const yyyy = Number(m[1])
-          const mm   = m[2]
-          if (yyyy !== y) continue
-          const key = `${yyyy}-${mm}`
-
-          const cur = map.get(key) || { kwh:0 }
-          const kwh = Number(row.kwh ?? row.y ?? 0)
-          cur.kwh  += kwh
-          map.set(key, cur)
-        }
-      }
-
-      const out = []
-      for (let m = 1; m <= 12; m++){
-        const mm = String(m).padStart(2,'0')
-        const key = `${y}-${mm}`
-        const agg = map.get(key) || { kwh:0 }
-        out.push({
-          x: `${m}월`,
-          y: round2(agg.kwh),
-          rawKey: key
-        })
-      }
-      return out
-    },
-
     _seriesEndpoint() {
       return '/api/energy/series'
     },
@@ -1232,20 +1204,15 @@ async onSearch(options = {}) {
   this.errorMsg = '';
   const myReq = ++this.currentReqId;
 
-  // 🔥 로딩 스피너 ON
   this.loadingWeek = true;
   this.loadingMonth = true;
   this.loadingYear = true;
   this.loadingHourly = true;
 
-  // 기존 초기화
   this.bars = [];
   this.totalKwh = 0;
   this.monthSeries = [];
   this.yearSeries = [];
-  this.valuesWeek = [];
-  this.valuesMonth = [];
-  this.valuesYear = [];
   this.detailRows = [];
   this.detailDay = '';
   this.monthRangeUtc = null;
@@ -1285,51 +1252,51 @@ async onSearch(options = {}) {
   }
 
   try {
-    // 🔥 주간 즉시 로딩
     const weekly = await this.fetchRange('weekly', false, imei);
-
+    
     if (myReq !== this.currentReqId) return;
 
     const wSeries = Array.isArray(weekly?.series)
       ? weekly.series
       : Array.isArray(weekly?.data?.series)
-      ? weekly.data.series
-      : [];
+        ? weekly.data.series
+        : [];
 
-    this.bars = wSeries.map(s => ({
-      x: s.bucket || s.date || s.x,
-      y: Number(s.kwh ?? s.y ?? 0)
-    })).filter(r => r.x != null);
+    this.bars = wSeries
+      .map(s => ({
+        x: s.bucket || s.date || s.x,
+        y: Number(s.kwh ?? s.y ?? 0)
+      }))
+      .filter(r => r.x != null);
+
+    {
+      const today = this.todayKstYmd().replace(/-/g, '');
+      this.bars = this.bars.filter(row => {
+        const ymd = String(row.x).replace(/-/g, '');
+        if (ymd > today) return false;
+        if ((row.y || 0) <= 0) return false;
+        return true;
+      });
+    }
 
     this.totalKwh =
       round2(weekly?.summary?.total_kwh) ||
       round2(this.bars.reduce((a, c) => a + (c.y || 0), 0));
 
     this.weekRangeUtc = weekly?.range_utc || weekly?.range || null;
-
-    const today = this.todayKstYmd();
-    this.detailDay = today;
-
-    // 🔥 주간 로딩 스피너 OFF
+    this.detailDay = this.todayKstYmd();
+    
     this.loadingWeek = false;
 
-    // =============================
-    // ⏳ 월간/연간/시간별 상세정보 백그라운드 로딩
-    // =============================
-    (async () => {
+    const loadHourlyAndWeather = async () => {
       try {
-        const [hourly, weather, monthly, yearly] = await Promise.all([
+        const [hourly, weather] = await Promise.all([
           this.fetchHourlyForToday(),
-          this.fetchWeatherHourlyByImei(),
-          this.fetchRange('monthly', false, imei),
-          this.fetchRange('yearly', false, imei)
+          this.fetchWeatherHourlyByImei()
         ]);
-
+        
         if (myReq !== this.currentReqId) return;
 
-        // =============================
-        // 시간별 상세
-        // =============================
         const rows = (hourly || []).map(h => ({
           hour: `${h.hour}:00`,
           kwh: h.kwh == null ? null : round2(h.kwh),
@@ -1351,19 +1318,20 @@ async onSearch(options = {}) {
         this.summary.today_kwh = round2(
           this.detailRows.reduce((s, x) => (x.kwh != null ? s + x.kwh : s), 0)
         );
-
-        // 🔥 시간별 로딩 OFF
+        
         this.loadingHourly = false;
+      } catch (e) {
+        console.warn("Hourly load error:", e);
+        this.loadingHourly = false;
+      }
+    };
 
-        // =============================
-        // 월간
-        // =============================
-        const mSeries = Array.isArray(monthly?.series)
-          ? monthly.series
-          : Array.isArray(monthly?.data?.series)
-          ? monthly.data.series
-          : [];
+    const loadMonthly = async () => {
+      try {
+        const monthly = await this.fetchRange('monthly', false, imei);
+        if (myReq !== this.currentReqId) return;
 
+        const mSeries = Array.isArray(monthly?.series) ? monthly.series : [];
         this.monthRangeUtc = monthly?.range_utc || monthly?.range || null;
 
         const monthAgg = this.aggregateWeeksFromDaily(
@@ -1374,74 +1342,109 @@ async onSearch(options = {}) {
         );
 
         this.monthSeries = monthAgg.series;
+
+        this.monthSeries = this.monthSeries.map((item, idx) => ({
+          ...item,
+          x: `W${idx + 1}`,
+          label: `${idx + 1}주`
+        }));
+
         this.summary.month_kwh = round2(
           mSeries.reduce((s, r) => s + Number(r.kwh ?? r.y ?? 0), 0)
         );
 
-        // 🔥 월간 로딩 OFF
-        this.loadingMonth = false;
-
-        // =============================
-        // 연간
-        // =============================
         const now = new Date();
-        const yearNum = now.getFullYear();
+        const todayDate = now.getDate();
+        if (this.monthSeries && this.monthSeries.length) {
+          this.monthSeries = this.monthSeries.filter(item => {
+            if ((item.y || 0) < 0.01) return false; // 0 제거
+            const label = String(item.x || item.label || '');
+            const weekNum = parseInt(label.replace(/\D/g, ''));
+            if (!weekNum) return true;
+            const startDay = (weekNum - 1) * 7 + 1;
+            return startDay <= todayDate; // 미래 제거
+          });
+        }
 
-        const ySeries = Array.isArray(yearly?.series)
-          ? yearly.series
-          : Array.isArray(yearly?.data?.series)
-          ? yearly.data.series
-          : [];
+        this.loadingMonth = false;
+      } catch (e) {
+        console.warn("Monthly load error:", e);
+        this.loadingMonth = false;
+      }
+    };
 
-        this.yearSeries = this.ensureYearMonths(
-          ySeries.map(r => ({
-            bucket: r.bucket || r.date || r.x,
-            kwh: Number(r.kwh ?? r.y ?? 0)
-          })), yearNum
-        );
+    const loadYearly = async () => {
+      try {
+        const yearly = await this.fetchRange('yearly', false, imei);
+        if (myReq !== this.currentReqId) return;
+
+        const ySeries = Array.isArray(yearly?.series) ? yearly.series : [];
+        
+        let ys = ySeries.map(r => ({
+          raw: r.bucket || r.x,
+          kwh: Number(r.kwh ?? r.y ?? 0)
+        }));
+
+        ys = ys.map(row => {
+          const m = row.raw?.match?.(/\d{4}-(\d{2})/);
+          const monthNum = m ? Number(m[1]) : null;
+          return {
+            monthNum,
+            x: `${monthNum}월`,
+            y: round2(row.kwh)
+          };
+        });
+
+        ys = ys.filter(i => i.monthNum != null);
+        ys.sort((a, b) => a.monthNum - b.monthNum);
+        this.yearSeries = ys;
 
         this.yearRangeUtc = yearly?.range_utc || yearly?.range || null;
-
         this.summary.year_kwh = round2(
           this.yearSeries.reduce((s, r) => s + (r.y || 0), 0)
         );
 
-        // 🔥 연간 로딩 OFF
-        this.loadingYear = false;
-
-        // =============================
-        // KPI
-        // =============================
+        const now = new Date();
+        const thisMonth = now.getMonth() + 1;
+        if (this.yearSeries && this.yearSeries.length) {
+          this.yearSeries = this.yearSeries.filter(item => {
+            if ((item.y || 0) < 0.01) return false; // 0 제거
+            const label = String(item.x || '');
+            const monthNum = parseInt(label.replace(/\D/g, ''));
+            if (!monthNum) return true;
+            return monthNum <= thisMonth; // 미래 제거
+          });
+        }
+        
         this.kpis.totalKwh = this.summary.year_kwh;
         this.kpis.totalCo2 = this.co2(this.kpis.totalKwh);
         this.kpis.totalTrees = this.treesFromKwh(this.kpis.totalKwh);
 
         this.summary.co2_kg = this.co2(this.totalKwh);
         this.summary.trees = this.treesFromKwh(this.totalKwh);
+        
+        this.loadingYear = false;
 
-        this.avgEff = 13.9;
-
-        this.$nextTick(() => this.updateAxisFonts());
+        this.$nextTick(() => this.updateAxisFonts ? this.updateAxisFonts() : null);
+        if (this.updateChartDimensions) this.updateChartDimensions();
 
       } catch (e) {
-        console.warn("Background loading error:", e);
-        // 스피너 강제 OFF
-        this.loadingMonth = false;
+        console.warn("Yearly load error:", e);
         this.loadingYear = false;
-        this.loadingHourly = false;
       }
-    })();
+    };
+
+    loadHourlyAndWeather();
+    loadMonthly();
+    loadYearly();
 
   } catch (e) {
     this.errorMsg = e?.message || '오류가 발생했습니다.';
     console.error('[onSearch]', e);
-
   } finally {
     this.searching = false;
-    this.hasSearched = true;
   }
 },
-
     reset(){
       if (this.searching) return
       this.imeiField=''
