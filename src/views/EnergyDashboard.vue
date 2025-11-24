@@ -1438,6 +1438,8 @@ async onSearch(options = {}) {
     loadMonthly();
     loadYearly();
 
+    this.hasSearched = true;
+    
   } catch (e) {
     this.errorMsg = e?.message || '오류가 발생했습니다.';
     console.error('[onSearch]', e);
