@@ -408,6 +408,21 @@ html[data-theme="dark"] {
   }
 }
 
+brand-logo {
+  transition: filter 0.3s ease; /* 부드럽게 색상이 바뀌도록 설정 */
+}
+
+/* 다크모드일 때 로고 색상 반전 */  /* <-- 이렇게 별표(*)를 써야 합니다 */
+[data-theme="dark"] .brand-logo {
+  filter: invert(100%) hue-rotate(180deg) brightness(150%);
+}
+
+/* 다크모드일 때만 필터 적용 */s
+/* [data-theme="dark"]는 작성하신 applyTheme 메서드에 의해 작동합니다 */
+:global([data-theme="dark"]) .brand-logo {
+  filter: invert(100%) hue-rotate(180deg) brightness(150%);
+}
+
 .hdr-admin-btn {
   display: inline-flex;
   align-items: center;

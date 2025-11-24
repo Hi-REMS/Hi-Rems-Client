@@ -763,7 +763,7 @@ html[data-theme="light"] .abn-chip.slate{
   cursor: pointer;
 }
 .map-tab.active {
-  background: #22c55e;
+  background: #02A39F;
   color: white;
   font-weight: 600;
 }
@@ -797,7 +797,7 @@ html[data-theme="light"] .abn-chip.slate{
 }
 
 .map-tab.active {
-  background: #22c55e;
+  background: rgba(2, 163, 159);
   color: #fff;
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(0,0,0,0.15);
@@ -1322,4 +1322,61 @@ html[data-theme='dark'] .seg-pill.active {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.rems-marker-normal-wrapper {
+  position: relative !important;
+  width: 16px !important;
+  height: 16px !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease !important;
+}
+
+.rems-marker-normal-wrapper:hover {
+  transform: scale(1.3) !important;
+  z-index: 10 !important;
+}
+
+.rems-marker-normal-dot {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  background: #22c55e !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4) !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.rems-marker-normal-ring {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  border: 1px solid #22c55e !important;
+  opacity: 0 !important;
+  animation: normalPulse 2.5s infinite !important;
+  z-index: 1 !important;
+}
+
+@keyframes normalPulse {
+  0% { width: 100%; height: 100%; opacity: 0.6; }
+  100% { width: 240%; height: 240%; opacity: 0; }
+}
+
+.abn-total {
+  display:flex !important;
+  align-items:center !important;
+  gap:4px !important;
+  color:#555 !important;
+}
+.modal__table {
+  max-height: 520px !important;
+  overflow-y: auto !important;
+}
+.modal {
+  position: relative !important;
 }

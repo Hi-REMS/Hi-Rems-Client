@@ -57,13 +57,12 @@ html[data-theme="dark"], :root[data-theme="dark"] {
 }
 
 .edb-page {
-  background: var(--p-bg);
+
   color: var(--p-text);
   padding: var(--space-lg);
 }
 
 .edb-inner {
-  max-width: 1800px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -443,15 +442,6 @@ html[data-theme="dark"] .wx-forecast-btn {
   }
   html[data-theme="dark"] .wx-forecast-btn::before {
     content: "🌤️";
-  }
-}
-
-@media (min-width: 1800px) {
-  .edb-inner {
-    max-width: 2100px;
-  }
-  .edb-charts3 .edb-card {
-    padding: 20px 28px;
   }
 }
 

@@ -117,10 +117,11 @@
     <div class="chart-placeholder" v-if="bars.length">
 
       <svg
-        ref="svg"
-        viewBox="0 0 1000 360"
-        class="svg-chart"
-        aria-hidden="true"
+      ref="svg"
+      :viewBox="`0 0 ${vb.w} ${vb.h}`"
+      preserveAspectRatio="none" 
+      class="svg-chart"
+      aria-hidden="true"
       >
         <defs>
           <linearGradient id="barGrad" x1="0" x2="0" y1="0" y2="1">
@@ -166,7 +167,7 @@
                 rx="4" />
         </g>
 
-        <g class="bar-labels">
+        <g class="bar-labels" v-if="!isMobile">
           <text
             v-for="(b, i) in bars"
             :key="'lbl'+i"
@@ -175,7 +176,7 @@
             :y="Math.max(8, b.y-6)"
             text-anchor="middle"
           >
-            {{ b.rawNull ? '' : formatKwh1(b.kw) }}
+            {{ (b.kw > 0) ? formatBigNumber(b.kw) : '' }}
           </text>
         </g>
 
@@ -197,7 +198,7 @@
             <text class="tt-text" x="10" y="18">시간: {{ hoverLabel }}</text>
             <text class="tt-text" x="10" y="36">
               {{ labelEnergy }}:
-              {{ hoverKw === null ? '—' : formatKwh1(hoverKw) }}
+              {{ hoverKw === null ? '—' : formatBigNumber(hoverKw) }}
               {{ unitEnergy }}
             </text>
           </g>
@@ -214,24 +215,7 @@
         />
       </svg>
 
-      <div class="legend">
-        <span class="dot"></span>
-        {{ selectedMulti ? `선택 설비 ${labelEnergy}(${unitEnergy})`
-                         : `합산 ${labelEnergy}(${unitEnergy})` }}
-        <span class="sep">•</span>
-        <span class="linekey"></span> 꼭짓점 연결선
-      </div>
-
-    </div>
-
-    <div class="chart-placeholder" v-else>
-      <div class="legend">
-        <span class="dot"></span> {{ labelEnergy }}({{ unitEnergy }})
-        <span class="sep">•</span>
-        <span class="linekey"></span> 꼭짓점 연결선
-      </div>
-    </div>
-
+</div>
   </template>
 </template>
 
@@ -367,39 +351,49 @@
       </article>
 
 <article class="card col-3 status-card">
+        <div class="status-header">
+          <h3>장비 상태</h3>
+        </div>
 
-  <div class="status-header">
-    <h3>장비 상태</h3>
-  </div>
+        <div v-if="isSearched && mets" class="status-body">
+          <div class="status-main">
+            <div class="status-ring-wrapper" :class="statusClass">
+              <svg class="status-ring-svg" viewBox="0 0 100 100">
+                <circle class="ring-bg" cx="50" cy="50" r="45"></circle>
+                <circle class="ring-progress" cx="50" cy="50" r="45"></circle>
+              </svg>
+              <div class="status-ring-content">
+                <i class="mdi" :class="statusIcon"></i>
+                <span class="status-text">{{ overallStatusText }}</span>
+              </div>
+            </div>
+            <div class="status-main-desc">
+              <span class="desc-label">현재 상태</span>
+              <span class="desc-value">{{ overallStatusText }} 중입니다</span>
+            </div>
+          </div>
 
-  <div v-if="isSearched && mets">
-
-    <div class="status-indicator-container left-align">
-      <div class="status-circle" :class="statusClass">
-        <i class="mdi" :class="statusIcon"></i>
-        <span>{{ overallStatusText }}</span>
-      </div>
-    </div>
-
-    <div class="status-summary-box">
-      <div class="summary-title">상태 요약</div>
-      <div class="summary-info">
-        <span>{{ overallStatusText }} 상태입니다.</span>
-      </div>
-    </div>
-
-    <div class="status-detail-box" v-if="inverterStatusList.length">
-      <div class="detail-title">상세 인버터 상태</div>
-      <ul class="detail-list">
-        <li v-for="(s, idx) in inverterStatusList" :key="idx">
-          <i class="mdi mdi-alert-circle-outline"></i>
-          {{ s }}
-        </li>
-      </ul>
-    </div>
-
-  </div>
-</article>
+          <div class="status-detail-list" v-if="inverterStatusList.length">
+          <div class="list-header">
+          <i class="mdi mdi-bell-ring-outline"></i> 상세 알림
+          </div>
+          <ul>
+          <li v-for="(s, idx) in inverterStatusList" :key="idx"><i class="mdi mdi-alert-outline warning-icon"></i>
+          <span class="message-text">{{ s }}</span>
+          </li>
+          </ul>
+          </div>
+          
+          <div v-else class="status-ok-message">
+             <i class="mdi mdi-check-circle-outline"></i>
+             <span>모든 장비가 정상 작동 중입니다.</span>
+          </div>
+        </div>
+        
+        <div v-else class="status-empty">
+           데이터를 불러오는 중...
+        </div>
+      </article>
 
     </section>
     <section class="row">
@@ -765,7 +759,8 @@ export default {
   components: { EnergyDashboard },
   data () {
     return {
-        mets: null,
+    isMobile: false,
+    mets: null,
     isSearched: false,
     loadingKpis: false,
 loadingHourly: false,
@@ -864,13 +859,23 @@ loadingWeather: false,
     }
   },
   computed: {
-  inverterStatusList() {
-  const list = this.mets?.statusList;
-  if (!Array.isArray(list) || list.length === 0) {
-    return ['정상'];
-  }
-  return list;
-},
+  isOffline() {
+    if (!this.latestCollectedAt) return true;
+    
+    const last = new Date(this.latestCollectedAt).getTime();
+    const now = Date.now();
+    const diffMin = (now - last) / (1000 * 60);
+    
+    return diffMin >= 90; // 90분 기준 (필요시 조정 가능)
+  },
+inverterStatusList() {
+    if (this.isOffline) {
+        return ['최근 90분간 데이터 수신이 없습니다.'];
+    }
+    // 기존 로직
+    const list = this.mets?.statusList;
+    return (Array.isArray(list) && list.length > 0) ? list : [];
+  },
     inspectData () {
       const i = this.inspectIdx;
       const arr = this.wxStripPoints || [];
@@ -983,21 +988,35 @@ loadingWeather: false,
       return 'ok';
     },
 
-    overallStatusText () {
-      const sList = Array.isArray(this.mets?.statusList) ? this.mets.statusList : [];
-      const fList = Array.isArray(this.mets?.faultList) ? this.mets.faultList : [];
-      if (fList.length) return '고장';
-      if (sList.length) return '주의';
-      if (Array.isArray(this.driverRows) && this.driverRows.some(r => r.status && r.status !== '정상')) return '주의';
-      return '정상';
-    },
-    statusBadgeClass () {
-      const text = this.overallStatusText;
-      if (text === '정상') return 'ok';
-      if (text === '주의') return 'warn';
-      if (text === '고장') return 'crit';
-      return '';
-    },
+    overallStatusText() {
+    const sList = Array.isArray(this.mets?.statusList) ? this.mets.statusList : [];
+    const fList = Array.isArray(this.mets?.faultList) ? this.mets.faultList : [];
+
+    if (fList.length) return '고장';
+
+    if (this.isOffline) return '오프라인';
+
+    if (sList.length) return '주의';
+    if (Array.isArray(this.driverRows) && this.driverRows.some(r => r.status && r.status !== '정상')) return '주의';
+
+    return '정상';
+  },
+  statusBadgeClass() {
+    const text = this.overallStatusText;
+    if (text === '정상') return 'ok';
+    if (text === '주의') return 'warn';
+    if (text === '고장') return 'crit';
+    if (text === '오프라인') return 'offline'; // CSS에 .offline 추가 필요
+    return '';
+  },
+    statusIcon() {
+    const text = this.overallStatusText;
+    if (text === '정상') return 'mdi-check-circle-outline';
+    if (text === '주의') return 'mdi-alert-circle-outline';
+    if (text === '고장') return 'mdi-alert-decagram-outline';
+    if (text === '오프라인') return 'mdi-lan-disconnect';
+    return 'mdi-help-circle-outline';
+  },
 
     eff() {
       const row = Array.isArray(this.driverUnits) && this.driverUnits.length
@@ -1109,23 +1128,34 @@ loadingWeather: false,
     },
     stepW () { return this.series.length ? this.inner.w / this.series.length : 0; },
     barW () { return Math.max(10, this.stepW * 0.6); },
-    xTicks () {
-      const out = []; const n = this.series.length;
-      if (!n) return out;
-      const every = n > 12 ? 2 : 1;
-      for (let i = 0; i < n; i += every) {
-        const x = this.pad.l + i * this.stepW + this.stepW / 2;
-        const label = `${this.series[i].hour}시`;
-        out.push({ x, label });
-      }
-      return out;
-    },
+
+xTicks () {
+    const out = []; 
+    const n = this.series.length;
+    if (!n) return out;
+    
+    let every = 1;
+    if (this.isMobile) {
+       every = 3;
+    } else {
+       every = n > 12 ? 2 : 1;
+    }
+
+    for (let i = 0; i < n; i += every) {
+      const x = this.pad.l + i * this.stepW + this.stepW / 2;
+
+      const label = this.isMobile ? `${this.series[i].hour}` : `${this.series[i].hour}시`;
+      out.push({ x, label });
+    }
+    return out;
+  },
     yTicks () {
       const max = this.maxKw, step = max / 4, arr = [];
       for (let i = 0; i <= 4; i++) {
         const v = Math.round((step * i) * 1000) / 1000;
         const y = this.yKwToY(v);
-        arr.push({ y, label: this.number(v, v >= 10 ? 0 : 3) });
+        
+        arr.push({ y, label: this.formatBigNumber(v) }); 
       }
       return arr;
     },
@@ -1468,6 +1498,29 @@ async created () {
   this.scheduleSearch(80)
 },
   methods: {
+  formatBigNumber(num) {
+      if (num == null || Number.isNaN(num)) return '0';
+      const abs = Math.abs(num);
+      if (abs >= 1e9) return (num / 1e9).toFixed(1) + 'G';
+      if (abs >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+      if (abs >= 1e3) return (num / 1e3).toFixed(1) + 'k';
+      return this.number(num, num >= 10 ? 0 : 1);
+    },
+    updateChartDimensions() {
+      const width = window.innerWidth;
+      
+      if (width <= 767) {
+        this.isMobile = true;
+        this.vb = { w: 500, h: 320 }; 
+        this.pad = { t: 20, r: 10, b: 30, l: 45 }; 
+      } else {
+        this.isMobile = false;
+        this.vb = { w: 1000, h: 360 };
+        
+        
+        this.pad = { t: 16, r: 16, b: 28, l: 35 }; 
+      }
+    },
 async loadFastAndRenderImmediate() {
   if (!this.imeiUse) return;
 
@@ -1626,25 +1679,24 @@ normMulti(v) {
 onViewAll() {
   this.selectedMulti = ''
 },
-onWxMove (e) {
-  if (this.wxPinned) return;
-  const box = e.currentTarget.getBoundingClientRect();
+    onWxMove (e) {
+      if (this.wxPinned) return;
+      const box = e.currentTarget.getBoundingClientRect();
   const xPx = e.clientX - box.left;
-
-  // SVG viewBox(0,0,720,140) 기준 좌표로 변환
+  
   const xSvg = (xPx / box.width) * 720;
 
-  const pts = this.wxStripPoints;
-  if (!pts.length) { this.inspectIdx = null; return; }
+      const pts = this.wxStripPoints;
+      if (!pts.length) { this.inspectIdx = null; return; }
 
-  let idx = 0, min = Infinity;
+      let idx = 0, min = Infinity;
   for (let i=0; i<pts.length; i++){
     const d = Math.abs(pts[i].x - xSvg);
-    if (d < min){ min = d; idx = i; }
-  }
+        if (d < min){ min = d; idx = i; }
+      }
 
-  this.inspectIdx = idx;
-},
+      this.inspectIdx = idx;
+    },
     onWxLeave () {
       if (this.wxPinned) return;
       this.inspectIdx = null;
@@ -1829,7 +1881,6 @@ onWxMove (e) {
 _abortStamp: 0,
 
 abortAll() {
-  // abort 실행
   for (const k of Object.keys(this.controllers)) {
     try {
       this.controllers[k]?.abort();
@@ -2621,7 +2672,6 @@ async clearMulti() {
 
   const myReq = ++this.currentReqId;
 
-  // 1) 로딩 UI 먼저 반영
   this.loadingHourly = true;
   this.loadingKpis = true;
   this.selectedMulti = '';
@@ -2629,11 +2679,10 @@ async clearMulti() {
   this.hourly = [];
   this.chartTodaySum = null;
 
-  await this.$nextTick(); // UI 먼저 업데이트
+  await this.$nextTick();
 
   await this.syncQuery(true);
 
-  // 2) fetch 시작 (abort 전염 방지)
   await Promise.allSettled([
     this.loadHourly(myReq),
     this.loadKpis(myReq)
@@ -2649,12 +2698,10 @@ async onSelectUnit(hex) {
   this.abortAll();
   const myReq = ++this.currentReqId;
 
-  // 1) 로딩 UI 먼저 띄우기
   this.loadingHourly = true;
   this.loadingKpis = true;
   await this.$nextTick();
 
-  // 같은 멀티를 다시 클릭하면 → 새로고침
   if (this.selectedMulti === next) {
     await Promise.allSettled([
       this.loadHourly(myReq),
@@ -2666,7 +2713,6 @@ async onSelectUnit(hex) {
     return;
   }
 
-  // 2) 새로운 멀티 적용
   this.selectedMulti = next;
   await this.syncQuery(true);
 
@@ -2674,7 +2720,6 @@ async onSelectUnit(hex) {
   this.hourly = [];
   this.chartTodaySum = null;
 
-  // 3) 데이터 로딩
   await Promise.allSettled([
     this.loadHourly(myReq),
     this.loadKpis(myReq)
@@ -2685,6 +2730,8 @@ async onSelectUnit(hex) {
 }
   },
 mounted () {
+  this.updateChartDimensions();
+  window.addEventListener('resize', this.updateChartDimensions);
   this.syncAdminFromStorage();
   this._storageHandler = (e) => {
     if (e.key === 'isAdmin' || e.key === 'email') this.syncAdminFromStorage();
@@ -2711,6 +2758,7 @@ mounted () {
   }
 },
   beforeDestroy () {
+  window.removeEventListener('resize', this.updateChartDimensions);
     if (this._storageHandler) window.removeEventListener('storage', this._storageHandler);
   }
 }

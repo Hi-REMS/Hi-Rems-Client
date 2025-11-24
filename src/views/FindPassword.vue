@@ -8,7 +8,7 @@
 
       <section class="auth-panel">
               <img 
-    src="@/assets/haeinlogo.png"
+    src="@/assets/haeinlogo-main.png"
     alt="Hi-REMS 로고"
     class="auth-logo"
   />

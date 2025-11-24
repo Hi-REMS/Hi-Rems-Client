@@ -33,7 +33,7 @@
               @keyup.enter="openAbnModal"
             >
               <div class="kpi-mini-label">상태 이상</div>
-              <div class="kpi-mini-value kpi-warn">{{ nFmt(abn.summary.OFFLINE) }}</div>
+              <div class="kpi-mini-value kpi-warn">{{ nFmt(totalAbnormal) }}</div>
  <div class="kpi-mini-detail link-style">
   <span>자세히 보기</span>
   <svg class="ic" width="14" height="14" viewBox="0 0 24 24">
@@ -75,13 +75,14 @@
               <span class="rems-unit">tCO₂</span>
             </div>
           </div>
+          
           <div class="rems-tile">
-            <div class="rems-t-caption">설비용량</div>
-            <div class="rems-t-value">
-              <template v-if="energyLoading">—</template><template v-else>{{ dFmt(energy.electric.capacity_kw) }}</template>
-              <span class="rems-unit">kW</span>
-            </div>
-          </div>
+  <div class="rems-t-caption">설비용량</div>
+  <div class="rems-t-value">
+    3
+    <span class="rems-unit">kW</span>
+  </div>
+</div>
           <div class="rems-tile">
             <div class="rems-t-caption">누적발전량</div>
             <div class="rems-t-value" :title="rawTip(energy.electric.cumulative_kwh, 'kWh')">
@@ -119,8 +120,8 @@
           <div class="rems-map-hd-flex">
             <h3>대한민국 지도</h3>
             <div class="map-mode-tabs">
-              <button :class="['map-tab', {active: mapMode==='ABNORMAL'}]" @click="setMapMode('ABNORMAL')">이상 보기</button>
               <button :class="['map-tab', {active: mapMode==='NORMAL'}]" @click="setMapMode('NORMAL')">정상 보기</button>
+              <button :class="['map-tab', {active: mapMode==='ABNORMAL'}]" @click="setMapMode('ABNORMAL')">이상 보기</button>
             </div>
           </div>
 
@@ -140,26 +141,6 @@
         <div class="rems-map">
         
           <div ref="kmap" class="rems-kmap" tabindex="0" @keydown.esc="resetAll"></div>
-
-          <aside class="rems-map-panel">
-            <div class="rems-panel-hd" @click="resetAll" style="cursor:pointer;">전국으로 돌아가기</div>
-            <ul>
-              <li v-for="c in sideList" :key="c" class="rems-row-click"
-                  :class="{ 'rems-active': (c===selectedSido || c===selectedSigungu) }"
-                  @click="handleSideClick(c)">
-                {{ c }}
-              </li>
-            </ul>
-          </aside>
-
-          <div class="rems-legend">
-            <span class="rems-lg rems-lg-danger">고장</span>
-            <span class="rems-lg rems-lg-warn">경고</span>
-            <span class="rems-lg rems-lg-paused">운전대기중</span>
-            <span class="rems-lg rems-lg-idle">미작동</span>
-            <span class="rems-lg rems-lg-ok">정상</span>
-          </div>
-
           <aside v-if="selectedPoint" class="rems-detail-panel">
             <header class="detail-hd">
               <div class="detail-title">상세 정보</div>
@@ -349,17 +330,36 @@
 
 <div class="modal__tools">
   <div class="rems-seg seg-modern" role="tablist" aria-label="이상 사유 필터">
+    
     <button
       class="seg-pill"
       :class="{active: reasonFilter==='ALL'}"
       @click="reasonFilter='ALL'"
-      role="tab"
-      :aria-selected="reasonFilter==='ALL'">
-      <span class="seg-dot seg-all"></span>
+    >
+      <span class="seg-dot" style="background-color:#999"></span>
       전체
-      <span class="seg-count">{{ nFmt(abn.summary.OFFLINE) }}</span>
+      <span class="seg-count">{{ nFmt(totalAbnormal) }}</span>
     </button>
 
+    <button
+      class="seg-pill"
+      :class="{active: reasonFilter==='FAULT_BIT'}"
+      @click="reasonFilter='FAULT_BIT'"
+    >
+      <span class="seg-dot seg-fault"></span>
+      고장
+      <span class="seg-count">{{ nFmt(abn.summary.FAULT_BIT) }}</span>
+    </button>
+
+    <button
+      class="seg-pill"
+      :class="{active: reasonFilter==='OFFLINE'}"
+      @click="reasonFilter='OFFLINE'"
+    >
+      <span class="seg-dot seg-offline" style="background-color:#ef4444"></span>
+      오프라인
+      <span class="seg-count">{{ nFmt(abn.summary.OFFLINE) }}</span>
+    </button>
   </div>
 
   <div class="modal__search">
@@ -372,8 +372,7 @@
 </div>
 
         <div class="rems-abn-summaryline modal__summary">
-          <span class="abn-chip danger"><i aria-hidden="true">●</i> OFFLINE <b>{{ nFmt(abn.summary.OFFLINE) }}</b></span>
-          
+        
           <span class="abn-total">
             <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M3 5h18v2H3zm4 6h10v2H7zm-4 6h18v2H3z"/>
@@ -392,7 +391,7 @@
                 
                 <th style="width:220px">마지막 수신(KST)</th>
                 <th style="width:120px">경과(분)</th>
-                <th>최근24h 메시지</th>
+                <th>고장 원인</th>
               </tr>
             </thead>
             <tbody>
@@ -411,12 +410,8 @@
                   <small class="rems-muted"> ({{ fromNow(row.last_time) }})</small>
                 </td>
                 <td class="mono">{{ Number(row.minutes_since).toFixed(1) }}</td>
-                <td>
-                  <div class="rems-bar">
-                    <div class="rems-bar-fill" :style="{ width: barWidth(row.msgs_24h) }"></div>
-                    <span class="mono rems-bar-txt">{{ row.msgs_24h }}</span>
-                  </div>
-                </td>
+                <td><span class="rems-tag tag-fault">{{ faultReason(row) }}</span></td>
+
               </tr>
             </tbody>
           </table>
@@ -463,9 +458,12 @@ export default {
   name: 'HomePage',
 data () {
   return {
+    reasonFilter: 'ALL',
+    cachedNormalItems: window.__CACHE_NORMAL || null,
+    cachedAbnormalItems: window.__CACHE_ABNORMAL || null,
     dropdownOpen: false,
     regionQuery: '',
-    mapMode: 'ABNORMAL',
+    mapMode: 'NORMAL',
     abnModal: { open: false },
     mapLoading: false,
     sidos: [],
@@ -496,7 +494,7 @@ data () {
     abn: {
       loading: false,
       offlineMin: 90,
-      limit: 50,
+      limit: 200,
       summary: { OFFLINE: 0 },
       items: [],
       msgs24hMax: 1,
@@ -533,26 +531,67 @@ beforeDestroy () {
   document.removeEventListener('click', this.handleOutsideClick)
 },
   computed: {
+    totalAbnormal() {
+    const s = this.abn.summary
+    return (s.FAULT_BIT || 0) + (s.OFFLINE || 0)
+  },
     uptimeRate () {
       const t = Number(this.totals?.total_plants || 0)
       const n = Number(this.totals?.normal_plants || 0)
       if (!t) return '0.0'
       return ((n / t) * 100).toFixed(1)
     },
-    filteredAbnItems () {
-      const q = this.imeiQuery?.trim()
-      const list = this.abn.items.filter(i => i.reason === 'OFFLINE')
-      if (!q) return list
-      return list.filter(i => i.imei.includes(q))
+filteredAbnItems() {
+    const q = this.imeiQuery.trim()
+    let list = this.abn.items
+    if (this.reasonFilter !== 'ALL') {
+
+        list = list.filter(i => i.reason === this.reasonFilter)
     }
-  },
-  watch: {
-reasonFilter () {
-  if (this.mapMode !== 'ABNORMAL') return;
-  this.refreshMapPoints();
-}
-  },
+    return q ? list.filter(i => i.imei.includes(q)) : list
+    }
+},
+watch: {
+    reasonFilter () {
+        if (this.mapMode === 'ABNORMAL') {
+            this.refreshMapPoints()
+        }
+    }
+},
   methods: {
+faultReason(row) {
+  const flagsArr = row.fault_flags || row.flags_1h || [];
+  if (!Array.isArray(flagsArr)) return '';
+
+  const reasons = new Set();
+
+  const MAP = [
+    { bit: 0, label: '인버터 미작동' },     // Bit0
+    { bit: 1, label: '태양전지 과전압' },   // Bit1
+    { bit: 2, label: '태양전지 저전압' },   // Bit2
+    { bit: 3, label: '태양전지 과전류' },   // Bit3
+    { bit: 4, label: '인버터 IGBT 에러' },  // Bit4
+    { bit: 5, label: '인버터 과온' },       // Bit5
+    { bit: 6, label: '계통 과전압' },       // Bit6
+    { bit: 7, label: '계통 저전압' },       // Bit7
+    { bit: 8, label: '계통 과전류' },       // Bit8
+    { bit: 9, label: '계통 과주파수' },     // Bit9
+    { bit:10, label: '계통 저주파수' },     // Bit10
+    { bit:11, label: '단독운전(정전)' },    // Bit11
+    { bit:12, label: '지락(누전)' },         // Bit12
+    // 13~15 reserved
+  ];
+
+  for (const f of flagsArr) {
+    for (const m of MAP) {
+      if (f & (1 << m.bit)) {
+        reasons.add(m.label);
+      }
+    }
+  }
+
+  return [...reasons].join(', ');
+},
     energyName(code) {
   const map = {
     '01': '태양광',
@@ -565,18 +604,24 @@ reasonFilter () {
   if (!code) return '미등록'
   return map[String(code).padStart(2,'0')] || '기타'
 },
-    async refreshAll () {
-    try {
-      await Promise.all([
-        this.loadBasic(),
-        this.loadEnergy(),
-        this.loadAbnormal()
-      ])
-      this.lastUpdated = new Date().toISOString()
-    } catch (e) {
-      console.error('[refreshAll] failed:', e)
-    }
-  },
+
+async refreshAll () {
+      this.cachedNormalItems = null;
+      this.cachedAbnormalItems = null;
+      window.__CACHE_NORMAL = null;
+      window.__CACHE_ABNORMAL = null;
+
+      try {
+        await Promise.all([
+          this.loadBasic(),
+          this.loadEnergy(),
+          this.loadAbnormal()
+        ])
+        this.lastUpdated = new Date().toISOString()
+      } catch (e) {
+        console.error('[refreshAll] failed:', e)
+      }
+    },
       toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen
   },
@@ -594,10 +639,11 @@ reasonFilter () {
     return keyword ? list.filter(r => r.includes(keyword)) : list
   },
   selectSido(name) {
-    this.selectedSido = name
-    this.dropdownOpen = false
-    this.regionQuery = ''
-    this.onSelectSido()
+  this.selectedSido = name
+  this.dropdownOpen = false
+  this.regionQuery = ''
+  this.cachedAbnormalItems = null;
+  this.onSelectSido()
   },
   handleOutsideClick (e) {
     const dropdown = this.$el.querySelector('.rems-dropdown')
@@ -612,70 +658,128 @@ setMapMode(mode) {
   this.refreshMapPoints()
 },
 async refreshMapPoints() {
-  if (this._refreshing) return
-  this._refreshing = true
-  this.mapLoading = true
-  this.selectedPoint = null
+      if (this._refreshing) return
+      this._refreshing = true
+      this.selectedPoint = null
 
-  this.clearMarkers()
-  this.clearRegionBubbles()
+      let hasCache = false;
+      if (this.mapMode === 'NORMAL' && this.cachedNormalItems) hasCache = true;
+      if (this.mapMode === 'ABNORMAL' && this.cachedAbnormalItems) hasCache = true;
 
-  try {
-    if (!this.map) return
+      this.mapLoading = !hasCache;
 
-    const currentMode = this.mapMode
+      this.clearMarkers()
+      this.clearRegionBubbles()
 
-    if (this.mapMode === 'ABNORMAL') {
-      const level = this.map.getLevel()
-      if (level > REGION_BUBBLE_LEVEL) {
-        await this.loadRegions()
-        await this.drawRegionClusters()
-      } else {
-        await this.drawAbnormalPoints({
-          reason: this.reasonFilter,
-          sido: this.selectedSido,
-          sigungu: this.selectedSigungu
-        })
+      try {
+        if (!this.map) return
+        const currentMode = this.mapMode
+
+        if (this.mapMode === 'ABNORMAL') {
+          const level = this.map.getLevel()
+          if (level > REGION_BUBBLE_LEVEL) {
+            await this.loadRegions()
+            await this.drawRegionClusters()
+          } else {
+            await this.drawAbnormalPoints({
+              reason: this.reasonFilter,
+              sido: this.selectedSido,
+              sigungu: this.selectedSigungu
+            })
+          }
+        } else if (this.mapMode === 'NORMAL') {
+          await this.drawNormalPoints()
+        }
+        
+        if (this.mapMode !== currentMode) return
+      } catch (e) {
+        console.error('[refreshMapPoints] failed:', e)
+      } finally {
+        this.mapLoading = false
+        this._refreshing = false
       }
-    } else if (this.mapMode === 'NORMAL') {
-      await this.drawNormalPoints()
-    }
-    if (this.mapMode !== currentMode) {
-      console.warn('[refreshMapPoints] mode changed during render → skip stale result')
-      return
-    }
-  } catch (e) {
-    console.error('[refreshMapPoints] failed:', e)
-  } finally {
-    this.mapLoading = false
-    this._refreshing = false
-  }
-},
+    },
 
-    async drawNormalPoints() {
+async drawNormalPoints() {
       if (!this.map) return
       this.clearMarkers()
       this.clearRegionBubbles()
 
-      const preload = window.__NORMAL_POINTS__
-      const items = Array.isArray(preload) && preload.length
-        ? preload
-        : (await api.get('/dashboard/normal/points', { params: { lookbackDays: 3 } })).data?.items || []
+      let items = []
+
+      // [수정] 1. 캐싱 로직 강화: 전역 변수(window.__CACHE_NORMAL) 확인
+      // 페이지를 이동했다가 돌아와도(뒤로가기) 즉시 데이터를 보여주기 위함
+      if (this.cachedNormalItems) {
+        items = this.cachedNormalItems
+      } else if (window.__CACHE_NORMAL) {
+        items = window.__CACHE_NORMAL
+        this.cachedNormalItems = items // 컴포넌트 변수에도 동기화
+      } else {
+        // 2. 저장된 게 아무것도 없으면 서버에서 가져옴
+        const preload = window.__NORMAL_POINTS__
+        items = Array.isArray(preload) && preload.length
+          ? preload
+          : (await api.get('/dashboard/normal/points', { params: { lookbackDays: 3 } })).data?.items || []
+        
+        // 3. 가져온 데이터를 변수와 전역 변수에 모두 저장
+        this.cachedNormalItems = items
+        window.__CACHE_NORMAL = items 
+      }
 
       const kakao = window.kakao
-
       const markers = []
+
+      // [디자인 유지] 흰색 테두리와 그림자가 포함된 SVG 마커
+      const svgContent = encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+          <defs>
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.5)"/>
+            </filter>
+          </defs>
+          <circle cx="12" cy="12" r="7" fill="#02A39F" stroke="#ffffff" stroke-width="2.5" style="filter:url(#shadow);"/>
+        </svg>
+      `.trim());
+
+      const markerImage = new kakao.maps.MarkerImage(
+        `data:image/svg+xml;utf8,${svgContent}`,
+        new kakao.maps.Size(24, 24),
+        { offset: new kakao.maps.Point(12, 12) }
+      );
+
+      // [디자인 유지] 클러스터러 스타일
+      if (this.clusterer) this.clusterer.clear()
+      this.clusterer = new kakao.maps.MarkerClusterer({
+        map: this.map,
+        averageCenter: true,
+        minLevel: 9,
+        disableClickZoom: false,
+        styles: [{
+          width: '40px',
+          height: '40px',
+          background: '#02A39F',
+          borderRadius: '50%',
+          color: '#fff',
+          textAlign: 'center',
+          lineHeight: '40px',
+          fontWeight: 'bold',
+          fontSize: '14px',
+          border: '3px solid #ffffff',
+          boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+        }]
+      })
+
       for (const pt of items) {
         const coord = await this.ensureCoordForPoint(pt)
         if (!coord) continue
+        
         const latlng = new kakao.maps.LatLng(coord.lat, coord.lng)
+        
         const marker = new kakao.maps.Marker({
           position: latlng,
-          image: new kakao.maps.MarkerImage(
-            'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"><circle cx="6" cy="6" r="5" fill="%2322c55e" /></svg>',
-            new kakao.maps.Size(12, 12)
-          )
+          image: markerImage
         })
+
         kakao.maps.event.addListener(marker, 'click', () => {
           this.selectedPoint = {
             imei: pt.imei,
@@ -687,27 +791,10 @@ async refreshMapPoints() {
           }
           this.focusImei(pt)
         })
+        
         markers.push(marker)
       }
-
-      if (this.clusterer) this.clusterer.clear()
-      this.clusterer = new kakao.maps.MarkerClusterer({
-        map: this.map,
-        averageCenter: true,
-        minLevel: 8,
-        disableClickZoom: false,
-        styles: [{
-          width: '32px',
-          height: '32px',
-          background: 'rgba(34,197,94,0.2)',
-          borderRadius: '50%',
-          color: '#22c55e',
-          textAlign: 'center',
-          lineHeight: '32px',
-          fontWeight: '600',
-          fontSize: '13px'
-        }]
-      })
+      
       this.clusterer.addMarkers(markers)
       this.markers = markers
     },
@@ -739,14 +826,20 @@ async loadBasic () {
   try {
     const { data } = await api.get('/dashboard/basic', { params: { lookbackDays: 3 } })
     console.log('[loadBasic] 응답:', data)
+
     this.totals = data.totals || this.totals
     this.today  = data.today  || this.today
+
+    const opCnt = data?.summary?.OPMODE_ABNORMAL || 0
+    this.totals.normal_plants += opCnt
+
   } catch (err) {
     console.error('[loadBasic] failed:', err)
   } finally {
     this.loadingDash = false
   }
 },
+
 
     async loadEnergy () {
       this.energyLoading = true; this.energyError = ''
@@ -763,18 +856,31 @@ async loadBasic () {
       finally { this.energyLoading = false }
     },
 
-    async loadAbnormal () {
-      this.abn.loading = true
-      try {
-        const sum = await api.get('/dashboard/abnormal/summary', { params: { offlineMin: this.abn.offlineMin } })
-        this.abn.summary = sum.data?.summary || this.abn.summary
-        const list = await api.get('/dashboard/abnormal/list', { params: { offlineMin: this.abn.offlineMin, limit: this.abn.limit } })
-        this.abn.items = list.data?.items || []
-        this.abn.msgs24hMax = Math.max(1, ...this.abn.items.map(i => i.msgs_24h || 0))
-        await this.loadRegions()
-      } catch (e) { console.error('loadAbnormal failed:', e) }
-      finally { this.abn.loading = false }
-    },
+async loadAbnormal () {
+  this.abn.loading = true
+  try {
+      const sum = await api.get('/dashboard/abnormal/summary', { params: { offlineMin: this.abn.offlineMin } })
+      this.abn.summary = sum.data?.summary || this.abn.summary
+      
+      const list = await api.get('/dashboard/abnormal/list', {
+          params: {
+              offlineMin: this.abn.offlineMin,
+              limit: this.abn.limit,
+          }
+      })
+      
+      this.abn.items = (list.data?.items || []).filter(i => i.reason !== 'OPMODE_ABNORMAL')
+
+      this.abn.msgs24hMax = Math.max(1, ...this.abn.items.map(i => i.msgs_24h || 0))
+      
+      await this.loadRegions()
+  } catch (e) { 
+      console.error('loadAbnormal failed:', e) 
+  } finally { 
+      this.abn.loading = false 
+  }
+},
+
     onOfflineMinChange () { this.loadAbnormal() },
 
     async loadAbnormalByRegion () {
@@ -790,7 +896,7 @@ async loadBasic () {
         const m = {}
         for (const it of (data?.items || [])) {
           const key = this.selectedSido ? `${it.sido}/${it.sigungu || ''}` : it.sido
-          m[key] = it.total || 0
+          m[key] = (it.FAULT_BIT || 0) + (it.OFFLINE || 0)
         }
         this.abnByRegion = m
       } catch (e) {
@@ -887,7 +993,7 @@ async loadBasic () {
     },
     onWindowResize () { if (this.map) window.kakao.maps.event.trigger(this.map, 'resize') },
 
-    clearMarkers () {
+clearMarkers() {
       this.markers.forEach(m => {
         if (!m) return
         if (m.setMap) m.setMap(null)
@@ -895,8 +1001,20 @@ async loadBasic () {
         if (m.tip && m.tip.setMap) m.tip.setMap(null)
       })
       this.markers = []
-      if (this.clusterer) this.clusterer.clear()
+
+      if (this.regionBubbles && this.regionBubbles.length) {
+        this.regionBubbles.forEach(b => {
+            if (b && b.setMap) b.setMap(null)
+        })
+        this.regionBubbles = []
+      }
+
+      if (this.clusterer) {
+        this.clusterer.clear()
+      }
     },
+
+
     clearRegionBubbles () {
       this.regionBubbles.forEach(b => b && b.setMap && b.setMap(null))
       this.regionBubbles = []
@@ -907,9 +1025,13 @@ async loadBasic () {
     },
 
 reasonColor(reason) {
-  if (!reason) return '#22c55e'
+  if (!reason) return '#22c55e' // NORMAL (초록색)
+
   const R = String(reason).toUpperCase()
-  if (R === 'OFFLINE') return '#ef4444'
+
+  if (R === 'FAULT_BIT') return '#facc15'   // ★ 고장 (노란색/주황색)
+  if (R === 'OFFLINE') return '#6b7280'     // ★ 오프라인 (진한 회색) - 연결 끊김 느낌
+
   return '#22c55e'
 },
 
@@ -1036,6 +1158,7 @@ async ensureCoordForPoint(pt) {
   if (!c || !c.lat || !c.lng) return null
   return c
 },
+
 async drawAbnormalPoints ({ reason = 'ALL', sido = '', sigungu = '' } = {}) {
   if (!this.map || this.mapMode !== 'ABNORMAL') return
   this.clearMarkers()
@@ -1045,33 +1168,35 @@ async drawAbnormalPoints ({ reason = 'ALL', sido = '', sigungu = '' } = {}) {
     offlineMin: this.abn.offlineMin || 90,
     lookbackDays: 3,
   }
-
-  if (reason === 'ALL') {
-    params.reason = 'OFFLINE'
-  } else {
-    params.reason = reason
-  }
-
+  if (reason !== 'ALL') params.reason = reason
   if (sido) params.sido = sido
   if (sigungu) params.sigungu = sigungu
 
   try {
-    const { data } = await api.get('/dashboard/abnormal/points', { params })
-    const items = data?.items || []
-    const kakao = window.kakao
+    let items = []
+    const isDefaultFilter = (reason === 'ALL' && !sido && !sigungu);
 
-    console.log(`[drawAbnormalPoints] 표시 대상 ${items.length}개, reason=${params.reason}`)
-
-    for (const pt of items) {
-      const coord = await this.ensureCoordForPoint(pt)
-      if (!coord) continue
-
-      const latlng = new kakao.maps.LatLng(coord.lat, coord.lng)
-      this.addMarker(latlng, pt)
+    if (isDefaultFilter && this.cachedAbnormalItems) {
+      items = this.cachedAbnormalItems
+    } else if (isDefaultFilter && window.__CACHE_ABNORMAL) {
+      items = window.__CACHE_ABNORMAL
+      this.cachedAbnormalItems = items
+    } else {
+      const { data } = await api.get('/dashboard/abnormal/points', { params })
+      items = data?.items || []
+      if (isDefaultFilter) {
+          this.cachedAbnormalItems = items
+          window.__CACHE_ABNORMAL = items
+      }
     }
 
-    if (!items.length) {
-      console.warn('[drawAbnormalPoints] 표시할 OFFLINE 발전소가 없습니다.')
+    const kakao = window.kakao
+    for (const pt of items) {
+      
+      const coord = await this.ensureCoordForPoint(pt)
+      if (!coord) continue
+      const latlng = new kakao.maps.LatLng(coord.lat, coord.lng)
+      this.addMarker(latlng, pt)
     }
   } catch (err) {
     console.error('[drawAbnormalPoints] failed:', err)
@@ -1085,7 +1210,7 @@ async drawRegionClusters () {
 
   try {
     const params = {
-      reason: 'OFFLINE',
+      reason: 'ALL',
       offlineMin: this.abn?.offlineMin || 30,
       lookbackDays: 3
     }
@@ -1094,9 +1219,11 @@ async drawRegionClusters () {
 
     const { data } = await api.get('/dashboard/abnormal/points', { params })
     const items = data?.items || []
-    console.log(`[drawRegionClusters] OFFLINE markers: ${items.length}`)
+    console.log(`[drawRegionClusters] Markers: ${items.length}`)
 
     for (const pt of items) {
+      // [수정됨] OFFLINE 제외 코드 삭제함 -> 오프라인도 지도에 표시됨
+      
       const coord = await this.ensureCoordForPoint(pt)
       if (!coord) continue
 
@@ -1113,7 +1240,7 @@ async drawRegionClusters () {
       this.regionBubbles.push(overlay)
     }
   } catch (err) {
-    console.error('[drawRegionClusters] OFFLINE marker error:', err)
+    console.error('[drawRegionClusters] error:', err)
   }
 },
 
@@ -1233,12 +1360,14 @@ resetAll () {
   this.selectedSido = ''
   this.selectedSigungu = ''
   this.selectedPoint = null
+  this.cachedAbnormalItems = null;
   this.onSelectSido()
 },
 resetToSido () {
   if (!this.selectedSido) return
   this.selectedSigungu = ''
   this.selectedPoint = null
+  this.cachedAbnormalItems = null;
   this.onSelectSido()
 },
     rateClass (rate) {
