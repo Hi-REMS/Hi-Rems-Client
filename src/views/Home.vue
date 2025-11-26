@@ -502,11 +502,13 @@ data () {
   }
 },
   created () {
-    this.refreshAll()
     this.timerId = setInterval(this.refreshAll, this.refreshMs)
     this.loadSidos().then(() => this.loadRegions())
   },
 async mounted () {
+  setTimeout(() => {
+    this.refreshAll()
+  }, 500);
   if (this.map) return
   try {
     await this.loadKakaoFromServerKey()
@@ -815,13 +817,26 @@ async loadBasic () {
   try {
     const { data } = await api.get('/dashboard/basic', { params: { lookbackDays: 3 } })
 
-    this.totals = data.totals || this.totals
-    this.today  = data.today  || this.today
+    if (data && data.totals) {
+      this.totals = {
+        total_plants: data.totals.total_plants || 0,
+        normal_plants: data.totals.normal_plants || 0,
+        abnormal_plants: data.totals.abnormal_plants || 0
+      }
+    }
+
+    if (data && data.today) {
+      this.today = data.today
+    }
 
     const opCnt = data?.summary?.OPMODE_ABNORMAL || 0
-    this.totals.normal_plants += opCnt
+    
+    if (this.totals) {
+        this.totals.normal_plants = (this.totals.normal_plants || 0) + opCnt
+    }
 
   } catch (err) {
+    console.error('Dashboard Load Failed:', err)
   } finally {
     this.loadingDash = false
   }
