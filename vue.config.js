@@ -1,6 +1,5 @@
-/* vue.config.js */
 module.exports = {
-  publicPath: '/hirems/',   // ← ★ 배포 경로 추가
+  publicPath: '/hirems/',
   lintOnSave: false,
   productionSourceMap: false,
   parallel: false,
@@ -13,7 +12,7 @@ module.exports = {
   },
   devServer: {
     host: '127.0.0.1',
-    port: 8080,                  // dev 포트
+    port: 8080,
     compress: true,
     client: { overlay: false },
     historyApiFallback: true,

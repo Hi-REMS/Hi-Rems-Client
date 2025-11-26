@@ -551,6 +551,8 @@
   <EnergyDashboard
     class="sub-dashboard-inner"
     :imei="imeiUse"
+    :energy="energyField"
+    :type="typeField"
     :is-admin="isAdmin"
     :multi="selectedMulti"
   />
@@ -866,13 +868,12 @@ loadingWeather: false,
     const now = Date.now();
     const diffMin = (now - last) / (1000 * 60);
     
-    return diffMin >= 90; // 90분 기준 (필요시 조정 가능)
+    return diffMin >= 90;
   },
 inverterStatusList() {
     if (this.isOffline) {
         return ['최근 90분간 데이터 수신이 없습니다.'];
     }
-    // 기존 로직
     const list = this.mets?.statusList;
     return (Array.isArray(list) && list.length > 0) ? list : [];
   },
@@ -1006,7 +1007,7 @@ inverterStatusList() {
     if (text === '정상') return 'ok';
     if (text === '주의') return 'warn';
     if (text === '고장') return 'crit';
-    if (text === '오프라인') return 'offline'; // CSS에 .offline 추가 필요
+    if (text === '오프라인') return 'offline';
     return '';
   },
     statusIcon() {
@@ -1615,7 +1616,6 @@ enforceUserImei() {
 
   if (!this.isAdmin) {
     if (!userImei) {
-      console.warn('[보안] 사용자 IMEI가 localStorage에 없습니다.')
       return
     }
 
@@ -2168,7 +2168,6 @@ async loadKpis(reqId) {
     }
 
   } catch (err) {
-    console.warn("loadKpis error:", err);
 
   } finally {
     this.loadingKpis = false;
@@ -2205,7 +2204,6 @@ async loadLatest (reqId) {
       row?.time || row?.createdAt || row?.ts || null;
 
   } catch (e) {
-    console.warn('loadLatest error:', e);
   } finally {
     this.loadingLatest = false;
   }
@@ -2248,7 +2246,6 @@ async loadHourly(reqId) {
       : null;
 
   } catch (e) {
-    console.warn('loadHourly error:', e);
   } finally {
     this.loadingHourly = false;
   }
@@ -2282,7 +2279,6 @@ async loadDriverUnits (reqId) {
       this.latestCollectedAt = units[0]?.ts || this.latestCollectedAt;
 
   } catch (e) {
-    console.warn('loadDriverUnits error:', e);
   } finally {
     this.loadingDriver = false;
   }
@@ -2352,7 +2348,6 @@ async loadWeather(reqId) {
     }
 
   } catch (e) {
-    console.warn('loadWeather() failed', e);
     this.envHourly = [];
     this.envTempC = this.envApparentC = this.envCond =
     this.envPopPct = this.envHumidityPct =
@@ -2402,7 +2397,6 @@ async loadFacility (reqId) {
     };
 
   } catch (e) {
-    console.warn('loadFacility error:', e);
   } finally {
     this.loadingFacility = false;
   }
@@ -2591,7 +2585,6 @@ async syncQuery() {
     await this.$router.replace({ query: next });
 
   } catch (e) {
-    console.warn("syncQuery failed", e);
   }
 },
 

@@ -149,7 +149,6 @@
             <div class="detail-body">
               <div class="detail-row"><span class="dt">IMEI</span><span class="dd mono">{{ selectedPoint.imei }}</span></div>
               <div class="detail-row" v-if="selectedPoint.worker"><span class="dt">담당자</span><span class="dd">{{ selectedPoint.worker }}</span></div>
-              <div class="detail-row"><span class="dt">에너지원</span><span class="dd">{{ selectedPoint.energy }}</span></div>
               <div class="detail-row"><span class="dt">상태</span><span class="dd"><span :class="['rems-tag', reasonClass(selectedPoint.reason)]">{{ selectedPoint.reason }}</span></span></div>
               <div class="detail-row" v-if="selectedPoint.address"><span class="dt">주소</span><span class="dd">{{ selectedPoint.address }}</span></div>
               <div class="detail-row" v-if="selectedPoint.sido || selectedPoint.sigungu"><span class="dt">행정구역</span><span class="dd">{{ selectedPoint.sido }} {{ selectedPoint.sigungu }}</span></div>
@@ -519,7 +518,6 @@ async mounted () {
     window.addEventListener('resize', this.onWindowResize)
     document.addEventListener('click', this.handleOutsideClick)
   } catch (e) {
-    console.error('[mounted] Kakao SDK init 실패:', e)
   }
 },
 beforeDestroy () {
@@ -566,20 +564,19 @@ faultReason(row) {
   const reasons = new Set();
 
   const MAP = [
-    { bit: 0, label: '인버터 미작동' },     // Bit0
-    { bit: 1, label: '태양전지 과전압' },   // Bit1
-    { bit: 2, label: '태양전지 저전압' },   // Bit2
-    { bit: 3, label: '태양전지 과전류' },   // Bit3
-    { bit: 4, label: '인버터 IGBT 에러' },  // Bit4
-    { bit: 5, label: '인버터 과온' },       // Bit5
-    { bit: 6, label: '계통 과전압' },       // Bit6
-    { bit: 7, label: '계통 저전압' },       // Bit7
-    { bit: 8, label: '계통 과전류' },       // Bit8
-    { bit: 9, label: '계통 과주파수' },     // Bit9
-    { bit:10, label: '계통 저주파수' },     // Bit10
-    { bit:11, label: '단독운전(정전)' },    // Bit11
-    { bit:12, label: '지락(누전)' },         // Bit12
-    // 13~15 reserved
+    { bit: 0, label: '인버터 미작동' },
+    { bit: 1, label: '태양전지 과전압' },
+    { bit: 2, label: '태양전지 저전압' },
+    { bit: 3, label: '태양전지 과전류' },
+    { bit: 4, label: '인버터 IGBT 에러' },
+    { bit: 5, label: '인버터 과온' },
+    { bit: 6, label: '계통 과전압' },
+    { bit: 7, label: '계통 저전압' },
+    { bit: 8, label: '계통 과전류' },
+    { bit: 9, label: '계통 과주파수' },
+    { bit:10, label: '계통 저주파수' },
+    { bit:11, label: '단독운전(정전)' },
+    { bit:12, label: '지락(누전)' },
   ];
 
   for (const f of flagsArr) {
@@ -619,7 +616,6 @@ async refreshAll () {
         ])
         this.lastUpdated = new Date().toISOString()
       } catch (e) {
-        console.error('[refreshAll] failed:', e)
       }
     },
       toggleDropdown() {
@@ -693,7 +689,6 @@ async refreshMapPoints() {
         
         if (this.mapMode !== currentMode) return
       } catch (e) {
-        console.error('[refreshMapPoints] failed:', e)
       } finally {
         this.mapLoading = false
         this._refreshing = false
@@ -707,21 +702,17 @@ async drawNormalPoints() {
 
       let items = []
 
-      // [수정] 1. 캐싱 로직 강화: 전역 변수(window.__CACHE_NORMAL) 확인
-      // 페이지를 이동했다가 돌아와도(뒤로가기) 즉시 데이터를 보여주기 위함
       if (this.cachedNormalItems) {
         items = this.cachedNormalItems
       } else if (window.__CACHE_NORMAL) {
         items = window.__CACHE_NORMAL
-        this.cachedNormalItems = items // 컴포넌트 변수에도 동기화
+        this.cachedNormalItems = items
       } else {
-        // 2. 저장된 게 아무것도 없으면 서버에서 가져옴
         const preload = window.__NORMAL_POINTS__
         items = Array.isArray(preload) && preload.length
           ? preload
           : (await api.get('/dashboard/normal/points', { params: { lookbackDays: 3 } })).data?.items || []
         
-        // 3. 가져온 데이터를 변수와 전역 변수에 모두 저장
         this.cachedNormalItems = items
         window.__CACHE_NORMAL = items 
       }
@@ -729,7 +720,6 @@ async drawNormalPoints() {
       const kakao = window.kakao
       const markers = []
 
-      // [디자인 유지] 흰색 테두리와 그림자가 포함된 SVG 마커
       const svgContent = encodeURIComponent(`
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
           <defs>
@@ -747,7 +737,6 @@ async drawNormalPoints() {
         { offset: new kakao.maps.Point(12, 12) }
       );
 
-      // [디자인 유지] 클러스터러 스타일
       if (this.clusterer) this.clusterer.clear()
       this.clusterer = new kakao.maps.MarkerClusterer({
         map: this.map,
@@ -825,7 +814,6 @@ async loadBasic () {
   this.loadingDash = true
   try {
     const { data } = await api.get('/dashboard/basic', { params: { lookbackDays: 3 } })
-    console.log('[loadBasic] 응답:', data)
 
     this.totals = data.totals || this.totals
     this.today  = data.today  || this.today
@@ -834,7 +822,6 @@ async loadBasic () {
     this.totals.normal_plants += opCnt
 
   } catch (err) {
-    console.error('[loadBasic] failed:', err)
   } finally {
     this.loadingDash = false
   }
@@ -852,7 +839,7 @@ async loadBasic () {
         } else {
           this.energyError = (data && data.error) ? String(data.error) : '알 수 없는 에러'
         }
-      } catch (e) { console.error('loadEnergy failed:', e); this.energyError = e?.message || '요청 실패' }
+      } catch (e) {}
       finally { this.energyLoading = false }
     },
 
@@ -875,7 +862,6 @@ async loadAbnormal () {
       
       await this.loadRegions()
   } catch (e) { 
-      console.error('loadAbnormal failed:', e) 
   } finally { 
       this.abn.loading = false 
   }
@@ -900,7 +886,6 @@ async loadAbnormal () {
         }
         this.abnByRegion = m
       } catch (e) {
-        console.error('loadAbnormalByRegion failed:', e)
         this.abnByRegion = {}
       }
     },
@@ -910,7 +895,7 @@ async loadAbnormal () {
         const { data } = await api.get('/rems/agg/sido')
         this.sidos = data || []
         if (!this.selectedSido) this.sideList = this.sidos.map(s => s.name)
-      } catch (e) { console.error('loadSidos failed:', e); this.sidos = [] }
+      } catch (e) { }
     },
 
     async loadRegions () {
@@ -945,7 +930,6 @@ async loadAbnormal () {
 
         this.renderMap()
       } catch (e) {
-        console.error('loadRegions failed:', e)
         this.regions = []
       } finally {
         this.loadingRegions = false
@@ -1025,12 +1009,12 @@ clearMarkers() {
     },
 
 reasonColor(reason) {
-  if (!reason) return '#22c55e' // NORMAL (초록색)
+  if (!reason) return '#22c55e'
 
   const R = String(reason).toUpperCase()
 
-  if (R === 'FAULT_BIT') return '#facc15'   // ★ 고장 (노란색/주황색)
-  if (R === 'OFFLINE') return '#6b7280'     // ★ 오프라인 (진한 회색) - 연결 끊김 느낌
+  if (R === 'FAULT_BIT') return '#facc15'
+  if (R === 'OFFLINE') return '#6b7280'
 
   return '#22c55e'
 },
@@ -1052,8 +1036,6 @@ makeMarkerEl (pt) {
     "></div>
   `
   el.onclick = () => {
-    console.log('🔍[MarkerClick] 원본 pt 객체:', pt)
-
     this.selectedPoint = {
       imei: pt.imei,
       reason: pt.reason,
@@ -1066,9 +1048,6 @@ makeMarkerEl (pt) {
       multi: pt.multi ?? null,
       worker: pt.worker ?? null 
     }
-
-    console.log('✅[MarkerClick] selectedPoint:', this.selectedPoint)
-
     this.focusImei(pt)
   }
 
@@ -1150,7 +1129,6 @@ async ensureCoordForPoint(pt) {
         localStorage.setItem(k1, JSON.stringify(c))
       }
     } catch (e) {
-      console.warn('[ensureCoordForPoint] geocode 실패:', pt.imei, e.message)
       return null
     }
   }
@@ -1199,7 +1177,6 @@ async drawAbnormalPoints ({ reason = 'ALL', sido = '', sigungu = '' } = {}) {
       this.addMarker(latlng, pt)
     }
   } catch (err) {
-    console.error('[drawAbnormalPoints] failed:', err)
   }
 },
 
@@ -1219,10 +1196,8 @@ async drawRegionClusters () {
 
     const { data } = await api.get('/dashboard/abnormal/points', { params })
     const items = data?.items || []
-    console.log(`[drawRegionClusters] Markers: ${items.length}`)
 
     for (const pt of items) {
-      // [수정됨] OFFLINE 제외 코드 삭제함 -> 오프라인도 지도에 표시됨
       
       const coord = await this.ensureCoordForPoint(pt)
       if (!coord) continue
@@ -1240,7 +1215,6 @@ async drawRegionClusters () {
       this.regionBubbles.push(overlay)
     }
   } catch (err) {
-    console.error('[drawRegionClusters] error:', err)
   }
 },
 

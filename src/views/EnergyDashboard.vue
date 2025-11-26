@@ -726,7 +726,7 @@ export default {
   computed: {
     currentKstHour(){
       const kst = new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })
-      return new Date(kst).getHours() // 0~23
+      return new Date(kst).getHours()
     },
     detailRowsVisible() {
       const rows = Array.isArray(this.detailRows) ? this.detailRows : []
@@ -816,7 +816,7 @@ xTicksYear() {
     const x = this.pad.l + i * this.stepWYear + this.stepWYear / 2;
     out.push({
       x,
-      label: this.yearSeries[i].x   // 예: "10월", "11월"
+      label: this.yearSeries[i].x
     });
   }
 
@@ -1127,7 +1127,6 @@ async fetchWeatherWeek(){
     const j = await r.json()
     if (!r.ok || !j.ok) return []
 
-    // j.daily = [{ date:'YYYYMMDD', tmin, tmax, pop_max, wind_max, sky, pty, summary, ... }]
     return (j.daily || []).map(d => ({
       date: d.date,
       label: this.kDateLabel?.(d.date) ?? d.date,
@@ -1248,7 +1247,6 @@ async onSearch(options = {}) {
       await this.$router.replace({ query: nextQ });
     }
   } catch (e) {
-    console.warn("Query sync error:", e);
   }
 
   try {
@@ -1321,7 +1319,6 @@ async onSearch(options = {}) {
         
         this.loadingHourly = false;
       } catch (e) {
-        console.warn("Hourly load error:", e);
         this.loadingHourly = false;
       }
     };
@@ -1357,23 +1354,22 @@ async onSearch(options = {}) {
         const todayDate = now.getDate();
         if (this.monthSeries && this.monthSeries.length) {
           this.monthSeries = this.monthSeries.filter(item => {
-            if ((item.y || 0) < 0.01) return false; // 0 제거
+            if ((item.y || 0) < 0.01) return false;
             const label = String(item.x || item.label || '');
             const weekNum = parseInt(label.replace(/\D/g, ''));
             if (!weekNum) return true;
             const startDay = (weekNum - 1) * 7 + 1;
-            return startDay <= todayDate; // 미래 제거
+            return startDay <= todayDate;
           });
         }
 
         this.loadingMonth = false;
       } catch (e) {
-        console.warn("Monthly load error:", e);
         this.loadingMonth = false;
       }
     };
 
-    const loadYearly = async () => {
+const loadYearly = async () => {
       try {
         const yearly = await this.fetchRange('yearly', false, imei);
         if (myReq !== this.currentReqId) return;
@@ -1384,11 +1380,12 @@ async onSearch(options = {}) {
           raw: r.bucket || r.x,
           kwh: Number(r.kwh ?? r.y ?? 0)
         }));
-
         ys = ys.map(row => {
-          const m = row.raw?.match?.(/\d{4}-(\d{2})/);
-          const monthNum = m ? Number(m[1]) : null;
+          const m = row.raw?.match?.(/^(\d{4})-(\d{2})/);
+          const yearNum = m ? Number(m[1]) : null;
+          const monthNum = m ? Number(m[2]) : null;
           return {
+            yearNum,
             monthNum,
             x: `${monthNum}월`,
             y: round2(row.kwh)
@@ -1405,14 +1402,22 @@ async onSearch(options = {}) {
         );
 
         const now = new Date();
-        const thisMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+
         if (this.yearSeries && this.yearSeries.length) {
           this.yearSeries = this.yearSeries.filter(item => {
-            if ((item.y || 0) < 0.01) return false; // 0 제거
-            const label = String(item.x || '');
-            const monthNum = parseInt(label.replace(/\D/g, ''));
-            if (!monthNum) return true;
-            return monthNum <= thisMonth; // 미래 제거
+            if ((item.y || 0) < 0.01) return false;
+
+            if (!item.yearNum || !item.monthNum) return true;
+
+            if (item.yearNum < currentYear) return true;
+
+            if (item.yearNum === currentYear) {
+              return item.monthNum <= currentMonth;
+            }
+
+            return false;
           });
         }
         
@@ -1429,7 +1434,6 @@ async onSearch(options = {}) {
         if (this.updateChartDimensions) this.updateChartDimensions();
 
       } catch (e) {
-        console.warn("Yearly load error:", e);
         this.loadingYear = false;
       }
     };
@@ -1439,10 +1443,9 @@ async onSearch(options = {}) {
     loadYearly();
 
     this.hasSearched = true;
-    
+
   } catch (e) {
-    this.errorMsg = e?.message || '오류가 발생했습니다.';
-    console.error('[onSearch]', e);
+    this.errorMsg = e?.message || '오z  류가 발생했습니다.';
   } finally {
     this.searching = false;
   }
@@ -1567,7 +1570,6 @@ async onSearch(options = {}) {
       const m = this.kpiMonth.kwh || 0;
       const y = this.kpiYear.kwh  || 0;
       if (y + 1e-6 < m || m + 1e-6 < w) {
-        console.warn('[EnergyDashboard] Aggregate order broke (Y<M or M<W)', { w, m, y });
       }
     },
 

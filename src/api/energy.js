@@ -1,7 +1,7 @@
 const API_BASE = import.meta?.env?.VITE_API_BASE || '';
 const TTL = 25_000;
 
-const _mem = new Map(); // key -> {t, data}
+const _mem = new Map();
 const timeoutFetch = (url, ms = 7000) => {
   const ctrl = new AbortController();
   const id = setTimeout(() => ctrl.abort(), ms);

@@ -147,7 +147,6 @@ export default {
           username: u.username,
           phoneNumber: u.phoneNumber,
         })
-        // 정상 응답
         const msg = res.data?.message || `"${u.worker}" 정보가 저장되었습니다.`
         this.showToast(msg)
         this.editRow = null
