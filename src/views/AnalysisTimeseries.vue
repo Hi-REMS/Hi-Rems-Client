@@ -180,12 +180,6 @@
           </text>
         </g>
 
-        <path v-if="bars.length" :d="linePath" class="line" />
-        <g class="line-dots" v-if="bars.length">
-          <circle v-for="(b,i) in bars" :key="'dot'+i"
-                  class="line-dot"
-                  :cx="b.xCenter" :cy="b.y" r="3" />
-        </g>
 
         <g v-if="hoverIdx !== null">
           <line class="hover-line"

@@ -68,7 +68,7 @@
 
         <g class="axis axis-left">
           <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
-          <g v-for="(t,i) in yTicks" :key="'yl'+i">
+          <g v-if="!isMobile" v-for="(t,i) in yTicks" :key="'yl'+i">
             <text :x="pad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
           </g>
         </g>
@@ -174,7 +174,7 @@
 
         <g class="axis axis-left">
           <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
-          <g v-for="(t,i) in yTicksMonth" :key="'my'+i">
+          <g v-if="!isMobile" v-for="(t,i) in yTicksMonth" :key="'my'+i">
             <text :x="pad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
           </g>
         </g>
@@ -267,7 +267,7 @@
 
         <g class="axis axis-left">
           <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h-pad.b"/>
-          <g v-for="(t,i) in yTicksYear" :key="'yl'+i">
+          <g v-if="!isMobile" v-for="(t,i) in yTicksYear" :key="'yl'+i">
             <text :x="pad.l-8" :y="t.y+4" text-anchor="end">{{ t.label }}</text>
           </g>
         </g>
@@ -680,6 +680,7 @@ export default {
     const m = now.getMonth() + 1;
 
     return {
+      isMobile: false,
       loadingWeek: false,
       loadingMonth: false,
       loadingYear: false,
@@ -961,6 +962,17 @@ multi(nv) {
 },
 
   methods: {
+  updateViewBox() {
+    this.isMobile = window.innerWidth < 768;
+
+    if (isMobile) {
+      this.vb.h = 610;
+      this.pad.t = 10;
+    } else {
+      this.vb.h = 420;
+      this.pad.t = 24;
+    }
+  },
     syncAdminFromStorage(){
       try{
         const flag  = (localStorage.getItem('isAdmin') === 'true')
@@ -1598,7 +1610,8 @@ const loadYearly = async () => {
     },
     closeWxModal(){ this.showWx = false },
   },
-  mounted() {
+  
+mounted() {
     this.syncAdminFromStorage()
     this._storageHandler = (e) => {
       if (e.key === 'isAdmin' || e.key === 'email') this.syncAdminFromStorage()
@@ -1611,15 +1624,25 @@ const loadYearly = async () => {
     this.typeField   = (typeof q.type === 'string'  && q.type.trim())  ? q.type.trim()  : ''
     this.multiField  = (typeof q.multi === 'string' && q.multi.trim()) ? q.multi.trim() : ''
 
+    const handleResize = () => {
+      this.updateAxisFonts()
+      this.updateViewBox()
+    }
+
     if ('ResizeObserver' in window) {
-      this.resizeObserver = new ResizeObserver(() => this.updateAxisFonts())
+      this.resizeObserver = new ResizeObserver(() => handleResize())
       this.resizeObserver.observe(this.$el)
     } else {
-      window.addEventListener('resize', this.updateAxisFonts)
+      window.addEventListener('resize', handleResize)
     }
-    this.$nextTick(this.updateAxisFonts)
+
+    this.$nextTick(() => {
+      handleResize()
+    })
+
     this.onSearch({ loadDefault: true })
   },
+
   beforeDestroy(){
     if(this.resizeObserver) this.resizeObserver.disconnect()
     else window.removeEventListener('resize', this.updateAxisFonts)
