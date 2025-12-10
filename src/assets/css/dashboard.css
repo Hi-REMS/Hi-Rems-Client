@@ -1663,4 +1663,155 @@ html[data-theme='dark'] .seg-pill.active {
   html[data-theme="dark"] .modal__close:hover {
     color: #f1f5f9 !important;
   }
+
+  .modal__table {
+    display: block;
+    width: 100%;
+    padding: 0 16px;
+    max-height: calc(80vh - 180px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .modal__table thead {
+    display: none;
+  }
+
+  .modal__table tbody tr {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: none;
+  }
+
+  .modal__table tbody tr.zebra:nth-child(even) {
+      background-color: var(--surface);
+  }
+  .modal__table tbody tr:hover {
+      background-color: var(--surface); 
+  }
+
+  .modal__table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: none !important;
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-all;
+  }
+
+  .modal__table tbody td::before {
+    display: inline-block;
+    width: 70px;
+    min-width: 70px;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: left;
+    content: attr(data-label);
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  .modal__table tbody td:nth-child(1) {
+    display: block;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border) !important;
+  }
+  .modal__table tbody td:nth-child(1)::before {
+    display: none;
+  }
+
+  .modal__table tbody td:nth-child(2) {
+    order: 1;
+  }
+  .modal__table tbody td:nth-child(2)::before {
+    content: "현재 상태";
+  }
+
+  .modal__table tbody td:nth-child(3) {
+    order: 2;
+  }
+  .modal__table tbody td:nth-child(3)::before {
+    content: "최근 수신";
+  }
+  .modal__table tbody td:nth-child(3) span {
+    font-size: 13px !important;
+    color: var(--text) !important;
+    font-weight: 500;
+  }
+
+  .modal__table tbody td:nth-child(3) small {
+      display: none; 
+  }
+
+  .modal__table tbody td:nth-child(4) {
+    display: block !important;
+    order: 3;
+    width: 100%;
+    margin-top: 10px;
+    padding: 0;
+  }
+
+  .modal__table tbody td:nth-child(4)::before {
+    content: "고장 원인";
+    display: block;
+    width: 100%;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .modal__table tbody td:nth-child(4) > span {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: normal;
+  }
+
+  .modal__table tbody td:nth-child(5) {
+      display: none; 
+  }
+
+  .modal__table tbody td:nth-child(4).td-offline-time {
+      display: flex !important;
+      font-weight: 500;
+  }
+  .modal__table tbody td:nth-child(4).td-offline-time::before {
+      content: "경과 시간";
+      display: block;
+      width: 70px;
+      min-width: 70px;
+      margin-bottom: 0;
+  }
+  .modal__table tbody td:nth-child(4).td-offline-time > span {
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: var(--text);
+  }
+
+  /* 테이블 푸터 */
+  .modal__ft {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    text-align: right;
+  }
 }

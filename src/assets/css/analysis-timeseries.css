@@ -179,8 +179,8 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
 .ts-page .kpi-unit{ font-size:12px; color:var(--muted-1); white-space:nowrap; }
 .ts-page .kpi-sub{ color:var(--muted-1); font-size:12px; margin-top:4px; }
 .ts-page .kpi-ico{ opacity:.45; }
-.ts-page .chart-placeholder{ padding:10px 12px 12px; }
-.ts-page .svg-chart{ width:100%; height:360px; }
+.ts-page .chart-placeholder{ padding:50px 12px 12px 100px; }
+.ts-page .svg-chart{ width:95%; height:360px; }
 .ts-page .svg-chart .grid line{ stroke: var(--chart-grid); shape-rendering: crispEdges; }
 .ts-page .svg-chart .axis line{ stroke: var(--chart-axis); shape-rendering: crispEdges; }
 .ts-page .svg-chart .axis text{ fill: var(--muted-1); font-size: 11px; }
@@ -261,6 +261,24 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.ats-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  box-sizing: border-box;
+  animation: ats-spin-kf 0.8s linear infinite;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+
+/* 고유 키프레임 정의 */
+@keyframes ats-spin-kf {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
 html[data-theme="light"] .ts-page .card,
 html[data-theme="light"] .ts-page .kpi,
@@ -939,7 +957,6 @@ html[data-theme="dark"] .weather-card .wx-inspect{
 
 
 @media (max-width: 767px) {
-  /* 1. 차트 여백 및 크기 최적화 */
   .ts-page .chart-placeholder {
     padding: 10px 0 0 0 !important;
   }
@@ -949,40 +966,34 @@ html[data-theme="dark"] .weather-card .wx-inspect{
     height: 300px !important;
   }
 
-  /* 2. X/Y축 글씨: 테마 변수(--text-1) 적용으로 다크모드 자동 대응 */
   .ts-page .svg-chart .axis text {
     font-size: 13px !important;
     font-weight: 600 !important;
-    fill: var(--text-1, #444) !important; /* 변수 없으면 #444 */
+    fill: var(--text-1, #444) !important;
     stroke: none !important;
     text-shadow: none !important;
   }
 
-  /* 3. 막대 위 숫자 라벨: 역시 테마 변수 적용 */
   .ts-page .svg-chart .bar-labels .bar-label {
     font-size: 14px !important;
     font-weight: 700 !important;
-    fill: var(--text-1, #000) !important; /* 변수 없으면 #000 */
+    fill: var(--text-1, #000) !important;
     stroke: none !important;
     stroke-width: 0 !important;
     text-shadow: none !important;
     paint-order: normal !important;
   }
 
-  /* 4. 툴팁 텍스트 */
   .ts-page .svg-chart .tt-text {
     font-size: 13px !important;
     font-weight: 600 !important;
-    fill: var(--text-1, #333) !important; /* 변수 없으면 #333 */
+    fill: var(--text-1, #333) !important;
     text-shadow: none !important;
   }
-  
-  /* 5. 범례 */
+
   .ts-page .legend {
     font-size: 13px !important;
     margin-top: 10px !important;
-    /* 범례도 색상이 필요하다면 아래 주석 해제 */
-    /* color: var(--text-1, #333) !important; */
   }
 }
 
@@ -1427,4 +1438,60 @@ html[data-theme='dark'] .status-card {
 .status-detail-list li:hover {
   color: #1f2937;
   transform: translateX(4px);
+}
+
+.bar-label {
+  fill: #000000 !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  text-shadow: 0 0 4px rgba(255,255,255,0.6);
+}
+
+.bar-label, .edb-bar-label {
+  fill: #374151; 
+  font-size: 11px;
+  
+  font-weight: 500; 
+  
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  
+  transition: fill 0.3s ease;
+}
+
+
+.dark .bar-label,
+.dark-mode .bar-label,
+[data-theme="dark"] .bar-label,
+.dark .edb-bar-label,
+.dark-mode .edb-bar-label,
+[data-theme="dark"] .edb-bar-label {
+  fill: #f3f4f6 !important;
+
+}
+
+.toast {
+  position: fixed;
+  top: 80px;    
+  right: 20px;    
+  background-color: var(--toast-bg, #333); 
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  z-index: 9999;  
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+/* 페이드 효과 */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
 }

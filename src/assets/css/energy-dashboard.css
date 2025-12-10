@@ -918,6 +918,42 @@ html[data-theme="dark"] .edb-stat-value b {
   }
 }
 
+@media (min-width: 768px) and (max-width: 1366px) {
+  
+  .edb-chart__body {
+    padding: 0 !important;
+    margin: 0 auto !important;
+    height: auto !important;
+    min-height: 240px !important; 
+  }
+
+  .edb-svg-chart {
+    transform: scale(1.05);         
+    transform-origin: center top;
+  }
+
+  .edb-svg-chart .axis text {
+    font-size: 24px !important; 
+    font-weight: 500;
+    fill: color-mix(in srgb, var(--p-text) 90%, var(--p-muted) 10%);
+  }
+
+  .edb-bar-label {
+    font-size: 24px !important; 
+    font-weight: 600;
+    fill: var(--p-text);
+  }
+  
+  .edb-card {
+    padding: 18px 16px !important;
+  }
+
+  .edb-svg-chart .axis-bottom text {
+    dy: 10px;
+  }
+}
+
+
 .edb-svg-chart .axis text {
   font-size: clamp(13px, 1.6vw, 24px);
   font-weight: 600;
@@ -1169,4 +1205,3 @@ html[data-theme="dark"] .edb-week-btn:hover:not(:disabled) {
     display: none !important;
   }
 }
-

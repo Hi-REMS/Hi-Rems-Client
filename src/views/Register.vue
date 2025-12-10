@@ -7,31 +7,33 @@
       <div class="art-pad" aria-hidden="true"></div>
 
       <section class="auth-panel">
-              <img 
-    src="@/assets/haeinlogo-main.png"
-    alt="Hi-REMS 로고"
-    class="auth-logo"
-  />
+        <img
+          src="@/assets/haeinlogo-main.png"
+          alt="Hi-REMS 로고"
+          class="auth-logo"
+        />
         <header class="platform-head" aria-labelledby="heroMain">
           <h1 id="heroMain" class="hero-title">
             지속가능한 에너지<br />모니터링 플랫폼
           </h1>
-          <p class="hero-sub">
-            재생에너지 발전 상태를 한 곳에서 확인하세요.
-          </p>
+          <p class="hero-sub">재생에너지 발전 상태를 한 곳에서 확인하세요.</p>
         </header>
 
         <main class="auth-card" role="main" aria-labelledby="regTitle">
           <header class="cardc-hd">
-            <h2 id="regTitle" style="color:#2d2d2d;">회원가입</h2>
+            <h2 id="regTitle" style="color: #2d2d2d">회원가입</h2>
             <p class="sub">새 계정을 만들어 대시보드를 이용해 보세요.</p>
           </header>
 
           <form class="cardc-form" @submit.prevent="onSubmit" novalidate>
             <div class="field">
               <label for="username">아이디(이메일)</label>
-              <div class="pill" :class="{ error: usernameTouched && !usernameValid }">
-                <input style="font-size:14px;"
+              <div
+                class="pill"
+                :class="{ error: usernameTouched && !usernameValid }"
+              >
+                <input
+                  style="font-size: 14px"
                   id="username"
                   v-model.trim="username"
                   type="email"
@@ -43,15 +45,22 @@
                   @keydown.space.prevent
                 />
               </div>
-              <ul v-if="usernameTouched && usernameErrors.length" class="pw-errors compact">
+              <ul
+                v-if="usernameTouched && usernameErrors.length"
+                class="pw-errors compact"
+              >
                 <li v-for="(err, i) in usernameErrors" :key="i">{{ err }}</li>
               </ul>
             </div>
 
             <div class="field">
               <label for="worker">담당자(이름)</label>
-              <div class="pill" :class="{ error: workerTouched && !workerValid }">
-                <input style="font-size:14px;"
+              <div
+                class="pill"
+                :class="{ error: workerTouched && !workerValid }"
+              >
+                <input
+                  style="font-size: 14px"
                   id="worker"
                   v-model.trim="worker"
                   type="text"
@@ -69,7 +78,8 @@
             <div class="field">
               <label for="phoneNumber">전화번호</label>
               <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
-                <input style="font-size:14px;"
+                <input
+                  style="font-size: 14px"
                   id="phoneNumber"
                   v-model.trim="phoneNumber"
                   type="tel"
@@ -86,7 +96,10 @@
 
             <div class="field">
               <label for="password">비밀번호</label>
-              <div class="pill" :class="{ error: passwordTouched && !passwordValid }">
+              <div
+                class="pill"
+                :class="{ error: passwordTouched && !passwordValid }"
+              >
                 <input
                   id="password"
                   :type="showPassword ? 'text' : 'password'"
@@ -97,23 +110,37 @@
                   @keyup="checkCaps"
                   @blur="passwordTouched = true"
                 />
-                <button type="button" class="pill-action" @click="showPassword = !showPassword">
-                  {{ showPassword ? '숨김' : '표시' }}
+                <button
+                  type="button"
+                  class="pill-action"
+                  @click="showPassword = !showPassword"
+                >
+                  {{ showPassword ? "숨김" : "표시" }}
                 </button>
               </div>
 
               <div class="pw-strength slim" aria-hidden="true">
-                <div class="bar" :style="{ width: strengthPercent + '%' }"></div>
+                <div
+                  class="bar"
+                  :style="{ width: strengthPercent + '%' }"
+                ></div>
               </div>
-              <ul v-if="passwordTouched && passwordErrors.length" class="pw-errors compact">
+              <ul
+                v-if="passwordTouched && passwordErrors.length"
+                class="pw-errors compact"
+              >
                 <li v-for="(err, i) in passwordErrors" :key="i">{{ err }}</li>
               </ul>
             </div>
 
             <div class="field">
               <label for="confirm">비밀번호 확인</label>
-              <div class="pill" :class="{ error: confirmTouched && !confirmValid }">
-                <input style="font-size:14px;"
+              <div
+                class="pill"
+                :class="{ error: confirmTouched && !confirmValid }"
+              >
+                <input
+                  style="font-size: 14px"
                   id="confirm"
                   :type="showPassword ? 'text' : 'password'"
                   v-model="confirm"
@@ -134,7 +161,8 @@
             </button>
 
             <p class="foot mt8">
-              이미 계정이 있으신가요? <router-link to="/login">로그인</router-link>
+              이미 계정이 있으신가요?
+              <router-link to="/login">로그인</router-link>
             </p>
           </form>
         </main>
@@ -144,82 +172,116 @@
 </template>
 
 <script>
-import { api } from '@/api'
-import '@/assets/css/register.css'
+import { api } from "@/api";
+import "@/assets/css/register.css";
 
 export default {
-  name: 'Register',
+  name: "Register",
   data() {
     return {
-      username: '', usernameTouched: false,
-      worker: '', workerTouched: false,
-      phoneNumber: '', phoneTouched: false,
-      password: '', passwordTouched: false,
-      confirm: '', confirmTouched: false,
-      showPassword: false, capsOn: false, loading: false,
-    }
+      username: "",
+      usernameTouched: false,
+      worker: "",
+      workerTouched: false,
+      phoneNumber: "",
+      phoneTouched: false,
+      password: "",
+      passwordTouched: false,
+      confirm: "",
+      confirmTouched: false,
+      showPassword: false,
+      capsOn: false,
+      loading: false,
+    };
   },
   computed: {
     usernameValid() {
-      const v = this.username
-      return !!v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+      const v = this.username;
+      return !!v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
     },
     usernameErrors() {
-      const e = []
-      if (!this.username) e.push('이메일을 입력해 주세요.')
-      else if (!this.usernameValid) e.push('올바른 이메일 형식이 아닙니다.')
-      return e
+      const e = [];
+      if (!this.username) e.push("이메일을 입력해 주세요.");
+      else if (!this.usernameValid) e.push("올바른 이메일 형식이 아닙니다.");
+      return e;
     },
-    workerValid() { return !!this.worker && this.worker.length >= 2 },
-    phoneValid() { return !!this.phoneNumber && this.phoneNumber.replace(/[^0-9]/g, '').length >= 10 },
+    workerValid() {
+      return !!this.worker && this.worker.length >= 2;
+    },
+    phoneValid() {
+      const n = this.phoneNumber.replace(/[^0-9]/g, "");
+      return /^010\d{8}$/.test(n);
+    },
     strengthPercent() {
-      let s = 0
-      if (this.password.length >= 8) s += 25
-      if (/[A-Z]/.test(this.password)) s += 25
-      if (/[0-9]/.test(this.password)) s += 25
-      if (/[^A-Za-z0-9]/.test(this.password)) s += 25
-      return s
+      let s = 0;
+      if (this.password.length >= 8) s += 25;
+      if (/[A-Z]/.test(this.password)) s += 25;
+      if (/[0-9]/.test(this.password)) s += 25;
+      if (/[^A-Za-z0-9]/.test(this.password)) s += 25;
+      return s;
     },
     passwordErrors() {
-      const e = []
-      const pw = this.password
-      if (!pw || pw.length < 8) e.push('8자 이상이어야 합니다.')
-      if (!/[A-Z]/.test(pw)) e.push('대문자(A-Z)를 포함하세요.')
-      if (!/[a-z]/.test(pw)) e.push('소문자(a-z)를 포함하세요.')
-      if (!/[0-9]/.test(pw)) e.push('숫자(0-9)를 포함하세요.')
-      if (!/[^A-Za-z0-9]/.test(pw)) e.push('특수문자를 포함하세요.')
-      if (/\s/.test(pw)) e.push('공백 문자는 사용할 수 없습니다.')
-      if (this.username && pw.toLowerCase().includes(this.username.toLowerCase()))
-        e.push('비밀번호에 아이디(이메일)를 포함할 수 없습니다.')
-      return e
+      const e = [];
+      const pw = this.password;
+      if (!pw || pw.length < 8) e.push("8자 이상이어야 합니다.");
+      if (!/[A-Z]/.test(pw)) e.push("대문자(A-Z)를 포함하세요.");
+      if (!/[a-z]/.test(pw)) e.push("소문자(a-z)를 포함하세요.");
+      if (!/[0-9]/.test(pw)) e.push("숫자(0-9)를 포함하세요.");
+      if (!/[^A-Za-z0-9]/.test(pw)) e.push("특수문자를 포함하세요.");
+      if (/\s/.test(pw)) e.push("공백 문자는 사용할 수 없습니다.");
+      if (
+        this.username &&
+        pw.toLowerCase().includes(this.username.toLowerCase())
+      )
+        e.push("비밀번호에 아이디(이메일)를 포함할 수 없습니다.");
+      return e;
     },
-    passwordValid() { return this.passwordErrors.length === 0 },
-    confirmValid() { return !!this.password && this.password === this.confirm },
+    passwordValid() {
+      return this.passwordErrors.length === 0;
+    },
+    confirmValid() {
+      return !!this.password && this.password === this.confirm;
+    },
     canSubmit() {
-      return this.usernameValid && this.workerValid && this.phoneValid && this.passwordValid && this.confirmValid
-    }
+      return (
+        this.usernameValid &&
+        this.workerValid &&
+        this.phoneValid &&
+        this.passwordValid &&
+        this.confirmValid
+      );
+    },
   },
   methods: {
-    checkCaps(e) { this.capsOn = e.getModifierState && e.getModifierState('CapsLock') },
+    checkCaps(e) {
+      this.capsOn = e.getModifierState && e.getModifierState("CapsLock");
+    },
     async onSubmit() {
-      if (this.loading || !this.canSubmit) return
+      if (this.loading || !this.canSubmit) return;
       try {
-        this.loading = true
-        await api.post('/auth/register', {
+        this.loading = true;
+        await api.post("/auth/register", {
           username: this.username,
           password: this.password,
           worker: this.worker,
           phoneNumber: this.phoneNumber,
-        })
-        alert('회원가입에 성공하셨습니다!')
-        this.$router.replace('/login')
+        });
+        alert("회원가입에 성공하셨습니다!");
+        this.$router.replace("/login");
       } catch (err) {
-        const msg = err?.response?.data?.message || err?.message || '등록 실패'
-        alert(`회원가입 실패: ${msg}`)
+        let msg =
+          "일시적인 오류로 가입에 실패했습니다. 잠시 후 다시 시도해주세요.";
+        if (err?.response?.status === 409) {
+          msg = "이미 가입된 이메일 주소입니다.";
+        } else if (err?.response?.data?.message) {
+          // 서버 메시지가 사용자 친화적이라면 그대로 사용
+          msg = err.response.data.message;
+        }
+        alert(msg);
       } finally {
-        this.loading = false
+        this.loading = false;
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>

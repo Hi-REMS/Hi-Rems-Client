@@ -25,7 +25,7 @@ const router = new Router({
   mode: 'hash',
   base: '/hirems/',
   routes: [
-        {
+    {
       path: '/',
       meta: { hideHeader: true },
       beforeEnter: async (to, from, next) => {
@@ -44,11 +44,52 @@ const router = new Router({
     { path: '/findpassword', name: 'FindPassword', component: FindPassword, meta: { hideHeader: true } },
     { path: '/change-password', name: 'ChangePassword', component: ChangePassword, meta: { hideHeader: true } },
     { path: '/reset', component: ResetPassword, meta: { hideHeader: true } },
-    { path: '/home', component: Home, meta: { requiresAuth: true, hideHeader: false } },
+    
+    { 
+      path: '/home', 
+      component: Home, 
+      meta: { requiresAuth: true, hideHeader: false },
+      beforeEnter: async (to, from, next) => {
+        try {
+          const { data } = await api.get('/auth/me')
+          const user = data?.user
+          
+          if (user && isAdminUser(user)) {
+            next()
+          } else {
+            alert('관리자만 접근할 수 있는 페이지입니다.')
+            next('/analysis/timeseries')
+          }
+        } catch (e) {
+          next('/login')
+        }
+      }
+    },
+
     { path: '/analysis/timeseries', component: AnalysisTimeseries, meta: { requiresAuth: true, hideHeader: false } },
     { path: '/energy', name: 'EnergyDashboard', component: EnergyDashboard, meta: { requiresAuth: true, hideHeader: false } },
-    { path: '/admin/members',name: 'AdminMembers', component: Members, meta: { requiresAuth: true }},
-        { path: '*', redirect: '/' }
+    
+    { 
+      path: '/admin/members',
+      name: 'AdminMembers', 
+      component: Members, 
+      meta: { requiresAuth: true },
+      beforeEnter: async (to, from, next) => {
+        try {
+          const { data } = await api.get('/auth/me')
+          const user = data?.user
+          if (user && isAdminUser(user)) {
+            next()
+          } else {
+            alert('관리자 권한이 필요합니다.')
+            next('/analysis/timeseries')
+          }
+        } catch (e) {
+          next('/login')
+        }
+      }
+    },
+    { path: '*', redirect: '/' }
   ],
   scrollBehavior (to, from, savedPosition) {
     if (savedPosition) return savedPosition
@@ -67,7 +108,7 @@ router.afterEach(() => {
 })
 
 router.beforeEach(async (to, from, next) => {
-    if (to.path === '/login') {
+  if (to.path === '/login') {
     return next()
   }
   const PUBLIC = ['/login', '/register', '/findpassword', '/reset']
@@ -81,15 +122,13 @@ router.beforeEach(async (to, from, next) => {
       return null
     }
   }
-    if (to.matched.some(r => r.meta.requiresAuth)) {
+  
+  if (to.matched.some(r => r.meta.requiresAuth)) {
     const me = await getMe()
     if (me) {
-            if (to.path === '/home' && !isAdminUser(me)) {
-        return next('/analysis/timeseries')
-      }
       return next()
     }
-        const safeRedirect = (() => {
+    const safeRedirect = (() => {
       const raw = to.fullPath || ''
       const BLOCKED = ['/login','/register','/reset','/findpassword']
       if (!raw.startsWith('/')) return ''
@@ -98,16 +137,15 @@ router.beforeEach(async (to, from, next) => {
     })()
     return next(safeRedirect ? `/login?redirect=${encodeURIComponent(safeRedirect)}` : '/login')
   }
-    if (isPublic && to.path === '/register') {
+
+  if (isPublic && to.path === '/register') {
     const me = await getMe()
     if (me) {
       const defaultPath = isAdminUser(me) ? '/home' : '/analysis/timeseries'
-
       let toAfterLogin = to.query.redirect || ''
       const BLOCKED = ['/login','/register','/reset','/findpassword']
       const isSafe = toAfterLogin && toAfterLogin.startsWith('/') && !BLOCKED.some(p => toAfterLogin.startsWith(p))
       if (!isSafe) toAfterLogin = defaultPath
-
       if (to.fullPath === toAfterLogin) return next()
       return next(toAfterLogin)
     }

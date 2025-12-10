@@ -447,3 +447,44 @@
 .auth .pill input::placeholder {
   color: rgba(15,23,42,.4) !important;
 }
+
+@media (max-width: 480px) {
+  .auth-card {
+    color: #fff !important; 
+
+    backdrop-filter: blur(10px) brightness(1.1);
+  }
+
+  .auth-card .cardc-hd h2 {
+    color: #fff !important;
+  }
+  
+  .auth-card .sub,
+  .auth-card .hero-sub,
+  .auth-card .field label,
+  .auth-card .act-label,
+  .auth-card .foot {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+  
+  .auth-card .pill input {
+    color: #0f172a !important;
+  }
+
+  .auth-card .pill input::placeholder {
+    color: rgba(15, 23, 42, 0.5) !important;
+  }
+
+  .auth-card .auth-link,
+  .auth-card .pill-action {
+    color: #fff !important;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .auth-card .auth-link,
+    .auth-card .pill-action {
+      color: var(--brand) !important;
+    }
+  }
+
+}
