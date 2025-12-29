@@ -120,7 +120,7 @@ export default {
       savingId: null,
       editRow: null,
       searchQuery: "",
-      originalData: null, // 🟢 [추가] 수정 취소를 위한 백업 데이터
+      originalData: null,
       toast: { visible: false, message: "" },
     };
   },

@@ -1473,20 +1473,6 @@ html[data-theme='dark'] .status-card {
 
 }
 
-.toast {
-  position: fixed;
-  top: 80px;    
-  right: 20px;    
-  background-color: var(--toast-bg, #333); 
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 4px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-  z-index: 9999;  
-  font-size: 14px;
-  font-weight: 500;
-  transition: opacity 0.3s ease;
-}
 
 /* 페이드 효과 */
 .fade-enter-active, .fade-leave-active {
@@ -1494,4 +1480,164 @@ html[data-theme='dark'] .status-card {
 }
 .fade-enter, .fade-leave-to {
   opacity: 0;
+}
+
+.text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+  cursor: help;
+}
+
+.btn.xs {
+  padding: 2px 6px;
+  font-size: 11px;
+  min-height: 24px;
+}
+.btn.warn {
+  color: #ff5252; 
+}
+.btn.warn:hover {
+  background-color: rgba(255, 82, 82, 0.1);
+}
+
+.mobile-maint-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.mobile-maint-item {
+  border-bottom: 1px solid #eee;
+  padding: 12px 4px;
+}
+.mobile-maint-item:last-child {
+  border-bottom: none;
+}
+.mo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.mo-date {
+  font-weight: bold;
+  color: #333;
+  font-size: 14px;
+}
+.mo-content {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 4px;
+}
+/* 버튼 스타일 보정 */
+.btn.xs {
+  padding: 2px 8px;
+  font-size: 12px;
+  height: 24px;
+  line-height: 22px;
+}
+
+.ats-modal__panel {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  height: auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  min-height: auto; 
+}
+
+.ats-modal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  min-height: 0;
+}
+
+.ats-modal__ft {
+  flex-shrink: 0;
+  border-top: 1px solid #eee;
+  padding: 12px 20px;
+  background: #f8f9fa;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+html[data-theme="dark"] .ats-modal__panel {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+html[data-theme="dark"] .ats-modal__hd {
+  border-bottom: 1px solid #333;
+}
+
+html[data-theme="dark"] .ats-modal__title {
+  color: #fff;
+}
+
+html[data-theme="dark"] .ats-modal__close {
+  color: #999;
+}
+
+html[data-theme="dark"] .ats-modal__close:hover {
+  color: #fff;
+}
+
+html[data-theme="dark"] .ats-modal__body::-webkit-scrollbar-thumb {
+  background-color: #555;
+}
+
+html[data-theme="dark"] .ats-modal__body::-webkit-scrollbar-track {
+  background-color: #2a2a2a;
+}
+
+html[data-theme="dark"] .ats-modal__ft {
+  background-color: #252525;
+  border-top: 1px solid #333;
+}
+
+html[data-theme="dark"] .ats-modal__panel input,
+html[data-theme="dark"] .ats-modal__panel textarea,
+html[data-theme="dark"] .ats-modal__panel select {
+  background-color: #2c2c2c;
+  border: 1px solid #555;
+  color: #fff;
+}
+
+html[data-theme="dark"] .ats-modal__panel input:focus,
+html[data-theme="dark"] .ats-modal__panel textarea:focus {
+  border-color: #21e2cf;
+  background-color: #333;
+}
+
+html[data-theme="dark"] .mobile-maint-item {
+  border-bottom: 1px solid #333;
+}
+
+html[data-theme="dark"] .mo-date {
+  color: #f0f0f0;
+}
+
+html[data-theme="dark"] .mo-content {
+  background-color: #2a2a2a;
+  color: #ccc;
+  border: 1px solid #3a3a3a;
+}
+
+html[data-theme="dark"] .btn.ghost {
+  color: #ccc;
+  border-color: #555;
+}
+
+html[data-theme="dark"] .btn.ghost:hover {
+  background-color: #444;
+  color: #fff;
 }

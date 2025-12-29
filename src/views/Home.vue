@@ -277,6 +277,7 @@
                     energy: selectedPoint.energy,
                     type: selectedPoint.type,
                     multi: selectedPoint.multi,
+                    name: selectedPoint.worker,
                   },
                 }"
               >
@@ -1070,14 +1071,10 @@ export default {
       if (n == null || Number.isNaN(Number(n))) return "";
       return `${n} ${unit}`.trim();
     },
-    toKst(iso) {
-      const d = new Date(iso);
-      const k = new Date(d.getTime() + 9 * 3600 * 1000);
-      const p = (n) => String(n).padStart(2, "0");
-      return `${k.getFullYear()}-${p(k.getMonth() + 1)}-${p(k.getDate())} ${p(
-        k.getHours()
-      )}:${p(k.getMinutes())}:${p(k.getSeconds())}`;
-    },
+toKst(iso) {
+  if (!iso) return "-";
+  return iso; 
+},
     fromNow(isoOrDate) {
       const base =
         typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
@@ -1517,7 +1514,7 @@ export default {
       this.clearFocus();
       return;
     },
-    async focusImei(ptOrRow) {
+async focusImei(ptOrRow) {
       const kakao = window.kakao;
       if (this.abnModal.open && this.mapMode !== "ABNORMAL") {
         this.mapMode = "ABNORMAL";
@@ -1535,8 +1532,17 @@ export default {
         multi: ptOrRow.multi ?? null,
         worker: ptOrRow.worker ?? null,
       };
+
       const coord = await this.ensureCoordForPoint(ptOrRow);
-      if (!coord) return;
+
+      if (!coord) {
+        const msg = ptOrRow.display_message 
+          || "장비는 등록되었으나 주소 등록이 안되었습니다.\n상세 모니터링에서 검색 후 조회해주세요.";
+        
+        alert(msg); 
+        return;
+      }
+
       const latlng = new kakao.maps.LatLng(coord.lat, coord.lng);
       if (this.abnModal.open) {
         this.map.setLevel(7, { animate: true });

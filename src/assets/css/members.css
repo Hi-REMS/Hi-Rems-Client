@@ -343,3 +343,92 @@
   align-items: center;
   gap: 4px; 
 }
+
+.action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.btn-edit,
+.btn-save,
+.btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.btn-save {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.btn-save:hover {
+  filter: brightness(0.9);
+  transform: translateY(-1px);
+}
+
+.btn-cancel {
+  background: color-mix(in srgb, var(--surface) 85%, #64748b);
+  color: #475569;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-left: 0;
+}
+
+.btn-cancel:hover {
+  background: color-mix(in srgb, var(--surface) 75%, #64748b);
+  color: #1e293b;
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-save {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-save:hover {
+  background: #60a5fa;
+}
+
+[data-theme="dark"] .btn-cancel {
+  background: #334155;
+  color: #e2e8f0;
+  box-shadow: none;
+  border: 1px solid #475569;
+}
+
+[data-theme="dark"] .btn-cancel:hover {
+  background: #475569;
+  color: #fff;
+}
+
+[data-theme="dark"] .btn-edit {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #334155;
+}
+
+[data-theme="dark"] .btn-edit:hover {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+.btn-save:disabled,
+.btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}

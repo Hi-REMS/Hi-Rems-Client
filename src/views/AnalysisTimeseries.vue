@@ -704,87 +704,112 @@
       </div>
     </div>
 
-  <div 
-  v-if="maintModal.open" 
-  class="ats-modal" 
-  role="dialog" 
-  aria-modal="true" 
-  @keydown.esc="closeMaintModal"
->
-  <div class="ats-modal__backdrop" @click="closeMaintModal"></div>
+<div v-if="maintModal.open" class="ats-modal" role="dialog" aria-modal="true" @keydown.esc="closeMaintModal">
+    <div class="ats-modal__backdrop" @click="closeMaintModal"></div>
 
-  <div class="ats-modal__panel" tabindex="-1">
-    <header class="ats-modal__hd">
-      <h4 class="ats-modal__title">
-        {{ maintModal.mode === 'ADD' ? '유지보수 기록 추가' : '유지보수 이력 목록' }}
-      </h4>
-      <button 
-        type="button" 
-        class="ats-modal__close" 
-        aria-label="닫기" 
-        @click="closeMaintModal"
-      >✕</button>
-    </header>
+    <div class="ats-modal__panel" tabindex="-1">
+      <header class="ats-modal__hd">
+        <h4 class="ats-modal__title">
+          {{ maintModal.mode === 'ADD' ? '유지보수 기록 추가' : (maintModal.mode === 'EDIT' ? '유지보수 기록 수정' : '유지보수 이력 목록') }}
+        </h4>
+        <button type="button" class="ats-modal__close" aria-label="닫기" @click="closeMaintModal">✕</button>
+      </header>
 
-    <div class="ats-modal__body" v-if="maintModal.mode === 'ADD'">
-      
-      <label class="form-label">점검/유지보수일</label>
-      <div class="date-field">
-        <input type="date" class="form-input" v-model="maintForm.lastInspection" ref="maintDate" />
-        <button type="button" class="calendar-btn" @click="openDate('maintDate')" aria-label="점검일 선택">📅</button>
+      <div class="ats-modal__body" v-if="maintModal.mode === 'ADD' || maintModal.mode === 'EDIT'">
+        <label class="form-label">점검/유지보수일</label>
+        <div class="date-field">
+          <input type="date" class="form-input" v-model="maintForm.lastInspection" ref="maintDate" />
+          <button type="button" class="calendar-btn" @click="openDate('maintDate')" aria-label="점검일 선택">📅</button>
+        </div>
+
+        <label class="form-label">A/S 특이사항 및 기록</label>
+        <textarea
+          class="form-textarea"
+          rows="6"
+          placeholder="점검/교체 내용, 고장 내역 등을 상세히 기록해 주세요."
+          v-model="maintForm.asNotes"
+        ></textarea>
       </div>
 
-      <label class="form-label">A/S 특이사항 및 기록</label>
-      <textarea
-        class="form-textarea"
-        rows="6"
-        placeholder="점검/교체 내용, 고장 내역 등을 상세히 기록해 주세요."
-        v-model="maintForm.asNotes"
-      ></textarea>
-    </div>
+      <div class="ats-modal__body" v-else-if="maintModal.mode === 'VIEW'">
+<div class="maintenance-history-list thin-scroll" style="max-height: 400px; overflow-y: auto;">
+          
+          <template v-if="isMobile">
+            <ul class="mobile-maint-list">
+              <li v-for="r in maintenance.records" :key="r.id" class="mobile-maint-item">
+                <div class="mo-header">
+                  <span class="mo-date">{{ r.maintenanceDate || '—' }}</span>
+                  <div class="mo-actions">
+                    <button class="btn ghost xs" @click="openMaintModal('EDIT', r)">수정</button>
+                    <button class="btn ghost xs warn" @click="deleteMaintenance(r.id)">삭제</button>
+                  </div>
+                </div>
+                <div class="mo-content" style="white-space: pre-wrap; word-break: break-all;">
+                  {{ r.asNotes || '내용 없음' }}
+                </div>
+              </li>
+            </ul>
+            <div v-if="maintenance.records.length === 0" style="padding: 20px; text-align: center; color: #999;">
+              등록된 이력이 없습니다.
+            </div>
+          </template>
 
-    <div class="ats-modal__body" v-else-if="maintModal.mode === 'VIEW'">
-        <div class="maintenance-history-list thin-scroll" style="max-height: 400px; overflow-y: auto;">
-            <table class="tbl compact" style="width:100%; font-size: 13px;">
-                <thead>
-                    <tr>
-                        <th style="width: 100px;">날짜</th>
-                        <th>기록 내용</th>
-                        <th style="width: 90px;">기록 시점</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="r in maintenance.records" :key="r.id">
-                        <td>{{ r.maintenanceDate || '—' }}</td> 
-                        <td :title="r.asNotes">{{ r.asNotes ? r.asNotes.substring(0, 50) : '—' }}</td>
-                        <td>{{ formatDate(r.createdAt) }}</td> 
-                    </tr>
-                </tbody>
+          <template v-else>
+            <table class="tbl compact" style="width:100%; font-size: 13px; table-layout: fixed;">
+              <colgroup>
+                <col style="width: 100px;"> <col>                       
+                <col style="width: 100px;"> </colgroup>
+              <thead>
+                <tr>
+                  <th>점검일</th>
+                  <th>기록 내용</th>
+                  <th>관리</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in maintenance.records" :key="r.id">
+                  <td style="text-align:center;">{{ r.maintenanceDate || '—' }}</td>
+                  
+                  <td style="white-space: pre-wrap; word-break: break-all; text-align: left; padding: 8px;">
+                    {{ r.asNotes || '—' }}
+                  </td>
+                  
+                  <td style="text-align:center;">
+                    <button class="btn ghost xs" @click="openMaintModal('EDIT', r)" style="margin-right:4px;">수정</button>
+                    <button class="btn ghost xs warn" @click="deleteMaintenance(r.id)">삭제</button>
+                  </td>
+                </tr>
+              </tbody>
             </table>
             <div v-if="maintenance.records.length === 0" style="padding: 16px; text-align: center; color: #999;">
-                등록된 유지보수 이력이 없습니다.
+               등록된 유지보수 이력이 없습니다.
             </div>
+          </template>
+
         </div>
-    </div>
+      </div>
 
-
-    <footer class="ats-modal__ft">
+      <footer class="ats-modal__ft">
         <button 
-            class="btn primary" 
-            v-if="maintModal.mode === 'ADD'"
-            @click="saveMaintenance"
-            :disabled="maintModal.saving || !maintForm.lastInspection"
+          class="btn primary" 
+          v-if="maintModal.mode === 'ADD' || maintModal.mode === 'EDIT'"
+          @click="saveMaintenance"
+          :disabled="maintModal.saving || !maintForm.lastInspection"
         >
-            <span v-if="!maintModal.saving">기록 저장</span>
-            <span v-else class="btn-spinner" aria-hidden="true"></span>
+          <span v-if="!maintModal.saving">{{ maintModal.mode === 'ADD' ? '기록 저장' : '수정 완료' }}</span>
+          <span v-else class="btn-spinner" aria-hidden="true"></span>
         </button>
+
         <button
-            class="btn ghost"
-            @click="closeMaintModal"
-        >닫기</button>
-    </footer>
+          class="btn ghost"
+          v-if="maintModal.mode === 'EDIT'"
+          @click="openMaintModal('VIEW')"
+        >목록으로</button>
+
+        <button class="btn ghost" @click="closeMaintModal">닫기</button>
+      </footer>
+    </div>
   </div>
-</div>
   </div>
 </template>
 
@@ -804,13 +829,14 @@ export default {
   components: { EnergyDashboard },
   data () {
     return {
+    _initializing: false,
     maintenance: { 
             records: [], 
             lastRecord: null,
             lastInspection: null,
             asNotes: null, 
         },
-     maintModal: { open: false, saving: false, records: [] },
+     maintModal: { open: false, saving: false, records: [], mode: 'VIEW', editingId: null },
      maintForm: { lastInspection: '', asNotes: '', rtuImei: '' }, // rtuImei 필드 추가
     userImeiFromStorage: null,
     dashboardKey: 0,
@@ -1526,6 +1552,8 @@ xTicks () {
 
 watch: {
     nameField(v) {
+    if (this._initializing) return;
+    if (this.searching) return;
       if (v && this.imeiField) {
         this.imeiField = '';
       }
@@ -1555,6 +1583,12 @@ async created () {
 },
 
   methods: {
+  closeMaintModal () {
+    this.maintModal.open = false;
+    this.maintModal.saving = false; 
+    this.maintModal.mode = 'VIEW';
+    this.maintModal.editingId = null;
+  },
   onTouchMove(e) {
   if (!this.$refs.svg || !this.series.length) return;
   
@@ -1834,44 +1868,30 @@ onViewAll() {
       this.searchModal.selectedIdx = idx;
     },
 
-    async confirmSearchSelection(idx) {
-      if (typeof idx === 'number') this.searchModal.selectedIdx = idx;
+async confirmSearchSelection(idx) {
+  if (typeof idx === 'number') this.searchModal.selectedIdx = idx;
+  
+  const list = this.filteredMatches;
+  const i = this.searchModal.selectedIdx;
+  
+  if (!list.length || i < 0 || i >= list.length) return;
 
-      const list = this.filteredMatches;
-      const i = this.searchModal.selectedIdx;
-      if (!list.length || i < 0 || i >= list.length) return;
+  const item = list[i];
+  const imei = item?.rtuImei || item?.imei;
+  
+  if (!imei) return;
 
-      const item = list[i];
-      const imei = item?.rtuImei || item?.imei;
-      if (!imei) return;
+  this.closeSearchModal();
 
-      this.closeSearchModal();
-      this.imeiField = imei;
-      this.nameField = '';
-      this.selectedMulti = '';
+  this.imeiField = imei;
+  this.selectedMulti = '';
 
-      const trials = [
-        { ns: 'electric',   energy: '01' },
-        { ns: 'thermal',    energy: '02' },
-        { ns: 'geothermal', energy: '03' },
-        { ns: 'electric',   energy: '04' },
-        { ns: 'electric',   energy: '06' },
-        { ns: 'electric',   energy: '07' },
-      ];
+  if (item.name) {
+    this.nameField = item.name; 
+  }
 
-      let detected = null;
-      for (const t of trials) {
-        const r = await fetch(
-          `/api/energy/${t.ns}/instant?imei=${encodeURIComponent(imei)}&energy=${t.energy}`,
-          this.fopts('probe')
-        );
-        if (r.ok) { detected = t.energy; break; }
-      }
-
-      if (detected) this.energyField = detected;
-
-      await this.onSearch();
-    },
+  await this.onSearch();
+},
 
     onSearchModalKeydown(e) {
       const n = this.filteredMatches.length;
@@ -2022,19 +2042,30 @@ newController(key) {
       this.facilityInfo = this.emptyFacilityInfo();
     },
 
-    resetAll () {
+resetAll() {
+      this.abortAll();
+      this.currentReqId += 1;
       this.dashboardKey += 1;
-      this.imeiField = DEFAULT_IMEI;
+
+      // 입력 필드 초기화
+      this.imeiField = ''; 
       this.nameField = '';
       this.energyField = '01';
       this.typeField = '';
       this.selectedMulti = '';
+
       this.imeiUse = '';
+      this.isSearched = false;
+      this.loading = false;
+      this.searching = false;
+      
       this.clearForLoading();
-      this.abortAll();
-      this.currentReqId += 1;
-      try { this.$router?.replace({ query: {} }); }
-      catch (e) { this.lastRouterErr = (e && e.message) ? e.message : 'router'; }
+      this.mets = null;
+      this.maintenance = { records: [], lastRecord: null, lastInspection: null, asNotes: null };
+
+      try {
+        this.$router?.replace({ query: {} }).catch(() => {});
+      } catch (e) {}
     },
 
     yKwToY (kw) {
@@ -2059,192 +2090,158 @@ async onSearch() {
   this.loading = true;
 
   try {
-    const imeiInput = (this.imeiField || "").trim();
+    let imeiInput = (this.imeiField || "").trim();
     const nameInput = (this.nameField || "").trim();
 
+    // 1. 입력값 없음 -> 리셋
     if (!imeiInput && !nameInput) {
       this.resetAll();
-      this.isSearched = false;
-      this.loading = false;
       return;
     }
 
-    // 1. 이름 검색
-    if (nameInput) {
+    // 2. 이름 검색 (기존 로직 유지 - 통합 검색 API 활용)
+    if (nameInput && !imeiInput) {
       const resolved = await this.probeResolveByName(nameInput);
-      this.loading = false; // 결과 나오면 로딩 끄기
 
       if (resolved?.action === "modal") {
         this.openSearchModal(resolved.matches || []);
-        this.isSearched = false;
-        return;
-      }
-      if (!resolved?.imei) {
-        alert("이름으로 장비를 찾을 수 없습니다.");
+        this.loading = false;
         this.isSearched = false;
         return;
       }
 
+      if (!resolved?.imei) {
+        alert("이름으로 장비를 찾을 수 없습니다.");
+        this.loading = false;
+        this.isSearched = false;
+        return;
+      }
+
+      // [중요] 검색된 장비의 에너지 타입으로 자동 변경
       if (resolved.energy && resolved.energy !== this.energyField) {
         this.energyField = resolved.energy;
       }
-
-      this.loading = true; // 데이터 로드 위해 다시 켬
-      this.abortAll();
-      this.currentReqId += 1;
-      this.imeiUse = resolved.imei;
-      this.imeiField = resolved.imei;
-      this.selectedMulti = "";
-      this.clearForLoading();
-      await this.loadFastAndRenderImmediate();
-      this.isSearched = true;
-      await this.syncQuery();
-      return;
+      
+      imeiInput = resolved.imei;
+      this.imeiField = resolved.imei; // 입력창 업데이트
     }
 
-    // 2. IMEI 검색
+    // 3. IMEI 검색 (여기가 핵심 변경 사항)
     if (imeiInput) {
-      const currentProbeUrl = `/api/energy/${this.apiNS}/instant?imei=${encodeURIComponent(imeiInput)}&energy=${this.energyField || "01"}`;
-      const probe = await fetch(currentProbeUrl, this.fopts("probe"));
+      // 3-1. IMEI 형식 검증
+      if (imeiInput.replace(/[^0-9A-Fa-f\-]/g, '').length < 8) {
+          this.loading = false;
+          alert("IMEI 형식이 올바르지 않습니다. (최소 8자리 이상 입력)");
+          this.isSearched = false;
+          return;
+      }
 
-      if (!probe.ok) {
-        const trials = [
-          { ns: 'electric',   label: '태양광',   energy: '01' },
-          { ns: 'thermal',    label: '태양열',   energy: '02' },
-          { ns: 'geothermal', label: '지열',     energy: '03' },
-          { ns: 'wind',       label: '풍력',     energy: '04' },
-          { ns: 'fuelcell',   label: '연료전지', energy: '06' },
-          { ns: 'ess',        label: 'ESS',      energy: '07' }
-        ];
+      // 3-2. [변경] 통합 검색 API 호출 (에너지 타입을 지정하지 않고 물어봄)
+      // 기존: fetch(`/api/energy/${this.apiNS}/instant...`) -> 잘못된 타입이면 실패
+      // 변경: fetch(`/api/energy/search...`) -> 백엔드가 타입 찾아서 알려줌
+      const searchUrl = `/api/energy/search?q=${encodeURIComponent(imeiInput)}`;
+      const res = await fetch(searchUrl, this.fopts('probe'));
 
-        const otherTrials = trials.filter(t => t.energy !== this.energyField);
-        let foundType = null;
-
-        // [핵심 수정] 여기서도 Signal을 하나 생성해서 공유합니다.
-        const signal = this.newController('probe'); 
-        const opts = { signal, credentials: 'include' }; // GET method는 기본값
-
-try {
-          const promises = otherTrials.map(t => {
-             const url = `/api/energy/${t.ns}/instant?imei=${encodeURIComponent(imeiInput)}&energy=${t.energy}`;
-             return fetch(url, { method: 'GET', credentials: 'include' })
-               .then(r => {
-                 // [수정 포인트] 200(OK) 또는 422(Multiple Matches)면 찾은 것으로 간주!
-                 if (r.ok || r.status === 422) return t; 
-                 throw new Error('Not found'); 
-               });
-          });
-          
-          foundType = await Promise.any(promises);
-        } catch (err) {
-          foundType = null;
-        }
-
+      if (!res.ok) {
         this.loading = false;
-        let j = {};
-        try { j = JSON.parse(await probe.text()); } catch {}
-        alert(j?.error || "IMEI 장비를 찾을 수 없습니다.");
         this.isSearched = false;
+        
+        if (res.status === 429) {
+           alert("요청이 너무 많습니다. 잠시 후 다시 시도해주세요.");
+           return;
+        }
+        
+        let j = {};
+        try { j = await res.json(); } catch {}
+        alert(j?.message || j?.error || "장비를 찾을 수 없습니다.");
         return;
       }
 
+      const data = await res.json();
+
+      // 3-3. 검색 결과가 없거나 데이터가 없는 경우
+      if (!data.found && !data.imei) {
+         this.loading = false;
+         alert("등록되지 않은 장비입니다.");
+         return;
+      }
+
+      // 3-4. [핵심] 찾아낸 에너지 타입으로 프론트 상태 자동 동기화
+      // 예: 사용자가 '태양열'을 선택하고 '태양광 IMEI'를 조회했어도, 여기서 '태양광'으로 강제 변경됨.
+      if (data.energy && data.energy !== this.energyField) {
+        this.energyField = data.energy;
+      }
+      
+      if (data.name) {
+        this.nameField = data.name;
+      }
+
+      // 4. 데이터 로드 시작
       this.abortAll();
       this.currentReqId += 1;
-      this.imeiUse = imeiInput;
-      this.imeiField = imeiInput;
+      this.imeiUse = data.imei; // 정규화된 IMEI 사용
+      this.imeiField = data.imei;
       this.selectedMulti = "";
       this.clearForLoading();
+      
+      // 실제 대시보드 데이터 로드
       await this.loadFastAndRenderImmediate();
+      
       this.isSearched = true;
       await this.syncQuery();
-      return;
     }
     
+  } catch (e) {
+    console.error(e);
+    alert("검색 중 오류가 발생했습니다.");
   } finally {
-    this.loading = false;
-    this.searching = false;
+    if (this.searching) {
+        this.loading = false;
+        this.searching = false;
+    }
   }
 },
 
 async probeResolveByName(name) {
-      const combos = [
-        { ns: 'electric',   label: '태양광',   energy: '01' },
-        { ns: 'thermal',    label: '태양열',   energy: '02' },
-        { ns: 'geothermal', label: '지열',     energy: '03' },
-        { ns: 'wind',       label: '풍력',     energy: '04' },
-        { ns: 'fuelcell',   label: '연료전지', energy: '06' },
-        { ns: 'ess',        label: 'ESS',      energy: '07' }
-      ];
+  try {
+    const signal = this.newController('probe');
+    const res = await fetch(`/api/energy/search?q=${encodeURIComponent(name)}`, {
+      signal,
+      credentials: 'include'
+    });
 
-      // [핵심 수정] 루프 밖에서 Signal을 하나만 생성하여 모든 요청이 공유하게 함
-      // 이렇게 해야 abortAll() 호출 시 6개 요청이 한꺼번에 취소됩니다.
-      const signal = this.newController('probe');
-      const fetchOpts = { signal, credentials: 'include' };
-
-      const promises = combos.map(c => {
-        const url = `/api/energy/${c.ns}/instant?name=${encodeURIComponent(name)}&energy=${c.energy}`;
-        
-        // 공유된 fetchOpts(signal 포함) 사용
-        return fetch(url, fetchOpts)
-          .then(async r => ({
-            ok: r.ok,
-            status: r.status,
-            config: c,
-            json: await r.json().catch(() => null) 
-          }))
-          .catch(e => ({ ok: false, error: e })); 
-      });
-
-      const results = await Promise.all(promises);
-      
-      // (이하 결과 처리 로직은 동일)
-      let modalMatches = [];
-      for (const res of results) {
-        if (!res || !res.config) continue;
-
-        if (res.ok && res.json) {
-           const imei = this.pickImeiFromProbe(res.json);
-           if (imei) {
-             modalMatches.push({
-               rtuImei: imei,
-               name: name,
-               energy: res.config.energy,
-               ns: res.config.ns,
-               address: res.json.deviceInfo?.address || res.json.address || '주소 정보 없음',
-               facCompany: res.config.label
-             });
-           }
-        }
-
-        if (res.status === 422 && res.json) {
-          const j = res.json;
-          const cand = j.matches || j.data?.matches || j.result?.matches || j.items || [];
-          
-          if (Array.isArray(cand) && cand.length > 0) {
-            const norm = cand.map(m => ({ 
-              ...m, 
-              rtuImei: m.rtuImei || m.imei || m.RTU_IMEI || m.id,
-              energy: res.config.energy,
-              ns: res.config.ns
-            }));
-            modalMatches = modalMatches.concat(norm);
-          }
+    // 1. 검색어 오류 혹은 서버 에러
+    if (!res.ok) {
+      // 동명이인 (422) 처리
+      if (res.status === 422) {
+        const json = await res.json();
+        if (json.code === 'MULTIPLE_MATCHES') {
+          return { action: 'modal', matches: json.matches };
         }
       }
+      return null;
+    }
 
-      if (modalMatches.length === 0) return null;
+    const data = await res.json();
 
-      if (modalMatches.length === 1) {
-        const m = modalMatches[0];
-        return { 
-          imei: m.rtuImei, 
-          energy: m.energy || '01', 
-          ns: m.ns || 'electric' 
-        };
-      }
+    // 2. 검색 성공
+    if (data.found && data.imei) {
+      return {
+        imei: data.imei,
+        energy: data.energy, // 백엔드가 찾아준 정확한 에너지 타입 (예: '03')
+        ns: data.ns,         // 백엔드가 찾아준 네임스페이스 (예: 'geothermal')
+        name: data.name
+      };
+    }
 
-      return { action: 'modal', matches: modalMatches };
-    },
+    return null;
+
+  } catch (e) {
+    console.error("Search failed", e);
+    return null;
+  }
+},
+
 
 async loadAll() {
   if (!this.imeiUse) return;
@@ -2704,33 +2701,109 @@ async loadMaintenance (reqId) {
         },
 
 
-openMaintModal (mode = 'ADD') {
-            if (!this.imeiUse) return;
-            
-            this.maintModal.mode = mode;
+openMaintModal(mode = 'ADD', record = null) {
+      if (!this.imeiUse) return;
 
-            if (mode === 'ADD') {
-                // 기록 추가 모드: 폼 초기화 (현재 날짜 기본 설정)
-                this.maintForm.lastInspection = new Date().toISOString().slice(0, 10); 
-                this.maintForm.asNotes = '';
-                this.maintForm.rtuImei = this.imeiUse; // rtuImei 설정
-                
-            } else if (mode === 'VIEW') {
-                // 이력 조회 모드: 데이터는 이미 loadMaintenance에서 로드됨
-                // 필요하다면 여기서 다시 loadMaintenance(this.currentReqId)를 호출하여 최신화 가능
-            }
-            
-            this.maintModal.open = true;
-            this.$nextTick(()=> {
-                const selector = (mode === 'ADD') ? '.ats-modal__panel input[type="date"]' : '.ats-modal__panel';
-                const el = document.querySelector(selector);
-                el && el.focus();
-            });
-        },
-    closeMaintModal () {
-      if (this.maintModal.saving) return;
-      this.maintModal.open = false;
+      this.maintModal.mode = mode;
+      this.maintModal.editingId = null; 
+
+      if (mode === 'ADD') {
+        this.maintForm.lastInspection = new Date().toISOString().slice(0, 10);
+        this.maintForm.asNotes = '';
+        this.maintForm.rtuImei = this.imeiUse;
+
+      } else if (mode === 'EDIT' && record) {
+        this.maintModal.editingId = record.id; // 수정할 ID 저장
+        this.maintForm.lastInspection = record.maintenanceDate;
+        this.maintForm.asNotes = record.asNotes || '';
+        this.maintForm.rtuImei = this.imeiUse;
+        
+      } else if (mode === 'VIEW') {
+      }
+
+      this.maintModal.open = true;
+
+      this.$nextTick(() => {
+        const selector = (mode === 'ADD' || mode === 'EDIT') 
+          ? '.ats-modal__panel input[type="date"]' 
+          : '.ats-modal__panel';
+        const el = document.querySelector(selector);
+        el && el.focus();
+      });
     },
+
+    async saveMaintenance() {
+      if (!this.imeiUse || this.maintModal.saving) return;
+      if (!this.maintForm.lastInspection) {
+        alert('점검일을 입력해 주세요.');
+        return;
+      }
+
+      this.maintModal.saving = true;
+      try {
+        const body = {
+          rtuImei: this.imeiUse,
+          lastInspection: this.maintForm.lastInspection || null,
+          asNotes: this.maintForm.asNotes || null,
+        };
+
+        let url = '/api/maintenance';
+        let method = 'POST';
+
+        if (this.maintModal.mode === 'EDIT' && this.maintModal.editingId) {
+          url = `/api/maintenance/${this.maintModal.editingId}`;
+          method = 'PUT';
+        }
+
+        const r = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(body)
+        });
+
+        if (!r.ok) {
+          const t = await r.text().catch(() => '');
+          throw new Error(t || 'save failed');
+        }
+
+        if (this.maintModal.mode === 'EDIT') {
+           alert('수정되었습니다.');
+           this.openMaintModal('VIEW'); // 목록 갱신 및 이동
+           await this.loadMaintenance(this.currentReqId);
+        } else {
+           alert('저장되었습니다.');
+           this.maintModal.open = false;
+           await this.loadMaintenance(this.currentReqId);
+        }
+
+      } catch (e) {
+        alert('저장 실패: ' + (e?.message || e));
+      } finally {
+        this.maintModal.saving = false;
+      }
+    },
+
+    async deleteMaintenance(id) {
+      if (!confirm('정말로 이 기록을 삭제하시겠습니까?')) return;
+
+      try {
+        const r = await fetch(`/api/maintenance/${id}`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (!r.ok) throw new Error('Delete failed');
+
+        alert('삭제되었습니다.');
+        await this.loadMaintenance(this.currentReqId);
+
+      } catch (e) {
+        alert('삭제 중 오류가 발생했습니다.');
+        console.error(e);
+      }
+    },
+
 formatDate(isoString) {
             if (!isoString) return '—';
             try {
@@ -2740,46 +2813,60 @@ formatDate(isoString) {
                 return String(isoString).slice(0, 10);
             }
         },
-async saveMaintenance () {
-            if (!this.imeiUse || this.maintModal.saving) return;
-            if (!this.maintForm.lastInspection) {
-                alert('점검일을 입력해 주세요.');
-                return;
-            }
-            
-            this.maintModal.saving = true;
-            try {
-                const body = {
-                    rtuImei: this.imeiUse, 
-                    lastInspection: this.maintForm.lastInspection || null, // maintenance_date로 사용됨
-                    asNotes: this.maintForm.asNotes || null,
-                };
-                
-                // POST /api/maintenance 호출
-                const r = await fetch(`/api/maintenance`, {
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(body)
-                });
-                
-                if (!r.ok) {
-                    const t = await r.text().catch(()=> '');
-                    throw new Error(t || 'save failed');
-                }
-                
-                this.maintModal.open = false;
-                // 저장 후 이력 목록과 요약 정보를 새로고침
-                await this.loadMaintenance(this.currentReqId); 
-                
-                alert('유지보수 기록이 저장되었습니다.');
-            } catch (e) {
-                alert('유지보수 저장 실패: ' + (e?.message || e));
-            } finally {
-                this.maintModal.saving = false;
-            }
-        },
 
+async saveMaintenance() {
+      if (!this.imeiUse || this.maintModal.saving) return;
+      
+      // 유효성 검사
+      if (!this.maintForm.lastInspection) {
+        alert('점검일을 입력해 주세요.');
+        return;
+      }
+
+      this.maintModal.saving = true;
+      try {
+        const body = {
+          rtuImei: this.imeiUse,
+          lastInspection: this.maintForm.lastInspection || null,
+          asNotes: this.maintForm.asNotes || null,
+        };
+
+        let url = '/api/maintenance';
+        let method = 'POST';
+
+        if (this.maintModal.mode === 'EDIT' && this.maintModal.editingId) {
+          url = `/api/maintenance/${this.maintModal.editingId}`;
+          method = 'PUT';
+        }
+
+        const r = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(body)
+        });
+
+        if (!r.ok) {
+          const t = await r.text().catch(() => '');
+          throw new Error(t || 'Request failed');
+        }
+
+        if (this.maintModal.mode === 'EDIT') {
+           alert('수정되었습니다.');
+           this.openMaintModal('VIEW');
+        } else {
+           alert('저장되었습니다.');
+           this.maintModal.open = false;
+        }
+        
+        await this.loadMaintenance(this.currentReqId);
+
+      } catch (e) {
+        alert('저장/수정 실패: ' + (e?.message || e));
+      } finally {
+        this.maintModal.saving = false;
+      }
+    },
 _syncQueryTimer: null,
 _lastQueryKey: '',
 
@@ -2945,33 +3032,41 @@ async onSelectUnit(hex) {
 }
   },
 mounted () {
-  this.updateChartDimensions();
-  window.addEventListener('resize', this.updateChartDimensions);
-  this.syncAdminFromStorage();
-  this._storageHandler = (e) => {
-    if (e.key === 'isAdmin' || e.key === 'email') this.syncAdminFromStorage();
-  };
-  window.addEventListener('storage', this._storageHandler);
+    this.updateChartDimensions();
+    window.addEventListener('resize', this.updateChartDimensions);
+    this.syncAdminFromStorage();
+    this._storageHandler = (e) => {
+      if (e.key === 'isAdmin' || e.key === 'email') this.syncAdminFromStorage();
+    };
+    window.addEventListener('storage', this._storageHandler);
 
-  const q = this.$route?.query || {};
-  const initEnergy = (typeof q.energy === 'string') ? q.energy : '01';
-  const initType   = (typeof q.type   === 'string') ? q.type   : '';
-  const initMulti  = (typeof q.multi  === 'string') ? q.multi  : '';
+    this._initializing = true;
 
-  this.energyField   = initEnergy;
-  this.typeField     = initType;
-  this.selectedMulti = this.normMulti(initMulti) || '';
+    const q = this.$route?.query || {};
+    const initEnergy = (typeof q.energy === 'string') ? q.energy : '01';
+    const initType   = (typeof q.type   === 'string') ? q.type   : '';
+    const initMulti  = (typeof q.multi  === 'string') ? q.multi  : '';
+    const initName   = (typeof q.name   === 'string') ? q.name   : '';
 
-  const qImei = (typeof q.imei === 'string') ? q.imei.trim() : '';
-  if (qImei) {
-    this.imeiField = qImei;
-    this.selectedMulti = '';
-    this.syncQuery(true);
-   this.$nextTick(() => this.onSearch());
-  } else {
-    this.initImeiFlow();
-  }
-},
+    this.energyField     = initEnergy;
+    this.typeField       = initType;
+    this.selectedMulti   = this.normMulti(initMulti) || '';
+    this.nameField       = initName; 
+
+    const qImei = (typeof q.imei === 'string') ? q.imei.trim() : '';
+    if (qImei) {
+      this.imeiField = qImei;
+      this.selectedMulti = '';
+      this.syncQuery(true);
+      this.$nextTick(() => this.onSearch());
+    } else {
+      this.initImeiFlow();
+    }
+
+    this.$nextTick(() => {
+      this._initializing = false;
+    });
+  },
   beforeDestroy () {
   window.removeEventListener('resize', this.updateChartDimensions);
     if (this._storageHandler) window.removeEventListener('storage', this._storageHandler);

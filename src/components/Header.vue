@@ -137,6 +137,25 @@
             <div class="hdr-menu-sep"></div>
 
             <div class="menu-section">
+              <button class="hdr-menu-item" @click="downloadManual">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path 
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" 
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  />
+                  <polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  <line x1="10" y1="9" x2="8" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span>사용자 매뉴얼</span>
+                <i class="mi-chevron">›</i>
+              </button>
+            </div>
+            
+            <div class="hdr-menu-sep"></div>
+
+            <div class="menu-section">
               <button class="hdr-menu-item hdr-menu-danger" @click="logout">
                 <svg viewBox="0 0 24 24">
                   <path d="M10 17l5-5-5-5M3 12h12"
@@ -246,6 +265,20 @@ export default {
 
     goChangePassword() {
       this.$router.push('/change-password')
+    },
+
+downloadManual() {
+      // 파일명을 실제 파일명과 똑같이 맞춰주세요 (한글 포함)
+      const fileUrl = '/hirems/manual.pdf' 
+      
+      const link = document.createElement('a')
+      link.href = fileUrl
+      link.download = 'HiREMS-매뉴얼.pdf' // 다운로드될 때 저장될 이름
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      this.closeMenu()
     },
 
     logout() {
