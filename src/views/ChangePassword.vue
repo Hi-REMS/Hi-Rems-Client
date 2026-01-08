@@ -42,7 +42,7 @@
                 </button>
               </div>
               <p v-if="curTouched && !curValid" class="pw-error-text">
-                현재 비밀번호를 입력하세요 (4자 이상).
+                현재 비밀번호를 입력하세요 (8자 이상).
               </p>
             </div>
 
