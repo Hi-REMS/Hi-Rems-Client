@@ -99,14 +99,8 @@
 import { api } from "@/api";
 import "@/assets/css/login.css";
 
-const ADMIN_EMAILS = ["admin@company.com"];
-
-function normalize(v) {
-  return (typeof v === "string" ? v : "").trim().toLowerCase();
-}
 function isAdminUser(u) {
-  const ident = normalize(u?.email || u?.username || "");
-  return ADMIN_EMAILS.includes(ident) || u?.is_admin === true;
+  return u?.is_admin === true;
 }
 
 export default {
@@ -122,12 +116,11 @@ export default {
     };
   },
   created() {
-    localStorage.removeItem("isAdmin");
-    localStorage.removeItem("username");
-    localStorage.removeItem("worker");
-    localStorage.removeItem("phoneNumber");
-    localStorage.removeItem("email");
-    localStorage.removeItem("defaultImei");
+    const keysToRemove = [
+      "isAdmin", "username", "worker", "phoneNumber", 
+      "email", "defaultImei"
+    ];
+    keysToRemove.forEach(key => localStorage.removeItem(key));
   },
   methods: {
     goToRegister() {
@@ -150,6 +143,7 @@ export default {
       }
 
       if (this.loading) return;
+
       try {
         this.loading = true;
         this.error = "";
@@ -158,6 +152,7 @@ export default {
           username: this.username,
           password: this.password,
         });
+        
         const loginUser = loginRes?.user || {};
 
         const admin = isAdminUser(loginUser);
@@ -167,8 +162,11 @@ export default {
           localStorage.setItem("username", loginUser.username || "");
           localStorage.setItem("worker", loginUser.worker || "");
           localStorage.setItem("phoneNumber", loginUser.phoneNumber || "");
-          if (loginUser.email) localStorage.setItem("email", loginUser.email);
-        } catch {}
+          
+          localStorage.setItem("email", loginUser.username || "");
+        } catch (e) {
+          console.error("Storage error:", e);
+        }
 
         if (admin) {
           this.$router.replace("/home");
@@ -179,55 +177,34 @@ export default {
         try {
           const { data: imeiRes } = await api.get("/user/imeis");
           defaultImei = imeiRes?.defaultImei || "";
+          
           if (defaultImei) {
             localStorage.setItem("defaultImei", defaultImei);
           } else {
             localStorage.removeItem("defaultImei");
-            sessionStorage.removeItem("defaultImei");
           }
         } catch (e) {
-          localStorage.removeItem("defaultImei");
-          sessionStorage.removeItem("defaultImei");
-        }
-        const raw = this.$route.query.redirect;
-        let to = "";
-        try {
-          to = raw ? decodeURIComponent(String(raw)) : "";
-        } catch {
-          to = "";
+          console.warn("IMEI 조회 실패 (신규 사용자 가능성):", e);
         }
 
-        const BLOCKED = [
-          "/login",
-          "/register",
-          "/reset",
-          "/forgot",
-          "/findpassword",
-        ];
-        const isUnsafe =
-          !to || !to.startsWith("/") || BLOCKED.some((p) => to.startsWith(p));
+        const raw = this.$route.query.redirect;
+        let to = raw ? decodeURIComponent(String(raw)) : "";
+
+        const BLOCKED = ["/login", "/register", "/reset", "/forgot", "/findpassword"];
+        const isUnsafe = !to || !to.startsWith("/") || BLOCKED.some((p) => to.startsWith(p));
 
         if (!isUnsafe) {
           this.$router.replace(to);
-          return;
+        } else if (defaultImei) {
+          this.$router.replace(`/analysis/timeseries?imei=${encodeURIComponent(defaultImei)}`);
+        } else {
+          this.$router.replace("/analysis/timeseries");
         }
 
-        if (defaultImei) {
-          this.$router.replace(
-            `/analysis/timeseries?imei=${encodeURIComponent(defaultImei)}`
-          );
-        } else {
-          this.$router.replace({ path: "/analysis/timeseries", query: {} });
-        }
       } catch (err) {
-        const msg =
-          err?.response?.data?.message || err.message || "로그인 실패";
-        if (
-          msg.includes("아이디") ||
-          msg.includes("비밀번호") ||
-          msg.toLowerCase().includes("invalid") ||
-          msg.toLowerCase().includes("unauthorized")
-        ) {
+        const msg = err?.response?.data?.message || err.message || "로그인 실패";
+
+        if (msg.toLowerCase().includes("credentials") || msg.toLowerCase().includes("invalid")) {
           alert("아이디 또는 비밀번호가 올바르지 않습니다.");
         } else {
           alert(`로그인 실패: ${msg}`);

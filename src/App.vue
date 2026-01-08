@@ -10,14 +10,6 @@ import AppHeader from '@/components/Header.vue'
 
 export default {
   name: 'App',
-  components: { AppHeader }
-}
-</script>
-
-import AppHeader from '@/components/Header.vue'
-
-export default {
-  name: 'App',
   components: { AppHeader },
 
   computed: {

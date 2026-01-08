@@ -35,7 +35,7 @@ const router = new Router({
           if (user) {
             return next(isAdminUser(user) ? '/home' : '/analysis/timeseries')
           }
-        } catch {}
+        } catch {    console.log("여기0");}
         return next('/login')
       }
     },

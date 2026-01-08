@@ -75,24 +75,25 @@
               </p>
             </div>
 
-            <div class="field">
-              <label for="phoneNumber">전화번호</label>
-              <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
-                <input
-                  style="font-size: 14px"
-                  id="phoneNumber"
-                  v-model.trim="phoneNumber"
-                  type="tel"
-                  autocomplete="tel"
-                  placeholder="010-1234-5678"
-                  required
-                  @blur="phoneTouched = true"
-                />
-              </div>
-              <p v-if="phoneTouched && !phoneValid" class="pw-error-text">
-                전화번호를 입력해 주세요. (숫자 10~13자)
-              </p>
-            </div>
+<div class="field">
+  <label for="phoneNumber">전화번호</label>
+  <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
+    <input
+      style="font-size: 14px"
+      id="phoneNumber"
+      v-model.trim="phoneNumber"
+      type="tel"
+      autocomplete="tel"
+      placeholder="010-1234-5678"
+      maxlength="13" 
+      required
+      @blur="phoneTouched = true"
+    />
+  </div>
+  <p v-if="phoneTouched && !phoneValid" class="pw-error-text">
+    올바른 전화번호 형식이 아닙니다. (010으로 시작하는 10~11자리 숫자)
+  </p>
+</div>
 
             <div class="field">
               <label for="password">비밀번호</label>

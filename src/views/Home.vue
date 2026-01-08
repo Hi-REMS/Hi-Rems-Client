@@ -603,6 +603,7 @@ export default {
   components: { CountUp },
   data() {
     return {
+      isAdmin: false,
       reasonFilter: "ALL",
       cachedNormalItems: window.__CACHE_NORMAL || null,
       cachedAbnormalItems: window.__CACHE_ABNORMAL || null,
@@ -670,7 +671,14 @@ export default {
     this.loadSidos().then(() => this.loadRegions());
   },
 
-  async mounted() {
+async mounted() {
+    this.checkAdmin();
+    if (!this.isAdmin) {
+      alert("해당 페이지는 관리자만 접근할 수 있습니다.");
+      this.$router.replace("/analysis/timeseries");
+      return;
+    }
+
     if (this.map) return;
     try {
       await this.loadKakaoFromServerKey();
@@ -681,9 +689,10 @@ export default {
       this.ensureMapReady();
       window.addEventListener("resize", this.onWindowResize);
       document.addEventListener("click", this.handleOutsideClick);
-    } catch (e) {}
+    } catch (e) {
+      console.error("Map load failed", e);
+    }
   },
-
   beforeDestroy() {
     if (this.timerId) clearInterval(this.timerId);
     this.clearMarkers();
@@ -723,6 +732,13 @@ export default {
   },
 
   methods: {
+  checkAdmin() {
+      try {
+        this.isAdmin = localStorage.getItem("isAdmin") === "true";
+      } catch {
+        this.isAdmin = false;
+      }
+    },
     onWindowResize() {
       if (this._resizeTimer) clearTimeout(this._resizeTimer);
       this._resizeTimer = setTimeout(() => {

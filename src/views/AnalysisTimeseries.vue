@@ -824,7 +824,7 @@ export default {
   name: 'AnalysisTimeseries',
   props: {
     imei: { type: String, default: '' },
-    isAdmin: { type: Boolean, default: false }
+    isAdminProp: { type: Boolean, default: false }
   },
   components: { EnergyDashboard },
   data () {
@@ -1575,12 +1575,10 @@ watch: {
     }
   },
 async created () {
-  this.syncAdminFromStorage()
-
-  await this.enforceUserImei()
-
-  this.scheduleSearch(80)
-},
+    this.syncAdminFromStorage();
+    await this.enforceUserImei();
+    this.scheduleSearch(80);
+  },
 
   methods: {
   closeMaintModal () {
@@ -1715,43 +1713,41 @@ resolveImg(path) {
 
   return `https://kocome.com${path}`;
 },
-    syncAdminFromStorage () {
-    try {
-      const flag = (localStorage.getItem('isAdmin') === 'true')
-      const email = (localStorage.getItem('email') || '').trim().toLowerCase()
-      this.isAdmin = flag || (email === 'admin@company.com')
-    } catch { this.isAdmin = false }
-  },
+syncAdminFromStorage () {
+      try {
+        const flag = (localStorage.getItem('isAdmin') === 'true');
+        this.isAdmin = flag;
+      } catch { 
+        this.isAdmin = false; 
+      }
+    },
 
 enforceUserImei() {
-  const userImei = localStorage.getItem('userImei')
-  const urlQ = this.$route.query
+      const userImei = localStorage.getItem('defaultImei'); 
+      const urlQ = this.$route.query;
 
-  if (!this.isAdmin) {
-    if (!userImei) {
-      return
-    }
+      if (!this.isAdmin) {
+        if (!userImei) return;
 
-    const baseQuery = {
-      imei: userImei,
-      energy: urlQ.energy || '01',
-      type: urlQ.type || '',
-      multi: urlQ.multi || ''
-    }
+        const baseQuery = {
+          imei: userImei,
+          energy: urlQ.energy || '01',
+          type: urlQ.type || '',
+          multi: urlQ.multi || ''
+        };
 
-    this.$router.replace({ query: baseQuery })
+        if (urlQ.imei !== userImei) {
+          this.$router.replace({ query: baseQuery });
+        }
 
-    this.imeiField = userImei
-    this.energyField = baseQuery.energy
-    this.typeField = baseQuery.type
-    this.multiField = baseQuery.multi
-  } else {
-    if (urlQ.imei) this.imeiField = urlQ.imei
-    if (urlQ.energy) this.energyField = urlQ.energy
-    if (urlQ.type) this.typeField = urlQ.type
-    if (urlQ.multi) this.multiField = urlQ.multi
-  }
-},
+        this.imeiField = userImei;
+        this.energyField = baseQuery.energy;
+        this.typeField = baseQuery.type;
+      } else {
+        if (urlQ.imei) this.imeiField = urlQ.imei;
+      }
+    },
+
       scheduleSearch(delay = 180) {
     clearTimeout(this._searchTimer);
     this._searchTimer = setTimeout(() => this.onSearch(), delay);
@@ -2093,13 +2089,11 @@ async onSearch() {
     let imeiInput = (this.imeiField || "").trim();
     const nameInput = (this.nameField || "").trim();
 
-    // 1. 입력값 없음 -> 리셋
     if (!imeiInput && !nameInput) {
       this.resetAll();
       return;
     }
 
-    // 2. 이름 검색 (기존 로직 유지 - 통합 검색 API 활용)
     if (nameInput && !imeiInput) {
       const resolved = await this.probeResolveByName(nameInput);
 
@@ -2117,18 +2111,15 @@ async onSearch() {
         return;
       }
 
-      // [중요] 검색된 장비의 에너지 타입으로 자동 변경
       if (resolved.energy && resolved.energy !== this.energyField) {
         this.energyField = resolved.energy;
       }
       
       imeiInput = resolved.imei;
-      this.imeiField = resolved.imei; // 입력창 업데이트
+      this.imeiField = resolved.imei;
     }
 
-    // 3. IMEI 검색 (여기가 핵심 변경 사항)
     if (imeiInput) {
-      // 3-1. IMEI 형식 검증
       if (imeiInput.replace(/[^0-9A-Fa-f\-]/g, '').length < 8) {
           this.loading = false;
           alert("IMEI 형식이 올바르지 않습니다. (최소 8자리 이상 입력)");
@@ -2136,9 +2127,6 @@ async onSearch() {
           return;
       }
 
-      // 3-2. [변경] 통합 검색 API 호출 (에너지 타입을 지정하지 않고 물어봄)
-      // 기존: fetch(`/api/energy/${this.apiNS}/instant...`) -> 잘못된 타입이면 실패
-      // 변경: fetch(`/api/energy/search...`) -> 백엔드가 타입 찾아서 알려줌
       const searchUrl = `/api/energy/search?q=${encodeURIComponent(imeiInput)}`;
       const res = await fetch(searchUrl, this.fopts('probe'));
 
@@ -2159,15 +2147,12 @@ async onSearch() {
 
       const data = await res.json();
 
-      // 3-3. 검색 결과가 없거나 데이터가 없는 경우
       if (!data.found && !data.imei) {
          this.loading = false;
          alert("등록되지 않은 장비입니다.");
          return;
       }
 
-      // 3-4. [핵심] 찾아낸 에너지 타입으로 프론트 상태 자동 동기화
-      // 예: 사용자가 '태양열'을 선택하고 '태양광 IMEI'를 조회했어도, 여기서 '태양광'으로 강제 변경됨.
       if (data.energy && data.energy !== this.energyField) {
         this.energyField = data.energy;
       }
@@ -2176,15 +2161,13 @@ async onSearch() {
         this.nameField = data.name;
       }
 
-      // 4. 데이터 로드 시작
       this.abortAll();
       this.currentReqId += 1;
-      this.imeiUse = data.imei; // 정규화된 IMEI 사용
+      this.imeiUse = data.imei;
       this.imeiField = data.imei;
       this.selectedMulti = "";
       this.clearForLoading();
       
-      // 실제 대시보드 데이터 로드
       await this.loadFastAndRenderImmediate();
       
       this.isSearched = true;
@@ -2210,9 +2193,7 @@ async probeResolveByName(name) {
       credentials: 'include'
     });
 
-    // 1. 검색어 오류 혹은 서버 에러
     if (!res.ok) {
-      // 동명이인 (422) 처리
       if (res.status === 422) {
         const json = await res.json();
         if (json.code === 'MULTIPLE_MATCHES') {
@@ -2224,12 +2205,11 @@ async probeResolveByName(name) {
 
     const data = await res.json();
 
-    // 2. 검색 성공
     if (data.found && data.imei) {
       return {
         imei: data.imei,
-        energy: data.energy, // 백엔드가 찾아준 정확한 에너지 타입 (예: '03')
-        ns: data.ns,         // 백엔드가 찾아준 네임스페이스 (예: 'geothermal')
+        energy: data.energy,
+        ns: data.ns,
         name: data.name
       };
     }
@@ -2316,7 +2296,7 @@ async loadKpis(reqId) {
    today_kwh: k.today_kwh ?? null,
    total_kwh: k.total_kwh ?? null,
    co2_ton,
-   last_month_avg_kw: (k.last_month_avg_kw != null) ? Number(k.last_month_avg_kw) : null, // ◀ 수정: Number()로 강제 형 변환
+   last_month_avg_kw: (k.last_month_avg_kw != null) ? Number(k.last_month_avg_kw) : null,
    inverter_efficiency_pct: k.inverter_efficiency_pct ?? null,
    _updatedAt: j.deviceInfo?.latestAt || null
   };
@@ -2671,7 +2651,6 @@ async loadMaintenance (reqId) {
             this.loadingMaint = true;
             if (!this.imeiUse) return;
             try {
-                // GET 요청은 이제 records 배열을 반환합니다.
                 const url = `/api/maintenance?rtuImei=${encodeURIComponent(this.imeiUse)}`;
                 const r = await fetch(url, this.fopts('maintenance'));
                 
@@ -2688,7 +2667,7 @@ async loadMaintenance (reqId) {
                 const records = Array.isArray(j?.records) ? j.records : [];
                 
                 this.maintenance.records = records;
-                const lastRecord = records.length > 0 ? records[0] : null; // 최신 기록 (배열의 첫 번째)
+                const lastRecord = records.length > 0 ? records[0] : null;
         
                 this.maintenance.lastRecord = lastRecord;
                 this.maintenance.lastInspection = lastRecord ? lastRecord.maintenanceDate : null;
@@ -2713,7 +2692,7 @@ openMaintModal(mode = 'ADD', record = null) {
         this.maintForm.rtuImei = this.imeiUse;
 
       } else if (mode === 'EDIT' && record) {
-        this.maintModal.editingId = record.id; // 수정할 ID 저장
+        this.maintModal.editingId = record.id;
         this.maintForm.lastInspection = record.maintenanceDate;
         this.maintForm.asNotes = record.asNotes || '';
         this.maintForm.rtuImei = this.imeiUse;
@@ -2769,7 +2748,7 @@ openMaintModal(mode = 'ADD', record = null) {
 
         if (this.maintModal.mode === 'EDIT') {
            alert('수정되었습니다.');
-           this.openMaintModal('VIEW'); // 목록 갱신 및 이동
+           this.openMaintModal('VIEW');
            await this.loadMaintenance(this.currentReqId);
         } else {
            alert('저장되었습니다.');
@@ -2817,7 +2796,6 @@ formatDate(isoString) {
 async saveMaintenance() {
       if (!this.imeiUse || this.maintModal.saving) return;
       
-      // 유효성 검사
       if (!this.maintForm.lastInspection) {
         alert('점검일을 입력해 주세요.');
         return;
@@ -3031,12 +3009,16 @@ async onSelectUnit(hex) {
   this.loadingKpis = false;
 }
   },
-mounted () {
+mounted() {
     this.updateChartDimensions();
     window.addEventListener('resize', this.updateChartDimensions);
+
     this.syncAdminFromStorage();
     this._storageHandler = (e) => {
-      if (e.key === 'isAdmin' || e.key === 'email') this.syncAdminFromStorage();
+
+      if (e.key === 'isAdmin') {
+        this.syncAdminFromStorage();
+      }
     };
     window.addEventListener('storage', this._storageHandler);
 
@@ -3053,7 +3035,8 @@ mounted () {
     this.selectedMulti   = this.normMulti(initMulti) || '';
     this.nameField       = initName; 
 
-    const qImei = (typeof q.imei === 'string') ? q.imei.trim() : '';
+        const qImei = (typeof q.imei === 'string') ? q.imei.trim() : '';
+
     if (qImei) {
       this.imeiField = qImei;
       this.selectedMulti = '';
@@ -3067,9 +3050,12 @@ mounted () {
       this._initializing = false;
     });
   },
-  beforeDestroy () {
-  window.removeEventListener('resize', this.updateChartDimensions);
-    if (this._storageHandler) window.removeEventListener('storage', this._storageHandler);
-  }
-}
+
+  beforeDestroy() {
+    window.removeEventListener('resize', this.updateChartDimensions);
+    if (this._storageHandler) {
+      window.removeEventListener('storage', this._storageHandler);
+    }
+    }
+  };
 </script>

@@ -949,7 +949,6 @@ export default {
       loadingMonth: false,
       loadingYear: false,
       loadingHourly: false,
-      isAdmin: false,
       imeiField: DEFAULT_IMEI,
       energyField: "01",
       typeField: "",
@@ -1385,17 +1384,6 @@ export default {
         this.vb.h = 420;
         this.pad.t = 40;
         this.pad.b = 60;
-      }
-    },
-    syncAdminFromStorage() {
-      try {
-        const flag = localStorage.getItem("isAdmin") === "true";
-        const email = (localStorage.getItem("email") || "")
-          .trim()
-          .toLowerCase();
-        this.isAdmin = flag || email === "admin@company.com";
-      } catch {
-        this.isAdmin = false;
       }
     },
 
@@ -1954,7 +1942,7 @@ export default {
 
         this.hasSearched = true;
       } catch (e) {
-        this.errorMsg = e?.message || "오z  류가 발생했습니다.";
+        this.errorMsg = e?.message || "오류가 발생했습니다.";
       } finally {
         this.searching = false;
       }
@@ -2157,49 +2145,21 @@ export default {
     },
   },
 
-  mounted() {
-    this.syncAdminFromStorage();
-    this._storageHandler = (e) => {
-      if (e.key === "isAdmin" || e.key === "email") this.syncAdminFromStorage();
-    };
-    window.addEventListener("storage", this._storageHandler);
-
-    const q = this.$route?.query || {};
-    this.imeiField =
-      typeof q.imei === "string" && q.imei.trim()
-        ? q.imei.trim()
-        : DEFAULT_IMEI;
-    this.energyField =
-      typeof q.energy === "string" && q.energy.trim() ? q.energy.trim() : "01";
-    this.typeField =
-      typeof q.type === "string" && q.type.trim() ? q.type.trim() : "";
-    this.multiField =
-      typeof q.multi === "string" && q.multi.trim() ? q.multi.trim() : "";
-
+mounted() {
     const handleResize = () => {
-      this.updateAxisFonts();
-      this.updateViewBox();
+      if (this.updateAxisFonts) this.updateAxisFonts();
+      if (this.updateViewBox) this.updateViewBox();
     };
+    this.resizeObserver = new ResizeObserver(handleResize);
+    this.resizeObserver.observe(this.$el);
 
-    if ("ResizeObserver" in window) {
-      this.resizeObserver = new ResizeObserver(() => handleResize());
-      this.resizeObserver.observe(this.$el);
-    } else {
-      window.addEventListener("resize", handleResize);
+    if (this.imei) {
+      this.imeiField = this.imei;
+      this.onSearch();
     }
-
-    this.$nextTick(() => {
-      handleResize();
-    });
-
-    this.onSearch({ loadDefault: true });
   },
-
   beforeDestroy() {
     if (this.resizeObserver) this.resizeObserver.disconnect();
-    else window.removeEventListener("resize", this.updateAxisFonts);
-    if (this._storageHandler)
-      window.removeEventListener("storage", this._storageHandler);
   },
 };
 </script>

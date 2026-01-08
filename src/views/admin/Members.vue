@@ -3,7 +3,7 @@
     <header class="admin-header">
       <div>
         <h1>사용자 관리</h1>
-        <p>사용자 계정 및 정보를 관리하는 화면입니다.</p>
+        <p>사용자 계정 권한 및 정보를 관리하는 화면입니다.</p>
       </div>
       <div class="search-area">
         <input
@@ -25,7 +25,7 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>이름</th>
+            <th>권한</th> <th>이름</th>
             <th>이메일</th>
             <th>전화번호</th>
             <th>가입일</th>
@@ -37,11 +37,26 @@
             <td>{{ u.member_id }}</td>
 
             <td>
+              <div v-if="editRow === u.member_id">
+                <label class="admin-toggle">
+                  <input 
+                    type="checkbox" 
+                    v-model="u.is_admin" 
+                    :disabled="isMe(u)" 
+                  />
+                  관리자
+                </label>
+              </div>
+              <span v-else :class="['role-badge', u.is_admin ? 'admin' : 'user']">
+                {{ u.is_admin ? '관리자' : '일반' }}
+              </span>
+            </td>
+
+            <td>
               <input
                 v-if="editRow === u.member_id"
                 v-model="u.worker"
                 class="input-edit"
-                placeholder="이름 입력"
               />
               <span v-else>{{ u.worker }}</span>
             </td>
@@ -51,7 +66,6 @@
                 v-if="editRow === u.member_id"
                 v-model="u.username"
                 class="input-edit"
-                placeholder="이메일 입력"
               />
               <span v-else>{{ u.username }}</span>
             </td>
@@ -61,7 +75,6 @@
                 v-if="editRow === u.member_id"
                 v-model="u.phoneNumber"
                 class="input-edit"
-                placeholder="전화번호"
                 @input="formatPhone(u)"
               />
               <span v-else>{{ u.phoneNumber }}</span>
@@ -76,13 +89,9 @@
                   :disabled="savingId === u.member_id"
                   @click="saveUser(u)"
                 >
-                  <span
-                    v-if="savingId === u.member_id"
-                    class="spinner-mini"
-                  ></span>
+                  <span v-if="savingId === u.member_id" class="spinner-mini"></span>
                   <span v-else>저장</span>
                 </button>
-
                 <button
                   class="btn-cancel"
                   :disabled="savingId === u.member_id"
@@ -91,7 +100,6 @@
                   취소
                 </button>
               </template>
-
               <button v-else class="btn-edit" @click="startEdit(u)">
                 수정
               </button>
@@ -122,6 +130,7 @@ export default {
       searchQuery: "",
       originalData: null,
       toast: { visible: false, message: "" },
+      currentAdminEmail: localStorage.getItem('email') || '',
     };
   },
   async mounted() {
@@ -138,54 +147,50 @@ export default {
     },
   },
   methods: {
+    isMe(u) {
+      return u.username.toLowerCase() === this.currentAdminEmail.toLowerCase();
+    },
+
     async fetchMembers() {
       try {
         this.loading = true;
         const { data } = await api.get("/members");
         this.members = data;
       } catch (err) {
-        const msg =
-          err?.response?.data?.message || "회원 목록을 불러오지 못했습니다.";
+        const msg = err?.response?.data?.message || "회원 목록을 불러오지 못했습니다.";
         this.showToast(msg, true);
       } finally {
         this.loading = false;
       }
     },
 
-    // 🟢 [추가] 수정 시작 (데이터 백업)
     startEdit(u) {
-      // 다른 행 수정 중이면 먼저 취소 처리 (선택 사항)
       if (this.editRow !== null && this.editRow !== u.member_id) {
         const prev = this.members.find((m) => m.member_id === this.editRow);
         if (prev) this.cancelEdit(prev);
       }
-
-      this.originalData = { ...u }; // 현재 상태 복사
+      this.originalData = { ...u };
       this.editRow = u.member_id;
     },
 
-    // 🟢 [추가] 수정 취소 (데이터 복구)
     cancelEdit(u) {
       if (this.originalData) {
-        Object.assign(u, this.originalData); // 원래 데이터로 덮어쓰기
+        Object.assign(u, this.originalData);
       }
       this.editRow = null;
       this.originalData = null;
     },
 
-    // 🟢 [추가] 전화번호 입력 필터 (숫자와 하이픈만 허용)
     formatPhone(u) {
       if (!u.phoneNumber) return;
       u.phoneNumber = u.phoneNumber.replace(/[^0-9-]/g, "");
     },
 
     async saveUser(u) {
-      // 🟢 [추가] 유효성 검사
       if (!u.worker || u.worker.trim().length < 2) {
         this.showToast("이름은 2자 이상이어야 합니다.", true);
         return;
       }
-      // 이메일 형식 검사 (간단 버전)
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!u.username || !emailRegex.test(u.username)) {
         this.showToast("올바른 이메일 형식이 아닙니다.", true);
@@ -194,43 +199,70 @@ export default {
 
       try {
         this.savingId = u.member_id;
+        
         const res = await api.put(`/members/${u.member_id}`, {
           worker: u.worker,
           username: u.username,
           phoneNumber: u.phoneNumber,
+          is_admin: !!u.is_admin
         });
-        const msg = res.data?.message || `"${u.worker}" 정보가 저장되었습니다.`;
-        this.showToast(msg);
-
-        // 저장 성공 시 편집 모드 종료 및 백업 삭제
+        
+        this.showToast(res.data?.message || "저장되었습니다.");
         this.editRow = null;
         this.originalData = null;
       } catch (err) {
         const status = err?.response?.status;
-        const msg =
-          status === 409
-            ? "이미 존재하는 이메일입니다."
-            : err?.response?.data?.message || "수정 중 오류가 발생했습니다.";
+        const msg = status === 409 ? "이미 존재하는 이메일입니다." : "수정 중 오류가 발생했습니다.";
         this.showToast(msg, true);
       } finally {
         this.savingId = null;
       }
     },
+
     formatDate(v) {
+      if (!v) return "—";
       return new Date(v).toLocaleDateString("ko-KR", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
       });
     },
+
     showToast(msg, isError = false) {
       this.toast = { visible: true, message: msg };
       document.documentElement.style.setProperty(
         "--toast-bg",
-        isError ? "#f44336" : "#0b8"
+        isError ? "#f44336" : "#00b3a4"
       );
       setTimeout(() => (this.toast.visible = false), 2500);
     },
   },
 };
 </script>
+
+<style scoped>
+.role-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.role-badge.admin {
+  background: #e0f2f1;
+  color: #00796b;
+}
+.role-badge.user {
+  background: #f5f5f5;
+  color: #757575;
+}
+.admin-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.admin-toggle input {
+  cursor: pointer;
+}
+</style>
