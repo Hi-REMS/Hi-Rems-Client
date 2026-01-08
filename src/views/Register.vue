@@ -71,29 +71,29 @@
                 />
               </div>
               <p v-if="workerTouched && !workerValid" class="pw-error-text">
-                담당자를 입력해 주세요. (2자 이상)
+                담당자 성함을 한글로 입력해 주세요. (2자 이상)
               </p>
             </div>
 
-<div class="field">
-  <label for="phoneNumber">전화번호</label>
-  <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
-    <input
-      style="font-size: 14px"
-      id="phoneNumber"
-      v-model.trim="phoneNumber"
-      type="tel"
-      autocomplete="tel"
-      placeholder="010-1234-5678"
-      maxlength="13" 
-      required
-      @blur="phoneTouched = true"
-    />
-  </div>
-  <p v-if="phoneTouched && !phoneValid" class="pw-error-text">
-    올바른 전화번호 형식이 아닙니다. (010으로 시작하는 10~11자리 숫자)
-  </p>
-</div>
+            <div class="field">
+              <label for="phoneNumber">전화번호</label>
+              <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
+                <input
+                  style="font-size: 14px"
+                  id="phoneNumber"
+                  v-model.trim="phoneNumber"
+                  type="tel"
+                  autocomplete="tel"
+                  placeholder="010-1234-5678"
+                  maxlength="13" 
+                  required
+                  @blur="phoneTouched = true"
+                />
+              </div>
+              <p v-if="phoneTouched && !phoneValid" class="pw-error-text">
+                올바른 전화번호 형식이 아닙니다. (010-0000-0000)
+              </p>
+            </div>
 
             <div class="field">
               <label for="password">비밀번호</label>
@@ -195,6 +195,22 @@ export default {
       loading: false,
     };
   },
+  watch: {
+    // 전화번호 입력 시 숫자만 추출 후 하이픈 자동 삽입
+    phoneNumber(val) {
+      const nums = val.replace(/[^0-9]/g, "");
+      let formatted = "";
+      
+      if (nums.length <= 3) {
+        formatted = nums;
+      } else if (nums.length <= 7) {
+        formatted = nums.replace(/(\d{3})(\d{1,4})/, "$1-$2");
+      } else {
+        formatted = nums.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
+      }
+      this.phoneNumber = formatted;
+    }
+  },
   computed: {
     usernameValid() {
       const v = this.username;
@@ -207,11 +223,12 @@ export default {
       return e;
     },
     workerValid() {
-      return !!this.worker && this.worker.length >= 2;
+      const korRegex = /^[가-힣]+$/;
+      return !!this.worker && this.worker.length >= 2 && korRegex.test(this.worker);
     },
     phoneValid() {
       const n = this.phoneNumber.replace(/[^0-9]/g, "");
-      return /^010\d{8}$/.test(n);
+      return /^010\d{7,8}$/.test(n);
     },
     strengthPercent() {
       let s = 0;
@@ -270,12 +287,10 @@ export default {
         alert("회원가입에 성공하셨습니다!");
         this.$router.replace("/login");
       } catch (err) {
-        let msg =
-          "일시적인 오류로 가입에 실패했습니다. 잠시 후 다시 시도해주세요.";
+        let msg = "일시적인 오류로 가입에 실패했습니다. 잠시 후 다시 시도해주세요.";
         if (err?.response?.status === 409) {
           msg = "이미 가입된 이메일 주소입니다.";
         } else if (err?.response?.data?.message) {
-          // 서버 메시지가 사용자 친화적이라면 그대로 사용
           msg = err.response.data.message;
         }
         alert(msg);
