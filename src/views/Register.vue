@@ -91,7 +91,7 @@
                 />
               </div>
               <p v-if="phoneTouched && !phoneValid" class="pw-error-text">
-                올바른 전화번호 형식이 아닙니다. (010-0000-0000)
+                올바른 전화번호 형식이 아닙니다.
               </p>
             </div>
 
@@ -196,17 +196,35 @@ export default {
     };
   },
   watch: {
-    // 전화번호 입력 시 숫자만 추출 후 하이픈 자동 삽입
     phoneNumber(val) {
-      const nums = val.replace(/[^0-9]/g, "");
-      let formatted = "";
+      let nums = val.replace(/[^0-9]/g, "");
       
-      if (nums.length <= 3) {
-        formatted = nums;
-      } else if (nums.length <= 7) {
-        formatted = nums.replace(/(\d{3})(\d{1,4})/, "$1-$2");
-      } else {
-        formatted = nums.replace(/(\d{3})(\d{3,4})(\d{4})/, "$1-$2-$3");
+      if (nums.length === 10 && nums.startsWith("10")) {
+        nums = "0" + nums;
+      }
+
+      let formatted = "";
+      if (nums.startsWith("02")) {
+        if (nums.length <= 2) {
+          formatted = nums;
+        } else if (nums.length <= 5) {
+          formatted = nums.replace(/(\d{2})(\d{1,3})/, "$1-$2");
+        } else if (nums.length <= 9) {
+          formatted = nums.replace(/(\d{2})(\d{3})(\d{4})/, "$1-$2-$3");
+        } else {
+          formatted = nums.replace(/(\d{2})(\d{4})(\d{4})/, "$1-$2-$3");
+        }
+      } 
+      else {
+        if (nums.length <= 3) {
+          formatted = nums;
+        } else if (nums.length <= 6) {
+          formatted = nums.replace(/(\d{3})(\d{1,3})/, "$1-$2");
+        } else if (nums.length <= 10) {
+          formatted = nums.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
+        } else {
+          formatted = nums.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3");
+        }
       }
       this.phoneNumber = formatted;
     }
@@ -228,7 +246,8 @@ export default {
     },
     phoneValid() {
       const n = this.phoneNumber.replace(/[^0-9]/g, "");
-      return /^010\d{7,8}$/.test(n);
+      const regExp = /^(01[016789]|02|0[3-9][0-9]|070|080)\d{3,4}\d{4}$/;
+      return regExp.test(n);
     },
     strengthPercent() {
       let s = 0;
@@ -247,10 +266,7 @@ export default {
       if (!/[0-9]/.test(pw)) e.push("숫자(0-9)를 포함하세요.");
       if (!/[^A-Za-z0-9]/.test(pw)) e.push("특수문자를 포함하세요.");
       if (/\s/.test(pw)) e.push("공백 문자는 사용할 수 없습니다.");
-      if (
-        this.username &&
-        pw.toLowerCase().includes(this.username.toLowerCase())
-      )
+      if (this.username && pw.toLowerCase().includes(this.username.toLowerCase()))
         e.push("비밀번호에 아이디(이메일)를 포함할 수 없습니다.");
       return e;
     },
