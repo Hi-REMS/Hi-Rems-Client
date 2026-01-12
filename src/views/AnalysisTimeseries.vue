@@ -601,7 +601,7 @@
           <input v-model="facilityForm.contractor" />
           <label>A/S 연락처</label>
           <input v-model="facilityForm.as_contact" />
-          <label><span>설비 이미지</span>  <input
+          <label v-if="isAdmin"><span>설비 이미지</span>  <input
     type="file"
     accept="image/*"
     class="facility-image-input"
@@ -739,7 +739,7 @@
               <li v-for="r in maintenance.records" :key="r.id" class="mobile-maint-item">
                 <div class="mo-header">
                   <span class="mo-date">{{ r.maintenanceDate || '—' }}</span>
-                  <div class="mo-actions">
+                  <div class="mo-actions" v-if="isAdmin">
                     <button class="btn ghost xs" @click="openMaintModal('EDIT', r)">수정</button>
                     <button class="btn ghost xs warn" @click="deleteMaintenance(r.id)">삭제</button>
                   </div>
@@ -763,7 +763,7 @@
                 <tr>
                   <th>점검일</th>
                   <th>기록 내용</th>
-                  <th>관리</th>
+                  <th v-if="isAdmin">관리</th>
                 </tr>
               </thead>
               <tbody>
@@ -774,7 +774,7 @@
                     {{ r.asNotes || '—' }}
                   </td>
                   
-                  <td style="text-align:center;">
+                  <td style="text-align:center;" v-if="isAdmin">
                     <button class="btn ghost xs" @click="openMaintModal('EDIT', r)" style="margin-right:4px;">수정</button>
                     <button class="btn ghost xs warn" @click="deleteMaintenance(r.id)">삭제</button>
                   </td>
@@ -2616,6 +2616,10 @@ closeFacilityEditor () {
   }
 },
 async saveFacility() {
+if (!this.isAdmin) {
+    alert('권한이 없습니다.');
+    return;
+  }
   if (!this.imeiUse) return;
 
   try {
@@ -2764,6 +2768,10 @@ openMaintModal(mode = 'ADD', record = null) {
     },
 
     async deleteMaintenance(id) {
+    if (!this.isAdmin) {
+    alert('권한이 없습니다.');
+    return;
+  }
       if (!confirm('정말로 이 기록을 삭제하시겠습니까?')) return;
 
       try {
