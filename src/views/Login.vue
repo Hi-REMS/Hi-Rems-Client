@@ -115,13 +115,20 @@ export default {
       error: "",
     };
   },
-  created() {
-    const keysToRemove = [
-      "isAdmin", "username", "worker", "phoneNumber", 
-      "email", "defaultImei"
-    ];
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-  },
+created() {
+  const keysToRemove = [
+    "isAdmin", "username", "worker", "phoneNumber", 
+    "email", "defaultImei",
+    "rems_dash_swr_v1",
+    "rems_map_points_v1"
+  ];
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+
+  window.__CACHE_NORMAL = null;
+  window.__CACHE_ABNORMAL = null;
+  window.__CACHE_REGIONS = null;
+  
+},
   methods: {
     goToRegister() {
       localStorage.clear();
@@ -154,7 +161,6 @@ export default {
         });
         
         const loginUser = loginRes?.user || {};
-
         const admin = isAdminUser(loginUser);
 
         try {
@@ -162,29 +168,20 @@ export default {
           localStorage.setItem("username", loginUser.username || "");
           localStorage.setItem("worker", loginUser.worker || "");
           localStorage.setItem("phoneNumber", loginUser.phoneNumber || "");
-          
           localStorage.setItem("email", loginUser.username || "");
         } catch (e) {
           console.error("Storage error:", e);
-        }
-
-        if (admin) {
-          this.$router.replace("/home");
-          return;
         }
 
         let defaultImei = "";
         try {
           const { data: imeiRes } = await api.get("/user/imeis");
           defaultImei = imeiRes?.defaultImei || "";
-          
           if (defaultImei) {
             localStorage.setItem("defaultImei", defaultImei);
-          } else {
-            localStorage.removeItem("defaultImei");
           }
         } catch (e) {
-          console.warn("IMEI 조회 실패 (신규 사용자 가능성):", e);
+          console.warn("IMEI 조회 실패:", e);
         }
 
         const raw = this.$route.query.redirect;
@@ -195,15 +192,12 @@ export default {
 
         if (!isUnsafe) {
           this.$router.replace(to);
-        } else if (defaultImei) {
-          this.$router.replace(`/analysis/timeseries?imei=${encodeURIComponent(defaultImei)}`);
         } else {
-          this.$router.replace("/analysis/timeseries");
+          this.$router.replace("/home");
         }
 
       } catch (err) {
         const msg = err?.response?.data?.message || err.message || "로그인 실패";
-
         if (msg.toLowerCase().includes("credentials") || msg.toLowerCase().includes("invalid")) {
           alert("아이디 또는 비밀번호가 올바르지 않습니다.");
         } else {

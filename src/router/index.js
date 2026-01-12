@@ -10,6 +10,7 @@ import FindPassword from '@/views/FindPassword.vue'
 import ResetPassword from '@/views/ResetPassword.vue'
 import ChangePassword from '@/views/ChangePassword.vue'
 import Members from '@/views/admin/Members.vue'
+
 Vue.use(Router)
 
 const ADMIN_EMAILS = ['admin@company.com']
@@ -33,9 +34,12 @@ const router = new Router({
           const { data } = await api.get('/auth/me')
           const user = data?.user
           if (user) {
-            return next(isAdminUser(user) ? '/home' : '/analysis/timeseries')
+            // [수정] 관리자 여부 상관없이 로그인이 되어있다면 모두 대시보드(/home)로 이동
+            return next('/home')
           }
-        } catch {    console.log("여기0");}
+        } catch {
+          console.log("여기0");
+        }
         return next('/login')
       }
     },
@@ -54,11 +58,11 @@ const router = new Router({
           const { data } = await api.get('/auth/me')
           const user = data?.user
           
-          if (user && isAdminUser(user)) {
+          // [수정] 관리자 체크를 제거하여 로그인만 되어있다면 접근 허용
+          if (user) {
             next()
           } else {
-            alert('관리자만 접근할 수 있는 페이지입니다.')
-            next('/analysis/timeseries')
+            next('/login')
           }
         } catch (e) {
           next('/login')
@@ -78,11 +82,12 @@ const router = new Router({
         try {
           const { data } = await api.get('/auth/me')
           const user = data?.user
+          // 사용자 관리 페이지는 여전히 관리자만 접근 가능하도록 유지
           if (user && isAdminUser(user)) {
             next()
           } else {
             alert('관리자 권한이 필요합니다.')
-            next('/analysis/timeseries')
+            next('/home') // 관리자가 아닐 경우 대시보드로 튕겨냄
           }
         } catch (e) {
           next('/login')
@@ -141,7 +146,9 @@ router.beforeEach(async (to, from, next) => {
   if (isPublic && to.path === '/register') {
     const me = await getMe()
     if (me) {
-      const defaultPath = isAdminUser(me) ? '/home' : '/analysis/timeseries'
+      // [수정] 이미 로그인된 사용자가 가입페이지 접근 시 대시보드로 이동
+      const defaultPath = '/home' 
+      
       let toAfterLogin = to.query.redirect || ''
       const BLOCKED = ['/login','/register','/reset','/findpassword']
       const isSafe = toAfterLogin && toAfterLogin.startsWith('/') && !BLOCKED.some(p => toAfterLogin.startsWith(p))

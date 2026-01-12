@@ -3,19 +3,29 @@
     <section class="rems-grid">
       <article class="rems-card rems-col-4 rems-kpi-card">
         <div class="rems-card-hd">
-          <h3>전국 발전소 모니터링 운영 현황</h3>
+          <h3>{{ isAdmin ? '전국' : '나의' }} 발전소 모니터링 운영 현황</h3>
           <span class="rems-updated" v-if="lastUpdated"
             >Last updated · {{ fromNow(lastUpdated) }}</span
           >
+<div class="rems-summary">
+    <div 
+      v-if="isAdmin && !loadingDash && totals.total_plants === 0" 
+      class="rems-zero-alert"
+    >
+      <div class="zero-alert-icon">⚠️</div>
+      <div class="zero-alert-text">
+        현재 집계 데이터가 0으로 표시되고 있습니다.<br />
+        <strong>잠시 후 다시 새로고침</strong>을 해주시거나 브라우저를 다시 열어주세요.
+      </div>
+    </div>
+
+    <div class="kpi-grid-2x2">
+      <div class="kpi-mini">
+        <div class="kpi-mini-label">전체 발전소</div>
+        <div class="kpi-mini-value">
+          <CountUp :end-val="totals.total_plants" />
         </div>
-        <div class="rems-summary">
-          <div class="kpi-grid-2x2">
-            <div class="kpi-mini">
-              <div class="kpi-mini-label">전체 발전소</div>
-              <div class="kpi-mini-value">
-                <CountUp :end-val="totals.total_plants" />
-              </div>
-            </div>
+      </div>
 
             <div class="kpi-mini">
               <div class="kpi-mini-label">정상 상태</div>
@@ -73,7 +83,9 @@
       </article>
 
       <article class="rems-card rems-col-4">
-        <div class="rems-card-hd"><h3>전국 태양광 에너지</h3></div>
+      <div class="rems-card-hd">
+        <h3>{{ isAdmin ? '전국' : '나의' }} 태양광 에너지</h3>
+        </div>
         <div class="rems-stat-tiles">
           <div class="rems-tile">
             <div class="rems-t-caption">금일 발전량</div>
@@ -131,7 +143,9 @@
       </article>
 
       <article class="rems-card rems-col-4">
-        <div class="rems-card-hd"><h3>전국 비태양광 에너지</h3></div>
+      <div class="rems-card-hd">
+        <h3>{{ isAdmin ? '전국' : '나의' }} 비태양광 에너지</h3>
+        </div>
         <div class="rems-stat-tiles">
           <div class="rems-tile">
             <div class="rems-t-caption">금일 사용량</div>
@@ -170,7 +184,7 @@
       <article class="rems-card rems-col-8 rems-row-2 rems-map-card">
         <div class="rems-card-hd rems-map-breadcrumbs">
           <div class="rems-map-hd-flex">
-            <h3>대한민국 지도</h3>
+            <h3>{{ isAdmin ? '대한민국 지도' : '설비 위치 지도' }}</h3>
             <div class="map-mode-tabs">
               <button
                 :class="['map-tab', { active: mapMode === 'NORMAL' }]"
@@ -187,7 +201,7 @@
             </div>
           </div>
 
-          <div class="rems-crumbs">
+          <div class="rems-crumbs" v-if="isAdmin">
             <button class="rems-chip" @click="resetAll" title="전국으로">
               전국
             </button>
@@ -291,7 +305,7 @@
         </div>
       </article>
 
-      <article class="rems-card rems-col-4 rems-row-2">
+      <article class="rems-card rems-col-4 rems-row-2" v-if="isAdmin">
         <div class="rems-card-hd" style="gap: 8px; position: relative">
           <h3>지역별 요약</h3>
 
@@ -410,6 +424,25 @@
           </table>
         </div>
       </article>
+<article class="rems-card rems-col-4 rems-row-2" v-else>
+  <div class="rems-card-hd"><h3>나의 설비 목록</h3></div>
+  <div class="rems-table-wrap thin-scroll">
+    <table class="rems-table">
+      <thead>
+        <tr><th>IMEI</th><th>상태</th></tr>
+      </thead>
+      <tbody>
+        <tr v-for="item in abn.items" :key="item.imei" @click="focusImei(item)" class="rems-row-click">
+          <td class="mono">{{ item.imei }}</td>
+          <td><span :class="['rems-tag', reasonClass(item.reason)]">{{ item.reason }}</span></td>
+        </tr>
+        <tr v-if="abn.items.length === 0">
+          <td colspan="2" style="text-align:center; padding:40px; color:#999;">모든 설비가 정상입니다.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</article>
 
       <article class="rems-card rems-col-12">
         <div class="rems-card-hd">
@@ -573,8 +606,7 @@ const SIGUN_LEVEL = 8;
 const FOCUS_LEVEL = 7;
 const REGION_BUBBLE_LEVEL = 9;
 
-const DASH_CACHE_KEY = "rems_dash_swr_v1"; // 대시보드 통계 캐시
-// [MAP SWR 수정 1] 지도 데이터 캐시 키 및 유효시간(30분) 설정
+const DASH_CACHE_KEY = "rems_dash_swr_v1";
 const MAP_POINTS_CACHE_KEY = "rems_map_points_v1";
 const MAP_CACHE_TTL = 30 * 60 * 1000;
 
@@ -673,11 +705,6 @@ export default {
 
 async mounted() {
     this.checkAdmin();
-    if (!this.isAdmin) {
-      alert("해당 페이지는 관리자만 접근할 수 있습니다.");
-      this.$router.replace("/analysis/timeseries");
-      return;
-    }
 
     if (this.map) return;
     try {
@@ -732,6 +759,37 @@ async mounted() {
   },
 
   methods: {
+fitMapToMyDevices() {
+  if (!this.map || this.markers.length === 0) return;
+  
+  const kakao = window.kakao;
+  const bounds = new kakao.maps.LatLngBounds();
+  let hasValidPoint = false;
+
+  this.markers.forEach(m => {
+    try {
+      if (m.overlay && typeof m.overlay.getPosition === 'function') {
+        bounds.extend(m.overlay.getPosition());
+        hasValidPoint = true;
+      } 
+      else if (m && typeof m.getPosition === 'function') {
+        bounds.extend(m.getPosition());
+        hasValidPoint = true;
+      }
+    } catch (e) {
+      console.warn("마커 위치 계산 중 오류:", e);
+    }
+  });
+  
+  if (!hasValidPoint) return;
+
+  if (this.markers.length === 1) {
+    this.map.setCenter(bounds.getCenter());
+    this.map.setLevel(5);
+  } else {
+    this.map.setBounds(bounds);
+  }
+},
   checkAdmin() {
       try {
         this.isAdmin = localStorage.getItem("isAdmin") === "true";
@@ -744,10 +802,8 @@ async mounted() {
       this._resizeTimer = setTimeout(() => {
         if (this.map) {
           window.kakao.maps.event.trigger(this.map, "resize");
-          // 중심점 유지 (선택 사항)
-          // this.map.setCenter(this.savedCenter);
         }
-      }, 200); // 0.2초 대기 후 실행
+      }, 200);
     },
     faultReason(row) {
       const flagsArr = row.fault_flags || row.flags_1h || [];
@@ -923,55 +979,63 @@ async mounted() {
       this.refreshMapPoints();
     },
 
-    async refreshMapPoints(isBackground = false) {
-      if (this._refreshing) return;
-      this._refreshing = true;
+async refreshMapPoints(isBackground = false) {
+  if (this._refreshing) return;
+  this._refreshing = true;
 
-      if (!isBackground) {
-        this.selectedPoint = null;
+  if (!isBackground) {
+    this.selectedPoint = null;
+  }
+
+  let hasCache = false;
+  if (this.mapMode === "NORMAL" && this.cachedNormalItems) hasCache = true;
+  if (this.mapMode === "ABNORMAL" && this.cachedAbnormalItems)
+    hasCache = true;
+
+  if (!isBackground) {
+    this.mapLoading = !hasCache;
+  }
+
+  this.clearMarkers();
+  this.clearRegionBubbles();
+
+  try {
+    if (!this.map) return;
+    const currentMode = this.mapMode;
+
+    if (this.mapMode === "ABNORMAL") {
+      const level = this.map.getLevel();
+      if (level > REGION_BUBBLE_LEVEL) {
+        await this.loadRegions();
+        await this.drawRegionClusters();
+      } else {
+        await this.drawAbnormalPoints({
+          reason: this.reasonFilter,
+          sido: this.selectedSido,
+          sigungu: this.selectedSigungu,
+        });
       }
+    } else if (this.mapMode === "NORMAL") {
+      await this.drawNormalPoints();
+    }
 
-      let hasCache = false;
-      if (this.mapMode === "NORMAL" && this.cachedNormalItems) hasCache = true;
-      if (this.mapMode === "ABNORMAL" && this.cachedAbnormalItems)
-        hasCache = true;
+    if (this.mapMode !== currentMode) return;
 
-      if (!isBackground) {
-        this.mapLoading = !hasCache;
-      }
+    if (!this.isAdmin && !isBackground) {
+      this.$nextTick(() => {
+        this.fitMapToMyDevices();
+      });
+    }
 
-      this.clearMarkers();
-      this.clearRegionBubbles();
-
-      try {
-        if (!this.map) return;
-        const currentMode = this.mapMode;
-
-        if (this.mapMode === "ABNORMAL") {
-          const level = this.map.getLevel();
-          if (level > REGION_BUBBLE_LEVEL) {
-            await this.loadRegions();
-            await this.drawRegionClusters();
-          } else {
-            await this.drawAbnormalPoints({
-              reason: this.reasonFilter,
-              sido: this.selectedSido,
-              sigungu: this.selectedSigungu,
-            });
-          }
-        } else if (this.mapMode === "NORMAL") {
-          await this.drawNormalPoints();
-        }
-
-        if (this.mapMode !== currentMode) return;
-      } catch (e) {
-      } finally {
-        if (!isBackground) {
-          this.mapLoading = false;
-        }
-        this._refreshing = false;
-      }
-    },
+  } catch (e) {
+    console.error("refreshMapPoints failed:", e);
+  } finally {
+    if (!isBackground) {
+      this.mapLoading = false;
+    }
+    this._refreshing = false;
+  }
+},
 
     async drawNormalPoints() {
       if (!this.map) return;
