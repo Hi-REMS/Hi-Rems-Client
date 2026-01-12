@@ -1815,3 +1815,73 @@ html[data-theme='dark'] .seg-pill.active {
     text-align: right;
   }
 }
+
+.rems-zero-alert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  background-color: #fff9f0; /* 아주 연한 오렌지/옐로우톤 배경 */
+  border: 1px solid #ffecb3; /* 테두리 */
+  border-radius: 12px;
+  margin: 16px 0;
+  min-height: 180px; /* 카드 안에서 적절한 높이 차지 */
+}
+
+.zero-alert-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.zero-alert-icon {
+  color: #f59e0b; /* 따뜻한 경고색 */
+  background: #fff;
+  padding: 10px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zero-alert-content {
+  text-align: center;
+}
+
+.zero-alert-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #d97706;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+  /* 폰트 깔끔하게 처리 */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+.zero-alert-desc {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #6b7280; /* 부드러운 회색 */
+  margin: 0;
+  word-break: keep-all; /* 단어 단위로 줄바꿈되어 깔끔함 */
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+.zero-alert-desc strong {
+  color: #4b5563;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* 로딩 애니메이션 (선택사항: 아이콘이 미세하게 움직이면 더 자연스러움) */
+@keyframes alert-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.zero-alert-icon {
+  animation: alert-pulse 2s infinite ease-in-out;
+}

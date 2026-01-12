@@ -1,13 +1,15 @@
 <template>
   <div class="rems-dashboard">
     <section class="rems-grid">
-      <article class="rems-card rems-col-4 rems-kpi-card">
-        <div class="rems-card-hd">
-          <h3>{{ isAdmin ? '전국' : '나의' }} 발전소 모니터링 운영 현황</h3>
-          <span class="rems-updated" v-if="lastUpdated"
-            >Last updated · {{ fromNow(lastUpdated) }}</span
-          >
-<div class="rems-summary">
+<article class="rems-card rems-col-4 rems-kpi-card">
+  <div class="rems-card-hd">
+    <h3>{{ isAdmin ? '전국' : '나의' }} 발전소 모니터링 운영 현황</h3>
+    <span class="rems-updated" v-if="lastUpdated">
+      Last updated · {{ fromNow(lastUpdated) }}
+    </span>
+  </div>
+
+  <div class="rems-summary">
     <div 
       v-if="isAdmin && !loadingDash && totals.total_plants === 0" 
       class="rems-zero-alert"
@@ -19,68 +21,66 @@
       </div>
     </div>
 
-    <div class="kpi-grid-2x2">
-      <div class="kpi-mini">
-        <div class="kpi-mini-label">전체 발전소</div>
-        <div class="kpi-mini-value">
-          <CountUp :end-val="totals.total_plants" />
+    <template v-else>
+      <div class="kpi-grid-2x2">
+        <div class="kpi-mini">
+          <div class="kpi-mini-label">전체 발전소</div>
+          <div class="kpi-mini-value">
+            <CountUp :end-val="totals.total_plants" />
+          </div>
+        </div>
+
+        <div class="kpi-mini">
+          <div class="kpi-mini-label">정상 상태</div>
+          <div class="kpi-mini-value">
+            <CountUp :end-val="totals.normal_plants" />
+          </div>
+        </div>
+
+        <div class="kpi-mini">
+          <div class="kpi-mini-label">가동률</div>
+          <div class="kpi-mini-value">
+            {{ uptimeRate }}<span class="kpi-mini-unit">%</span>
+          </div>
+        </div>
+
+        <div
+          class="kpi-mini kpi-mini--alert"
+          role="button"
+          tabindex="0"
+          @click="openAbnModal"
+          @keyup.enter="openAbnModal"
+        >
+          <div class="kpi-mini-label">상태 이상</div>
+          <div class="kpi-mini-value kpi-warn">
+            <CountUp :end-val="totalAbnormal" />
+          </div>
+          <div class="kpi-mini-detail link-style">
+            <span>자세히 보기</span>
+            <svg class="ic" width="14" height="14" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M9 6l6 6-6 6" />
+            </svg>
+          </div>
         </div>
       </div>
 
-            <div class="kpi-mini">
-              <div class="kpi-mini-label">정상 상태</div>
-              <div class="kpi-mini-value">
-                <CountUp :end-val="totals.normal_plants" />
-              </div>
-            </div>
-
-            <div class="kpi-mini">
-              <div class="kpi-mini-label">가동률</div>
-              <div class="kpi-mini-value">
-                {{ uptimeRate }}<span class="kpi-mini-unit">%</span>
-              </div>
-            </div>
-
-            <div
-              class="kpi-mini kpi-mini--alert"
-              role="button"
-              tabindex="0"
-              @click="openAbnModal"
-              @keyup.enter="openAbnModal"
-            >
-              <div class="kpi-mini-label">상태 이상</div>
-              <div class="kpi-mini-value kpi-warn">
-                <CountUp :end-val="totalAbnormal" />
-              </div>
-              <div class="kpi-mini-detail link-style">
-                <span>자세히 보기</span>
-                <svg class="ic" width="14" height="14" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M9 6l6 6-6 6" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div class="kpi-inline">
-            <div class="kpi-inline-item">
-              <span class="kpi-inline-label">오늘 수신</span>
-              <strong class="kpi-inline-value">{{
-                nFmt(today.total_messages)
-              }}</strong>
-            </div>
-            <div class="kpi-inline-item">
-              <span class="kpi-inline-label">오늘 장치수</span>
-              <strong class="kpi-inline-value">{{
-                nFmt(today.devices)
-              }}</strong>
-            </div>
-          </div>
-
-          <div v-if="loadingDash" class="rems-loading-note">
-            ⏳ 데이터 불러오는 중…
-          </div>
+      <div class="kpi-inline">
+        <div class="kpi-inline-item">
+          <span class="kpi-inline-label">오늘 수신</span>
+          <strong class="kpi-inline-value">{{ nFmt(today.total_messages) }}</strong>
         </div>
-      </article>
+        <div class="kpi-inline-item">
+          <span class="kpi-inline-label">오늘 장치수</span>
+          <strong class="kpi-inline-value">{{ nFmt(today.devices) }}</strong>
+        </div>
+      </div>
+
+      <div v-if="loadingDash" class="rems-loading-note">
+        ⏳ 데이터 불러오는 중…
+      </div>
+    </template>
+  </div>
+</article>
 
       <article class="rems-card rems-col-4">
       <div class="rems-card-hd">

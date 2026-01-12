@@ -13,6 +13,20 @@ import Members from '@/views/admin/Members.vue'
 
 Vue.use(Router)
 
+const originalPush = Router.prototype.push;
+Router.prototype.push = function push(location) {
+  return originalPush.call(this, location).catch(err => {
+    if (err.name !== 'NavigationDuplicated' && !err.message.includes('Redirected')) throw err;
+  });
+};
+
+const originalReplace = Router.prototype.replace;
+Router.prototype.replace = function replace(location) {
+  return originalReplace.call(this, location).catch(err => {
+    if (err.name !== 'NavigationDuplicated' && !err.message.includes('Redirected')) throw err;
+  });
+};
+
 const ADMIN_EMAILS = ['admin@company.com']
 function normalize(v) {
   return (typeof v === 'string' ? v : '').trim().toLowerCase()
@@ -29,11 +43,7 @@ const router = new Router({
     {
       path: '/',
       meta: { hideHeader: true },
-      beforeEnter: (to, from, next) => {
-        const token = localStorage.getItem('token');
-        if (token) return next('/home');
-        next('/login');
-      }
+      redirect: '/home'
     },
     { path: '/login', component: Login, meta: { hideHeader: true } },
     { path: '/register', component: Register, meta: { hideHeader: true } },
@@ -46,7 +56,6 @@ const router = new Router({
       component: Home, 
       meta: { requiresAuth: true, hideHeader: false } 
     },
-
     { path: '/analysis/timeseries', component: AnalysisTimeseries, meta: { requiresAuth: true, hideHeader: false } },
     { path: '/energy', name: 'EnergyDashboard', component: EnergyDashboard, meta: { requiresAuth: true, hideHeader: false } },
     
@@ -84,31 +93,37 @@ router.beforeEach(async (to, from, next) => {
     return next('/login');
   }
 
-  let user = null;
+  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
   try {
     const { data } = await api.get('/auth/me');
-    user = data?.user;
+    const user = data?.user;
+
+    if (!user) throw new Error('Invalid User');
+
+    if (isPublic) {
+      return next('/home');
+    }
+
+    if (to.matched.some(r => r.meta.requiresAdmin)) {
+      if (isAdminUser(user)) {
+        return next();
+      } else {
+        alert('관리자 권한이 필요합니다.');
+        return next('/home');
+      }
+    }
+
+    next();
+
   } catch (e) {
+    console.error('[Router] Auth check failed:', e);
     localStorage.removeItem('token');
     localStorage.removeItem('isAdmin');
+    
     if (isPublic) return next();
     return next('/login');
   }
-
-  if (user && isPublic) {
-    return next('/home');
-  }
-
-  if (to.matched.some(r => r.meta.requiresAdmin)) {
-    if (user && isAdminUser(user)) {
-      return next();
-    } else {
-      alert('관리자 권한이 필요합니다.');
-      return next('/home');
-    }
-  }
-
-  next();
 })
 
 export default router

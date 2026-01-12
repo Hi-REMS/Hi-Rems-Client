@@ -235,14 +235,25 @@ export default {
   },
 
   methods: {
+    /**
+     * [수정] 슬라이딩 세션 및 권한 체크 최적화
+     */
     async fetchMe() {
       try {
         const { data } = await api.get('/auth/me')
         const u = data?.user || {}
+        
         this.username = u.username || ''
-        this.email = u.email || ''
-        this.isAdmin = u.username === 'admin@company.com' || u.worker === '관리자'
-      } catch {
+        this.email = u.username || '' // 보통 username이 이메일 형식
+        
+        // [수정] 하드코딩된 이메일 체크 대신 백엔드에서 준 is_admin 값을 그대로 사용
+        this.isAdmin = !!u.is_admin 
+        
+        // 로컬 스토리지와 상태 동기화
+        localStorage.setItem('isAdmin', String(this.isAdmin))
+        
+      } catch (e) {
+        // 인증 실패 시 정보 초기화
         this.username = ''
         this.email = ''
         this.isAdmin = false
@@ -267,27 +278,40 @@ export default {
       this.$router.push('/change-password')
     },
 
-downloadManual() {
-      // 파일명을 실제 파일명과 똑같이 맞춰주세요 (한글 포함)
+    downloadManual() {
       const fileUrl = '/hirems/manual.pdf' 
-      
       const link = document.createElement('a')
       link.href = fileUrl
-      link.download = 'HiREMS-매뉴얼.pdf' // 다운로드될 때 저장될 이름
+      link.download = 'HiREMS-매뉴얼.pdf'
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
       this.closeMenu()
     },
 
+    /**
+     * [수정] 로그아웃 시 토큰 및 헤더 완벽 제거
+     */
     logout() {
+      // 서버에 로그아웃 알림
       api.post('/auth/logout').finally(() => {
-        ['isAdmin','username','email','worker','phoneNumber'].forEach(k =>
-          localStorage.removeItem(k)
-        )
-        sessionStorage.clear()
-        this.$router.replace('/login')
+        // 1. 모든 인증 관련 로컬 스토리지 키 삭제
+        const keysToRemove = [
+          'token', 'isAdmin', 'username', 'email', 
+          'worker', 'phoneNumber', 'defaultImei'
+        ];
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+
+        // 2. Axios 공통 헤더에서 토큰 제거 (다음 사용자 로그인 시 충돌 방지)
+        delete api.defaults.headers.common['Authorization'];
+
+        // 3. 세션 및 캐시 초기화
+        sessionStorage.clear();
+        window.__CACHE_NORMAL = null;
+        window.__CACHE_ABNORMAL = null;
+
+        // 4. 로그인 페이지로 이동
+        this.$router.replace('/login');
       })
     },
 
@@ -302,10 +326,8 @@ downloadManual() {
     onOutsideClick(e) {
       const btn = this.$refs.profileButton
       const menu = this.$refs.menuRoot
-
       if (btn && btn.contains(e.target)) return
       if (menu && menu.contains(e.target)) return
-
       this.closeMenu()
     },
 

@@ -99,6 +99,9 @@
 import { api } from "@/api";
 import "@/assets/css/login.css";
 
+/**
+ * 관리자 여부 확인 유틸리티
+ */
 function isAdminUser(u) {
   return u?.is_admin === true;
 }
@@ -115,20 +118,22 @@ export default {
       error: "",
     };
   },
-created() {
-  const keysToRemove = [
-    "isAdmin", "username", "worker", "phoneNumber", 
-    "email", "defaultImei",
-    "rems_dash_swr_v1",
-    "rems_map_points_v1"
-  ];
-  keysToRemove.forEach(key => localStorage.removeItem(key));
+  created() {
+    const keysToRemove = [
+      "token",
+      "isAdmin", "username", "worker", "phoneNumber", 
+      "email", "defaultImei",
+      "rems_dash_swr_v1",
+      "rems_map_points_v1"
+    ];
+    keysToRemove.forEach(key => localStorage.removeItem(key));
 
-  window.__CACHE_NORMAL = null;
-  window.__CACHE_ABNORMAL = null;
-  window.__CACHE_REGIONS = null;
-  
-},
+    delete api.defaults.headers.common['Authorization'];
+
+    window.__CACHE_NORMAL = null;
+    window.__CACHE_ABNORMAL = null;
+    window.__CACHE_REGIONS = null;
+  },
   methods: {
     goToRegister() {
       localStorage.clear();
@@ -161,9 +166,17 @@ created() {
         });
         
         const loginUser = loginRes?.user || {};
+        const token = loginRes?.token;
         const admin = isAdminUser(loginUser);
 
+        if (!token) {
+          throw new Error("인증 토큰을 받지 못했습니다.");
+        }
+
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
         try {
+          localStorage.setItem("token", token);
           localStorage.setItem("isAdmin", String(!!admin));
           localStorage.setItem("username", loginUser.username || "");
           localStorage.setItem("worker", loginUser.worker || "");
@@ -181,7 +194,7 @@ created() {
             localStorage.setItem("defaultImei", defaultImei);
           }
         } catch (e) {
-          console.warn("IMEI 조회 실패:", e);
+          console.warn("IMEI 조회 실패 (무시하고 진행):", e);
         }
 
         const raw = this.$route.query.redirect;
