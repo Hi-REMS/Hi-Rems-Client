@@ -12,7 +12,7 @@
 
     <div class="hdr-actions">
       <button
-        v-if="isAdmin && canGoBack"
+        v-if="canGoBack"
         class="hdr-btn hdr-back"
         @click="goBack"
         title="뒤로가기"
