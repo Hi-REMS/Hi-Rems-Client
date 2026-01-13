@@ -95,7 +95,7 @@
             >
               <template v-if="energyLoading">—</template
               ><template v-else>{{ dFmt(energy.electric.today_kwh) }}</template>
-              <span class="rems-unit">GWh</span>
+              <span class="rems-unit">{{ isAdmin ? 'GWh' : 'kWh' }}</span>
             </div>
           </div>
           <div class="rems-tile">
@@ -129,7 +129,7 @@
               ><template v-else>{{
                 dFmt(energy.electric.cumulative_kwh)
               }}</template>
-              <span class="rems-unit">GWh</span>
+              <span class="rems-unit">{{ isAdmin ? 'GWh' : 'kWh' }}</span>
             </div>
           </div>
         </div>
