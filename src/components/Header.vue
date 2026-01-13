@@ -1,14 +1,14 @@
 <template>
   <header class="hdr-topbar">
-    <div class="hdr-brand">
+        <span class="sub-name">Hi-REMS</span>
+      <span class="sub-badge">v1.0</span>
+<router-link to="/" class="hdr-brand" title="홈으로 이동">
       <img 
         src="@/assets/haeinlogo.png"
         alt="Hi-REMS 로고"
         class="brand-logo"
       />
-      <span class="sub-name">Hi-REMS</span>
-      <span class="sub-badge">v1.0</span>
-    </div>
+          </router-link>
 
     <div class="hdr-actions">
       <button

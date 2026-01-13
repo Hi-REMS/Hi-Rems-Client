@@ -98,7 +98,7 @@
               <span class="rems-unit">{{ isAdmin ? 'GWh' : 'kWh' }}</span>
             </div>
           </div>
-          <div class="rems-tile">
+          <div class="rems-tile" v-if="isAdmin">
             <div class="rems-t-caption">금일 CO₂ 저감</div>
             <div
               class="rems-t-value"
@@ -112,7 +112,7 @@
             </div>
           </div>
 
-          <div class="rems-tile">
+          <div class="rems-tile" v-if="isAdmin">
             <div class="rems-t-caption">설비용량</div>
             <div class="rems-t-value">
               3
@@ -158,7 +158,7 @@
               <span class="rems-unit">kWh</span>
             </div>
           </div>
-          <div class="rems-tile">
+          <div class="rems-tile" v-if="isAdmin">
             <div class="rems-t-caption">금일 CO₂ 저감</div>
             <div
               class="rems-t-value"
@@ -171,6 +171,15 @@
               <span class="rems-unit">tCO₂</span>
             </div>
           </div>
+
+          <div v-if="!isAdmin" class="rems-tile">
+      <div class="rems-t-caption">누적 발전량</div>
+      <div class="rems-t-value" :title="rawTip(energy.thermal.cumulative_kwh, 'kWh')">
+        <template v-if="energyLoading">—</template>
+        <template v-else>{{ dFmt(energy.thermal.cumulative_kwh) }}</template>
+        <span class="rems-unit">kWh</span>
+      </div>
+    </div>
         </div>
         <div
           v-if="energyError"
