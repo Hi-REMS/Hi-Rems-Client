@@ -453,7 +453,7 @@
   </div>
 </article>
 
-      <article class="rems-card rems-col-12">
+      <article class="rems-card rems-col-12" v-if="isAdmin">
         <div class="rems-card-hd">
           <div class="rems-hint">주요 분석/검색 페이지로 바로 이동</div>
         </div>
@@ -729,6 +729,7 @@ async mounted() {
       console.error("Map load failed", e);
     }
   },
+
   beforeDestroy() {
     if (this.timerId) clearInterval(this.timerId);
     this.clearMarkers();
@@ -768,6 +769,18 @@ async mounted() {
   },
 
   methods: {
+  applyOffset(lat, lng, count) {
+  if (count === 0) return { lat, lng };
+  
+
+  const angle = count * (Math.PI / 4);
+  const offset = 0.00008 * (Math.floor(count / 8) + 1);
+  
+  return {
+    lat: lat + (offset * Math.cos(angle)),
+    lng: lng + (offset * Math.sin(angle))
+  };
+},
 fitMapToMyDevices() {
   if (!this.map || this.markers.length === 0) return;
   
@@ -786,7 +799,6 @@ fitMapToMyDevices() {
         hasValidPoint = true;
       }
     } catch (e) {
-      console.warn("마커 위치 계산 중 오류:", e);
     }
   });
   
@@ -870,7 +882,6 @@ fitMapToMyDevices() {
         this.abn.loading = false;
         this.isRestored = true;
       } catch (e) {
-        console.warn("Cache restore failed", e);
       }
     },
     saveState() {
@@ -905,7 +916,6 @@ fitMapToMyDevices() {
           localStorage.removeItem(MAP_POINTS_CACHE_KEY);
         }
       } catch (e) {
-        console.warn("Map cache restore failed", e);
       }
     },
 
@@ -915,7 +925,6 @@ fitMapToMyDevices() {
         localStorage.setItem(MAP_POINTS_CACHE_KEY, JSON.stringify(data));
       } catch (e) {
         if (e.name === "QuotaExceededError") {
-          console.warn("LocalStorage full, clearing old caches...");
           localStorage.clear();
         }
       }
@@ -995,11 +1004,9 @@ async refreshMapPoints(isBackground = false) {
   if (!isBackground) {
     this.selectedPoint = null;
   }
-
   let hasCache = false;
   if (this.mapMode === "NORMAL" && this.cachedNormalItems) hasCache = true;
-  if (this.mapMode === "ABNORMAL" && this.cachedAbnormalItems)
-    hasCache = true;
+  if (this.mapMode === "ABNORMAL" && this.cachedAbnormalItems) hasCache = true;
 
   if (!isBackground) {
     this.mapLoading = !hasCache;
@@ -1032,12 +1039,13 @@ async refreshMapPoints(isBackground = false) {
 
     if (!this.isAdmin && !isBackground) {
       this.$nextTick(() => {
-        this.fitMapToMyDevices();
+        setTimeout(() => {
+          this.fitMapToMyDevices();
+        }, 100);
       });
     }
 
   } catch (e) {
-    console.error("refreshMapPoints failed:", e);
   } finally {
     if (!isBackground) {
       this.mapLoading = false;
@@ -1046,97 +1054,100 @@ async refreshMapPoints(isBackground = false) {
   }
 },
 
-    async drawNormalPoints() {
-      if (!this.map) return;
-      this.clearMarkers();
-      this.clearRegionBubbles();
+async drawNormalPoints() {
+  if (!this.map) return;
+  
+  this.clearMarkers();
+  this.clearRegionBubbles();
+  if (this.clusterer) this.clusterer.clear();
 
-      let items = [];
+  let items = [];
 
-      if (this.cachedNormalItems) {
-        items = this.cachedNormalItems;
-      } else if (window.__CACHE_NORMAL) {
-        items = window.__CACHE_NORMAL;
-        this.cachedNormalItems = items;
-      } else {
-        const preload = window.__NORMAL_POINTS__;
-        items =
-          Array.isArray(preload) && preload.length
-            ? preload
-            : (
-                await api.get("/dashboard/normal/points", {
-                  params: { lookbackDays: 3 },
-                })
-              ).data?.items || [];
+  if (this.cachedNormalItems) {
+    items = this.cachedNormalItems;
+  } else if (window.__CACHE_NORMAL) {
+    items = window.__CACHE_NORMAL;
+    this.cachedNormalItems = items;
+  } else {
+    const preload = window.__NORMAL_POINTS__;
+    items = Array.isArray(preload) && preload.length
+        ? preload
+        : (await api.get("/dashboard/normal/points", { params: { lookbackDays: 3 } })).data?.items || [];
 
-        this.cachedNormalItems = items;
-        window.__CACHE_NORMAL = items;
-        this.saveMapCache(items);
-      }
+    this.cachedNormalItems = items;
+    window.__CACHE_NORMAL = items;
+    this.saveMapCache(items);
+  }
 
-      const kakao = window.kakao;
-      const markers = [];
-      const svgContent = encodeURIComponent(
-        `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-            <defs><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.5)"/></filter></defs>
-            <circle cx="12" cy="12" r="7" fill="#02A39F" stroke="#ffffff" stroke-width="2.5" style="filter:url(#shadow);"/>
-            </svg>`.trim()
-      );
-      const markerImage = new kakao.maps.MarkerImage(
-        `data:image/svg+xml;utf8,${svgContent}`,
-        new kakao.maps.Size(24, 24),
-        { offset: new kakao.maps.Point(12, 12) }
-      );
+  const kakao = window.kakao;
+  const markers = [];
+  
+  const svgContent = encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+    <defs><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.5)"/></filter></defs>
+    <circle cx="12" cy="12" r="7" fill="#02A39F" stroke="#ffffff" stroke-width="2.5" style="filter:url(#shadow);"/>
+    </svg>`.trim()
+  );
+  const markerImage = new kakao.maps.MarkerImage(
+    `data:image/svg+xml;utf8,${svgContent}`,
+    new kakao.maps.Size(24, 24),
+    { offset: new kakao.maps.Point(12, 12) }
+  );
 
-      if (this.clusterer) this.clusterer.clear();
-      this.clusterer = new kakao.maps.MarkerClusterer({
-        map: this.map,
-        averageCenter: true,
-        minLevel: 9,
-        disableClickZoom: false,
-        styles: [
-          {
-            width: "40px",
-            height: "40px",
-            background: "#02A39F",
-            borderRadius: "50%",
-            color: "#fff",
-            textAlign: "center",
-            lineHeight: "40px",
-            fontWeight: "bold",
-            fontSize: "14px",
-            border: "3px solid #ffffff",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-          },
-        ],
-      });
+  if (!this.clusterer) {
+    this.clusterer = new kakao.maps.MarkerClusterer({
+      map: this.map,
+      averageCenter: true,
+      minLevel: 9,
+      disableClickZoom: false,
+      styles: [{
+        width: "40px", height: "40px", background: "#02A39F", borderRadius: "50%",
+        color: "#fff", textAlign: "center", lineHeight: "40px", fontWeight: "bold",
+        fontSize: "14px", border: "3px solid #ffffff", boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+      }],
+    });
+  }
 
-      for (const pt of items) {
-        const coord = await this.ensureCoordForPoint(pt);
-        if (!coord) continue;
-        const latlng = new kakao.maps.LatLng(coord.lat, coord.lng);
-        const marker = new kakao.maps.Marker({
-          position: latlng,
-          image: markerImage,
-        });
-        kakao.maps.event.addListener(marker, "click", () => {
-          this.selectedPoint = {
-            imei: pt.imei,
-            reason: pt.reason || "NORMAL",
-            address: pt.address,
-            sido: pt.sido,
-            sigungu: pt.sigungu,
-            last_time: pt.last_time,
-          };
-          this.focusImei(pt);
-        });
-        markers.push(marker);
-      }
+  const posCounter = {};
 
-      this.clusterer.addMarkers(markers);
-      this.markers = markers;
-    },
+  for (const pt of items) {
+    const reason = pt.reason ? String(pt.reason).toUpperCase() : "NORMAL";
+    if (reason !== "NORMAL" && reason !== "정상") {
+      continue; 
+    }
+
+    const coord = await this.ensureCoordForPoint(pt);
+    if (!coord) continue;
+
+    const posKey = `${coord.lat.toFixed(6)},${coord.lng.toFixed(6)}`;
+    const count = posCounter[posKey] || 0;
+    posCounter[posKey] = count + 1;
+
+    const offsetCoord = this.applyOffset(coord.lat, coord.lng, count);
+    const latlng = new kakao.maps.LatLng(offsetCoord.lat, offsetCoord.lng);
+
+    const marker = new kakao.maps.Marker({
+      position: latlng,
+      image: markerImage,
+    });
+
+    kakao.maps.event.addListener(marker, "click", () => {
+      this.selectedPoint = {
+        imei: pt.imei,
+        reason: pt.reason || "NORMAL",
+        address: pt.address,
+        sido: pt.sido,
+        sigungu: pt.sigungu,
+        last_time: pt.last_time,
+      };
+      this.focusImei(pt);
+    });
+    markers.push(marker);
+  }
+
+  this.clusterer.addMarkers(markers);
+  this.markers = markers;
+},
 
     nFmt(n) {
       if (n == null || Number.isNaN(Number(n))) return "—";
@@ -1210,7 +1221,6 @@ toKst(iso) {
           this.totals.normal_plants = (this.totals.normal_plants || 0) + opCnt;
         }
       } catch (err) {
-        console.error("Dashboard Load Failed:", err);
       } finally {
         this.loadingDash = false;
       }
@@ -1531,41 +1541,54 @@ toKst(iso) {
       if (!c || !c.lat || !c.lng) return null;
       return c;
     },
-    async drawAbnormalPoints({ reason = "ALL", sido = "", sigungu = "" } = {}) {
-      if (!this.map || this.mapMode !== "ABNORMAL") return;
-      this.clearMarkers();
-      this.clearRegionBubbles();
-      const params = { offlineMin: this.abn.offlineMin || 90, lookbackDays: 3 };
-      if (reason !== "ALL") params.reason = reason;
-      if (sido) params.sido = sido;
-      if (sigungu) params.sigungu = sigungu;
-      try {
-        let items = [];
-        const isDefaultFilter = reason === "ALL" && !sido && !sigungu;
-        if (isDefaultFilter && this.cachedAbnormalItems) {
-          items = this.cachedAbnormalItems;
-        } else if (isDefaultFilter && window.__CACHE_ABNORMAL) {
-          items = window.__CACHE_ABNORMAL;
-          this.cachedAbnormalItems = items;
-        } else {
-          const { data } = await api.get("/dashboard/abnormal/points", {
-            params,
-          });
-          items = data?.items || [];
-          if (isDefaultFilter) {
-            this.cachedAbnormalItems = items;
-            window.__CACHE_ABNORMAL = items;
-          }
-        }
-        const kakao = window.kakao;
-        for (const pt of items) {
-          const coord = await this.ensureCoordForPoint(pt);
-          if (!coord) continue;
-          const latlng = new kakao.maps.LatLng(coord.lat, coord.lng);
-          this.addMarker(latlng, pt);
-        }
-      } catch (err) {}
-    },
+
+async drawAbnormalPoints({ reason = "ALL", sido = "", sigungu = "" } = {}) {
+  if (!this.map || this.mapMode !== "ABNORMAL") return;
+  this.clearMarkers();
+  this.clearRegionBubbles();
+  const params = { offlineMin: this.abn.offlineMin || 90, lookbackDays: 3 };
+  if (reason !== "ALL") params.reason = reason;
+  if (sido) params.sido = sido;
+  if (sigungu) params.sigungu = sigungu;
+  try {
+    let items = [];
+    const isDefaultFilter = reason === "ALL" && !sido && !sigungu;
+    if (isDefaultFilter && this.cachedAbnormalItems) {
+      items = this.cachedAbnormalItems;
+    } else if (isDefaultFilter && window.__CACHE_ABNORMAL) {
+      items = window.__CACHE_ABNORMAL;
+      this.cachedAbnormalItems = items;
+    } else {
+      const { data } = await api.get("/dashboard/abnormal/points", {
+        params,
+      });
+      items = data?.items || [];
+      if (isDefaultFilter) {
+        this.cachedAbnormalItems = items;
+        window.__CACHE_ABNORMAL = items;
+      }
+    }
+
+    const kakao = window.kakao;
+    const posCounter = {};
+
+    for (const pt of items) {
+      const coord = await this.ensureCoordForPoint(pt);
+      if (!coord) continue;
+
+      const posKey = `${coord.lat.toFixed(6)},${coord.lng.toFixed(6)}`;
+      const count = posCounter[posKey] || 0;
+      posCounter[posKey] = count + 1;
+
+      const offsetCoord = this.applyOffset(coord.lat, coord.lng, count);
+      const latlng = new kakao.maps.LatLng(offsetCoord.lat, offsetCoord.lng);
+
+      this.addMarker(latlng, pt);
+    }
+  } catch (err) {
+  }
+},
+
     async drawRegionClusters() {
       const kakao = window.kakao;
       this.clearRegionBubbles();

@@ -183,7 +183,6 @@ export default {
           localStorage.setItem("phoneNumber", loginUser.phoneNumber || "");
           localStorage.setItem("email", loginUser.username || "");
         } catch (e) {
-          console.error("Storage error:", e);
         }
 
         let defaultImei = "";
@@ -194,7 +193,6 @@ export default {
             localStorage.setItem("defaultImei", defaultImei);
           }
         } catch (e) {
-          console.warn("IMEI 조회 실패 (무시하고 진행):", e);
         }
 
         const raw = this.$route.query.redirect;

@@ -2175,7 +2175,6 @@ async onSearch() {
     }
     
   } catch (e) {
-    console.error(e);
     alert("검색 중 오류가 발생했습니다.");
   } finally {
     if (this.searching) {
@@ -2217,7 +2216,6 @@ async probeResolveByName(name) {
     return null;
 
   } catch (e) {
-    console.error("Search failed", e);
     return null;
   }
 },
@@ -2787,7 +2785,6 @@ openMaintModal(mode = 'ADD', record = null) {
 
       } catch (e) {
         alert('삭제 중 오류가 발생했습니다.');
-        console.error(e);
       }
     },
 

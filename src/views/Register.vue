@@ -53,27 +53,27 @@
               </ul>
             </div>
 
-            <div class="field">
-              <label for="worker">담당자(이름)</label>
-              <div
-                class="pill"
-                :class="{ error: workerTouched && !workerValid }"
-              >
-                <input
-                  style="font-size: 14px"
-                  id="worker"
-                  v-model.trim="worker"
-                  type="text"
-                  autocomplete="name"
-                  placeholder="홍길동"
-                  required
-                  @blur="workerTouched = true"
-                />
-              </div>
-              <p v-if="workerTouched && !workerValid" class="pw-error-text">
-                담당자 성함을 한글로 입력해 주세요. (2자 이상)
-              </p>
-            </div>
+<div class="field">
+  <label for="worker">담당자(이름)</label>
+  <div
+    class="pill"
+    :class="{ error: workerTouched && !workerValid }"
+  >
+    <input
+      style="font-size: 14px"
+      id="worker"
+      v-model.trim="worker"
+      type="text"
+      autocomplete="name"
+      placeholder="성함 또는 법인명 입력"
+      required
+      @blur="workerTouched = true"
+    />
+  </div>
+  <p v-if="workerTouched && !workerValid" class="pw-error-text">
+    담당자 성함 또는 법인명을 정확히 입력해 주세요. (2자 이상)
+  </p>
+</div>
 
             <div class="field">
               <label for="phoneNumber">전화번호</label>
@@ -240,9 +240,15 @@ export default {
       else if (!this.usernameValid) e.push("올바른 이메일 형식이 아닙니다.");
       return e;
     },
-    workerValid() {
-      const korRegex = /^[가-힣]+$/;
-      return !!this.worker && this.worker.length >= 2 && korRegex.test(this.worker);
+workerValid() {
+      const nameRegex = /^[가-힣a-zA-Z0-9\s().]+$/;
+      const trimmedWorker = this.worker.trim();
+      
+      return (
+        !!trimmedWorker && 
+        trimmedWorker.length >= 2 && 
+        nameRegex.test(trimmedWorker)
+      );
     },
     phoneValid() {
       const n = this.phoneNumber.replace(/[^0-9]/g, "");
