@@ -752,6 +752,54 @@ async mounted() {
   },
 
   methods: {
+
+  async focusImei(row) {
+  if (!this.map || !row.imei) return;
+
+  this.abnModal.open = false;
+
+  if (row.reason === 'FAULT_BIT' || row.reason === 'OFFLINE') {
+    if (this.mapMode !== 'ABNORMAL') {
+      this.mapMode = 'ABNORMAL';
+      await this.refreshMapPoints();
+    }
+  }
+
+  const coord = await this.ensureCoordForPoint(row);
+  if (!coord) {
+    alert("해당 장비의 위치 정보를 찾을 수 없습니다.");
+    return;
+  }
+
+  const kakao = window.kakao;
+  const latlng = new kakao.maps.LatLng(coord.lat, coord.lng);
+
+  this.map.setLevel(FOCUS_LEVEL);
+  this.map.panTo(latlng);
+
+  this.showFocus(latlng, 1500);
+
+  this.selectedPoint = {
+    imei: row.imei,
+    reason: row.reason,
+    address: row.address,
+    sido: row.sido,
+    sigungu: row.sigungu,
+    last_time: row.last_time,
+    energy: this.energyName(row.energy),
+    type: row.type ?? null,
+    multi: row.multi ?? null,
+    worker: row.worker ?? null,
+  };
+
+  this.$nextTick(() => {
+    const markerEl = document.querySelector(`.rems-marker[data-imei="${row.imei}"]`);
+    if (markerEl) {
+      document.querySelectorAll('.rems-marker.is-active').forEach(el => el.classList.remove('is-active'));
+      markerEl.classList.add('is-active');
+    }
+  });
+},
   applyOffset(lat, lng, count) {
   if (count === 0) return { lat, lng };
   
