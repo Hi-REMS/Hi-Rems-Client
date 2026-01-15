@@ -190,7 +190,7 @@
         </div>
       </article>
 
-      <article class="rems-card rems-col-8 rems-row-2 rems-map-card">
+     <article :class="['rems-card rems-map-card', isAdmin ? 'rems-col-8 rems-row-2' : 'rems-col-12 user-large-map']" >
         <div class="rems-card-hd rems-map-breadcrumbs">
           <div class="rems-map-hd-flex">
             <h3>{{ isAdmin ? '대한민국 지도' : '설비 위치 지도' }}</h3>
@@ -433,25 +433,6 @@
           </table>
         </div>
       </article>
-<article class="rems-card rems-col-4 rems-row-2" v-else>
-  <div class="rems-card-hd"><h3>나의 설비 목록</h3></div>
-  <div class="rems-table-wrap thin-scroll">
-    <table class="rems-table">
-      <thead>
-        <tr><th>IMEI</th><th>상태</th></tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in abn.items" :key="item.imei" @click="focusImei(item)" class="rems-row-click">
-          <td class="mono">{{ item.imei }}</td>
-          <td><span :class="['rems-tag', reasonClass(item.reason)]">{{ item.reason }}</span></td>
-        </tr>
-        <tr v-if="abn.items.length === 0">
-          <td colspan="2" style="text-align:center; padding:40px; color:#999;">모든 설비가 정상입니다.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</article>
 
       <article class="rems-card rems-col-12" v-if="isAdmin">
         <div class="rems-card-hd">
@@ -644,6 +625,9 @@ export default {
   components: { CountUp },
   data() {
     return {
+    focusCircle: null,
+    focusInterval: null,
+    lastSelectedMarker: null,
       isAdmin: false,
       reasonFilter: "ALL",
       cachedNormalItems: window.__CACHE_NORMAL || null,
@@ -726,7 +710,6 @@ async mounted() {
       window.addEventListener("resize", this.onWindowResize);
       document.addEventListener("click", this.handleOutsideClick);
     } catch (e) {
-      console.error("Map load failed", e);
     }
   },
 
@@ -1001,9 +984,6 @@ async refreshMapPoints(isBackground = false) {
   if (this._refreshing) return;
   this._refreshing = true;
 
-  if (!isBackground) {
-    this.selectedPoint = null;
-  }
   let hasCache = false;
   if (this.mapMode === "NORMAL" && this.cachedNormalItems) hasCache = true;
   if (this.mapMode === "ABNORMAL" && this.cachedAbnormalItems) hasCache = true;
@@ -1035,28 +1015,26 @@ async refreshMapPoints(isBackground = false) {
       await this.drawNormalPoints();
     }
 
-    if (this.mapMode !== currentMode) return;
-
-    if (!this.isAdmin && !isBackground) {
-      this.$nextTick(() => {
-        setTimeout(() => {
-          this.fitMapToMyDevices();
-        }, 100);
-      });
+    if (this.selectedPoint) {
+      const coord = await this.ensureCoordForPoint(this.selectedPoint);
+      if (coord) {
+        const latlng = new window.kakao.maps.LatLng(coord.lat, coord.lng);
+        this.showFocus(latlng, 2000); 
+      }
     }
 
   } catch (e) {
   } finally {
-    if (!isBackground) {
-      this.mapLoading = false;
-    }
+    if (!isBackground) this.mapLoading = false;
     this._refreshing = false;
   }
 },
 
+
+
 async drawNormalPoints() {
   if (!this.map) return;
-  
+
   this.clearMarkers();
   this.clearRegionBubbles();
   if (this.clusterer) this.clusterer.clear();
@@ -1071,8 +1049,8 @@ async drawNormalPoints() {
   } else {
     const preload = window.__NORMAL_POINTS__;
     items = Array.isArray(preload) && preload.length
-        ? preload
-        : (await api.get("/dashboard/normal/points", { params: { lookbackDays: 3 } })).data?.items || [];
+      ? preload
+      : (await api.get("/dashboard/normal/points", { params: { lookbackDays: 3 } })).data?.items || [];
 
     this.cachedNormalItems = items;
     window.__CACHE_NORMAL = items;
@@ -1081,17 +1059,31 @@ async drawNormalPoints() {
 
   const kakao = window.kakao;
   const markers = [];
-  
-  const svgContent = encodeURIComponent(
+
+  const normalSvg = encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
     <defs><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="rgba(0,0,0,0.5)"/></filter></defs>
     <circle cx="12" cy="12" r="7" fill="#02A39F" stroke="#ffffff" stroke-width="2.5" style="filter:url(#shadow);"/>
     </svg>`.trim()
   );
-  const markerImage = new kakao.maps.MarkerImage(
-    `data:image/svg+xml;utf8,${svgContent}`,
+  
+  const selectedSvg = encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+    <defs><filter id="shadow2" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.6)"/></filter></defs>
+    <circle cx="15" cy="15" r="10" fill="#FF3B3B" stroke="#ffffff" stroke-width="3" style="filter:url(#shadow2);"/>
+    </svg>`.trim()
+  );
+
+  const normalImage = new kakao.maps.MarkerImage(
+    `data:image/svg+xml;utf8,${normalSvg}`,
     new kakao.maps.Size(24, 24),
     { offset: new kakao.maps.Point(12, 12) }
+  );
+
+  const selectedImage = new kakao.maps.MarkerImage(
+    `data:image/svg+xml;utf8,${selectedSvg}`,
+    new kakao.maps.Size(30, 30),
+    { offset: new kakao.maps.Point(15, 15) }
   );
 
   if (!this.clusterer) {
@@ -1112,9 +1104,7 @@ async drawNormalPoints() {
 
   for (const pt of items) {
     const reason = pt.reason ? String(pt.reason).toUpperCase() : "NORMAL";
-    if (reason !== "NORMAL" && reason !== "정상") {
-      continue; 
-    }
+    if (reason !== "NORMAL" && reason !== "정상") continue;
 
     const coord = await this.ensureCoordForPoint(pt);
     if (!coord) continue;
@@ -1126,12 +1116,28 @@ async drawNormalPoints() {
     const offsetCoord = this.applyOffset(coord.lat, coord.lng, count);
     const latlng = new kakao.maps.LatLng(offsetCoord.lat, offsetCoord.lng);
 
+    const isSelected = this.selectedPoint && this.selectedPoint.imei === pt.imei;
+
     const marker = new kakao.maps.Marker({
       position: latlng,
-      image: markerImage,
+      image: isSelected ? selectedImage : normalImage,
+      zIndex: isSelected ? 999 : 1
     });
 
+    if (isSelected) {
+      this.lastSelectedMarker = marker;
+    }
+
     kakao.maps.event.addListener(marker, "click", () => {
+      if (this.lastSelectedMarker) {
+        this.lastSelectedMarker.setImage(normalImage);
+        this.lastSelectedMarker.setZIndex(1);
+      }
+
+      marker.setImage(selectedImage);
+      marker.setZIndex(999);
+
+      this.lastSelectedMarker = marker;
       this.selectedPoint = {
         imei: pt.imei,
         reason: pt.reason || "NORMAL",
@@ -1139,9 +1145,15 @@ async drawNormalPoints() {
         sido: pt.sido,
         sigungu: pt.sigungu,
         last_time: pt.last_time,
+        energy: pt.energy ?? null,
+        type: pt.type ?? null,
+        multi: pt.multi ?? null,
+        worker: pt.worker ?? null,
       };
+
       this.focusImei(pt);
     });
+
     markers.push(marker);
   }
 
@@ -1449,57 +1461,87 @@ toKst(iso) {
       if (R === "OFFLINE") return "#6b7280";
       return "#22c55e";
     },
-    makeMarkerEl(pt) {
-      const el = document.createElement("div");
-      el.className = "rems-marker rems-marker-fadein";
-      const color = this.reasonColor(pt?.reason);
-      el.style.borderColor = color;
-      el.innerHTML = `<div class="rems-marker-dot" style="background:${color}; width:14px; height:14px; border-radius:50%; box-shadow:0 0 6px ${color}80;"></div>`;
-      el.onclick = () => {
-        this.selectedPoint = {
-          imei: pt.imei,
-          reason: pt.reason,
-          address: pt.address,
-          sido: pt.sido,
-          sigungu: pt.sigungu,
-          last_time: pt.last_time,
-          energy: this.energyName(pt.energy),
-          type: pt.type ?? null,
-          multi: pt.multi ?? null,
-          worker: pt.worker ?? null,
-        };
-        this.focusImei(pt);
-      };
-      return el;
-    },
-    addMarker(latlng, pt) {
-      const kakao = window.kakao;
-      const el = this.makeMarkerEl(pt);
-      const tip = document.createElement("div");
-      tip.className = "rems-marker-tooltip";
-      const addr = pt.address || "(주소 미등록)";
-      const region = `${pt.sido || ""} ${pt.sigungu || ""}`.trim();
-      const last = pt.last_time ? this.fromNow(pt.last_time) : "—";
-      tip.innerHTML = `<strong>${addr}</strong><br/><small>${region}</small><br/><small>📡 ${last}</small>`;
-      const tipOverlay = new kakao.maps.CustomOverlay({
-        position: latlng,
-        content: tip,
-        yAnchor: 1.8,
-        zIndex: 999,
-      });
-      el.addEventListener("mouseenter", () => tipOverlay.setMap(this.map));
-      el.addEventListener("mouseleave", () => tipOverlay.setMap(null));
-      const z = pt.reason === "OFFLINE" ? 300 : 200;
-      const overlay = new kakao.maps.CustomOverlay({
-        position: latlng,
-        content: el,
-        xAnchor: 0.5,
-        yAnchor: 1,
-        zIndex: z,
-      });
-      overlay.setMap(this.map);
-      this.markers.push({ overlay, tip: tipOverlay });
-    },
+
+makeMarkerEl(pt) {
+  const el = document.createElement("div");
+  el.className = "rems-marker rems-marker-fadein";
+  el.dataset.imei = pt.imei;
+
+if (this.selectedPoint && String(this.selectedPoint.imei) === String(pt.imei)) {
+    el.classList.add('is-active');
+  }
+
+  const color = this.reasonColor(pt?.reason);
+  el.style.borderColor = color;
+  el.innerHTML = `<div class="rems-marker-dot" style="background:${color}; width:14px; height:14px; border-radius:50%; box-shadow:0 0 6px ${color}80;"></div>`;
+
+  el.onclick = (e) => {
+    document.querySelectorAll('.rems-marker.is-active').forEach(activeEl => {
+      activeEl.classList.remove('is-active');
+    });
+
+    el.classList.add('is-active');
+
+    this.selectedPoint = {
+      imei: pt.imei,
+      reason: pt.reason,
+      address: pt.address,
+      sido: pt.sido,
+      sigungu: pt.sigungu,
+      last_time: pt.last_time,
+      energy: this.energyName(pt.energy),
+      type: pt.type ?? null,
+      multi: pt.multi ?? null,
+      worker: pt.worker ?? null,
+    };
+
+    this.focusImei(pt);
+    if (e && e.stopPropagation) e.stopPropagation();
+  };
+
+  return el;
+},
+
+addMarker(latlng, pt) {
+  const kakao = window.kakao;
+  const el = this.makeMarkerEl(pt);
+  
+  const isSelected = this.selectedPoint && this.selectedPoint.imei === pt.imei;
+  
+  if (isSelected) {
+    el.classList.add('is-active');
+  }
+
+  const tip = document.createElement("div");
+  tip.className = "rems-marker-tooltip";
+  const addr = pt.address || "(주소 미등록)";
+  const region = `${pt.sido || ""} ${pt.sigungu || ""}`.trim();
+  const last = pt.last_time ? this.fromNow(pt.last_time) : "—";
+  tip.innerHTML = `<strong>${addr}</strong><br/><small>${region}</small><br/><small>📡 ${last}</small>`;
+  
+  const tipOverlay = new kakao.maps.CustomOverlay({
+    position: latlng,
+    content: tip,
+    yAnchor: 1.8,
+    zIndex: 999,
+  });
+
+  el.addEventListener("mouseenter", () => tipOverlay.setMap(this.map));
+  el.addEventListener("mouseleave", () => tipOverlay.setMap(null));
+
+  const z = isSelected ? 1000 : (pt.reason === "OFFLINE" ? 300 : 200);
+  
+  const overlay = new kakao.maps.CustomOverlay({
+    position: latlng,
+    content: el,
+    xAnchor: 0.5,
+    yAnchor: 1,
+    zIndex: z,
+  });
+
+  overlay.setMap(this.map);
+  this.markers.push({ overlay, tip: tipOverlay, imei: pt.imei });
+},
     async ensureCoordForPoint(pt) {
       if (pt.lat && pt.lon && pt.lat !== 0 && pt.lon !== 0) {
         const c = { lat: pt.lat, lng: pt.lon };
@@ -1622,56 +1664,58 @@ async drawAbnormalPoints({ reason = "ALL", sido = "", sigungu = "" } = {}) {
         }
       } catch (err) {}
     },
-    showFocus(latlng, radius = 8000, label = "") {
-      this.clearFocus();
-      return;
-    },
-async focusImei(ptOrRow) {
-      const kakao = window.kakao;
-      if (this.abnModal.open && this.mapMode !== "ABNORMAL") {
-        this.mapMode = "ABNORMAL";
-        await this.refreshMapPoints();
-      }
-      const pt = {
-        imei: ptOrRow.imei,
-        reason: ptOrRow.reason || "NORMAL",
-        address: ptOrRow.address,
-        sido: ptOrRow.sido,
-        sigungu: ptOrRow.sigungu,
-        last_time: ptOrRow.last_time,
-        energy: ptOrRow.energy ?? null,
-        type: ptOrRow.type ?? null,
-        multi: ptOrRow.multi ?? null,
-        worker: ptOrRow.worker ?? null,
-      };
+showFocus(latlng, radius = 2000, label = "") {
+  this.clearFocus();
+  
+  const kakao = window.kakao;
+  if (!this.map || !latlng) return;
 
-      const coord = await this.ensureCoordForPoint(ptOrRow);
+  this.focusCircle = new kakao.maps.Circle({
+    center: latlng,
+    radius: 0,
+    strokeWeight: 2,
+    strokeColor: '#FF3B3B',
+    strokeOpacity: 0.7,
+    fillColor: '#FF3B3B',
+    fillOpacity: 0.15
+  });
 
-      if (!coord) {
-        const msg = ptOrRow.display_message 
-          || "장비는 등록되었으나 주소 등록이 안되었습니다.\n상세 모니터링에서 검색 후 조회해주세요.";
-        
-        alert(msg); 
-        return;
-      }
+  this.focusCircle.setMap(this.map);
 
-      const latlng = new kakao.maps.LatLng(coord.lat, coord.lng);
-      if (this.abnModal.open) {
-        this.map.setLevel(7, { animate: true });
-      }
-      this.map.panTo(latlng);
-      this.showFocus(latlng, 3000, pt.imei);
-      this.selectedPoint = pt;
-      if (this.abnModal.open) {
-        this.closeAbnModal();
-      }
-      this.$nextTick(() => {
-        const mapEl = this.$refs.kmap;
-        if (mapEl) {
-          mapEl.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+  let currentRadius = 0;
+  const step = radius / 30;
+
+  this.focusInterval = setInterval(() => {
+    currentRadius += step;
+    
+    if (currentRadius >= radius) {
+      clearInterval(this.focusInterval);
+      this.focusInterval = null;
+      
+    } else {
+      this.focusCircle.setRadius(currentRadius);
+      
+      const opacity = 0.7 * (1 - currentRadius / radius);
+      this.focusCircle.setOptions({
+        strokeOpacity: opacity,
+        fillOpacity: opacity * 0.2
       });
-    },
+    }
+  }, 20);
+},
+clearFocus() {
+  if (this.focusInterval) {
+    clearInterval(this.focusInterval);
+    this.focusInterval = null;
+  }
+  if (this.focusCircle) {
+    this.focusCircle.setMap(null);
+    this.focusCircle = null;
+  }
+},
+
+
+
     async renderMap() {
       if (!this.map) return;
       if (this.selectedSigungu) {
@@ -1760,13 +1804,37 @@ async focusImei(ptOrRow) {
         this.focusSigungu(name);
       }
     },
-    resetAll() {
-      this.selectedSido = "";
-      this.selectedSigungu = "";
-      this.selectedPoint = null;
-      this.cachedAbnormalItems = null;
-      this.onSelectSido();
-    },
+resetAll() {
+  this.selectedSido = "";
+  this.selectedSigungu = "";
+  this.selectedPoint = null;
+  this.cachedAbnormalItems = null;
+
+  const activeMarkers = document.querySelectorAll('.rems-marker.is-active');
+  activeMarkers.forEach(el => {
+    el.classList.remove('is-active');
+  });
+
+  if (this.lastSelectedMarker) {
+    const kakao = window.kakao;
+    const normalSvg = encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="7" fill="#02A39F" stroke="#ffffff" stroke-width="2.5"/></svg>`.trim()
+    );
+    const normalImage = new kakao.maps.MarkerImage(
+      `data:image/svg+xml;utf8,${normalSvg}`,
+      new kakao.maps.Size(24, 24),
+      { offset: new kakao.maps.Point(12, 12) }
+    );
+    this.lastSelectedMarker.setImage(normalImage);
+    this.lastSelectedMarker.setZIndex(1);
+    this.lastSelectedMarker = null;
+  }
+
+  this.clearFocus();
+
+  this.onSelectSido();
+},
     resetToSido() {
       if (!this.selectedSido) return;
       this.selectedSigungu = "";

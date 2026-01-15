@@ -1,66 +1,51 @@
 <template>
   <main class="edb-page">
     <div class="edb-inner">
-      <section class="edb-stat-row edb-center edb-stat-row--triple">
-        <article class="edb-stat edb-card">
-          <div class="edb-stat-main">
-            <div class="edb-stat-title">주간발전량</div>
-            <div class="edb-stat-value">
-              <b>{{ fmt(kpiWeek.kwh, 2) }}</b
-              ><span>kWh</span>
-            </div>
-            <div class="edb-stat-sub edb-ok">
-              CO₂ {{ fmt(kpiWeek.co2, 2) }} kg · 식수
-              {{ fmt(kpiWeek.trees, 0) }} 그루
-            </div>
-            <div v-if="weekRangeText" class="edb-stat-sub edb-muted">
-              집계: {{ weekRangeText }}
-            </div>
-          </div>
-        </article>
+  <section class="edb-stat-row edb-center edb-stat-row--triple">
+  <article class="edb-stat edb-card">
+    <div class="edb-stat-main">
+      <div class="edb-stat-title">주간발전량</div>
+      <div class="edb-stat-value">
+        <b>{{ energyField === '03' ? fmt(kpiWeek.kwh / 1000, 0) : fmt(kpiWeek.kwh, 2) }}</b>
+        <span>{{ unitEnergyTotal }}</span>
+      </div>
+      <div class="edb-stat-sub edb-ok">
+        CO₂ {{ fmt(kpiWeek.co2, 2) }} kg · 식수 {{ fmt(kpiWeek.trees, 0) }} 그루
+      </div>
+    </div>
+  </article>
 
-        <article class="edb-stat edb-card">
-          <div class="edb-stat-main">
-            <div class="edb-stat-title">월간발전량</div>
-            <div class="edb-stat-value">
-              <b>{{ fmt(kpiMonth.kwh, 2) }}</b
-              ><span>kWh</span>
-            </div>
-            <div class="edb-stat-sub edb-ok">
-              CO₂ {{ fmt(kpiMonth.co2, 2) }} kg · 식수
-              {{ fmt(kpiMonth.trees, 0) }} 그루
-            </div>
-            <div v-if="monthRangeText" class="edb-stat-sub edb-muted">
-              집계: {{ monthRangeText }}
-            </div>
-          </div>
-        </article>
+  <article class="edb-stat edb-card">
+    <div class="edb-stat-main">
+      <div class="edb-stat-title">월간발전량</div>
+      <div class="edb-stat-value">
+        <b>{{ energyField === '03' ? fmt(kpiMonth.kwh / 1000, 0) : fmt(kpiMonth.kwh, 2) }}</b>
+        <span>{{ unitEnergyTotal }}</span>
+      </div>
+      <div class="edb-stat-sub edb-ok">
+        CO₂ {{ fmt(kpiMonth.co2, 2) }} kg · 식수 {{ fmt(kpiMonth.trees, 0) }} 그루
+      </div>
+    </div>
+  </article>
 
-        <article class="edb-stat edb-card">
-          <div class="edb-stat-main">
-            <div class="edb-stat-title">연간발전량</div>
-            <div class="edb-stat-value">
-              <b>{{ fmt(kpiYear.kwh, 2) }}</b
-              ><span>kWh</span>
-            </div>
-            <div class="edb-stat-sub edb-ok">
-              누적 CO₂ {{ fmt(kpiYear.co2, 2) }} kg · 식수
-              {{ fmt(kpiYear.trees, 0) }} 그루
-            </div>
-            <div v-if="yearRangeText" class="edb-stat-sub edb-muted">
-              집계: {{ yearRangeText }}
-            </div>
-          </div>
-        </article>
-      </section>
+  <article class="edb-stat edb-card">
+    <div class="edb-stat-main">
+      <div class="edb-stat-title">연간발전량</div>
+      <div class="edb-stat-value">
+        <b>{{ energyField === '03' ? fmt(kpiYear.kwh / 1000, 0) : fmt(kpiYear.kwh, 2) }}</b>
+        <span>{{ unitEnergyTotal }}</span>
+      </div>
+      <div class="edb-stat-sub edb-ok">
+        누적 CO₂ {{ fmt(kpiYear.co2, 2) }} kg · 식수 {{ fmt(kpiYear.trees, 0) }} 그루
+      </div>
+    </div>
+  </article>
+</section>
 
       <section class="edb-charts3">
         <article class="edb-card edb-chart edb-week">
           <div class="edb-card-hd">
             <h3><span class="edb-dot edb-dot--cyan"></span>주간발전량</h3>
-            <span v-if="bars.length" class="edb-chip edb-chip--strong">
-              합계 {{ fmt(totalKwh, 2) }} kWh
-            </span>
           </div>
 
           <div class="edb-chart__body" ref="weekWrap">
@@ -158,18 +143,18 @@
                 </rect>
               </g>
 
-              <g class="edb-bar-labels" v-if="showValueLabels">
-                <text
-                  v-for="(b, i) in barsGeom"
-                  :key="'lblw' + i"
-                  class="edb-bar-label"
-                  :x="b.cx"
-                  :y="Math.max(8, b.y - 6)"
-                  text-anchor="middle"
-                >
-                  {{ fmt(valuesWeek[i], valuesWeek[i] >= 10 ? 0 : 1) }}
-                </text>
-              </g>
+<g class="edb-bar-labels" v-if="showValueLabels">
+  <text
+    v-for="(b, i) in barsGeom"
+    :key="'lblw' + i"
+    class="edb-bar-label"
+    :x="b.cx"
+    :y="Math.max(8, b.y - 6)"
+    text-anchor="middle"
+  >
+    {{ energyField === '03' ? Math.round(valuesWeek[i] / 1000) : fmt(valuesWeek[i], valuesWeek[i] >= 10 ? 0 : 1) }}
+  </text>
+</g>
             </svg>
 
             <div v-else class="edb-empty">
@@ -200,285 +185,272 @@
           </p>
         </article>
 
-        <article class="edb-card edb-chart edb-week">
-          <div class="edb-card-hd">
-            <h3>
-              <span class="edb-dot edb-dot--amber"></span>주간 발전량(최근 4주)
-            </h3>
-            <div class="edb-card-actions">
-              <span class="edb-chip" style="position: relative; left: -5px"
-                >kWh</span
-              >
-              <button
-                class="edb-btn edb-btn--primary edb-btn--sm"
-                :disabled="downloading || !canDownload"
-                @click="openDownloadModal"
-                :title="
-                  canDownload ? '월별 CSV 다운로드' : '조회 후 활성화됩니다'
-                "
-              >
-                다운로드
-              </button>
-            </div>
-          </div>
+ <article class="edb-card edb-chart edb-week">
+  <div class="edb-card-hd">
+    <h3>
+      <span class="edb-dot edb-dot--amber"></span>주간 발전량(최근 4주)
+    </h3>
+    <div class="edb-card-actions">
+      <button
+        class="edb-btn edb-btn--primary edb-btn--sm"
+        :disabled="downloading || !canDownload"
+        @click="openDownloadModal"
+        :title="canDownload ? '월별 CSV 다운로드' : '조회 후 활성화됩니다'"
+      >
+        다운로드
+      </button>
+    </div>
+  </div>
 
-          <div class="edb-chart__body" ref="monthWrap">
-            <svg
-              v-if="monthSeries.length"
-              :viewBox="`0 0 ${vb.w} ${vb.h}`"
-              class="edb-svg-chart"
-              :style="axisStyle"
-              aria-hidden="true"
-            >
-              <g class="grid">
-                <line
-                  v-for="(t, i) in yTicksMonth"
-                  :key="'gmy' + i"
-                  :x1="pad.l"
-                  :x2="vb.w - pad.r"
-                  :y1="t.y"
-                  :y2="t.y"
-                />
-              </g>
+  <div class="edb-chart__body" ref="monthWrap">
+    <svg
+      v-if="monthSeries.length"
+      ref="svg"
+      :viewBox="`0 0 ${vb.w} ${vb.h}`"
+      class="edb-svg-chart"
+      aria-hidden="true"
+      :style="axisStyle"
+    >
+      <g class="grid">
+        <line
+          v-for="(t, i) in yTicksMonth"
+          :key="'gmy' + i"
+          :x1="pad.l"
+          :x2="vb.w - pad.r"
+          :y1="t.y"
+          :y2="t.y"
+        />
+      </g>
 
-              <g class="axis axis-left">
-                <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h - pad.b" />
-                <g
-                  v-if="!isMobile"
-                  v-for="(t, i) in yTicksMonth"
-                  :key="'my' + i"
-                >
-                  <text :x="pad.l - 8" :y="t.y + 4" text-anchor="end">
-                    {{ t.label }}
-                  </text>
-                </g>
-              </g>
+      <g class="axis axis-left">
+        <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h - pad.b" />
+        <g v-if="!isMobile" v-for="(t, i) in yTicksMonth" :key="'my' + i">
+          <text :x="pad.l - 8" :y="t.y + 4" text-anchor="end">
+            {{ t.label }}
+          </text>
+        </g>
+      </g>
 
-              <g class="axis axis-bottom">
-                <line
-                  :x1="pad.l"
-                  :x2="vb.w - pad.r"
-                  :y1="vb.h - pad.b"
-                  :y2="vb.h - pad.b"
-                />
-                <g v-for="(x, i) in xTicksMonth" :key="'mx' + i">
-                  <line
-                    :x1="x.x"
-                    :x2="x.x"
-                    :y1="vb.h - pad.b"
-                    :y2="vb.h - pad.b + 5"
-                  />
-                  <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">
-                    {{ x.label }}
-                  </text>
-                </g>
-              </g>
+      <g class="axis axis-bottom">
+        <line
+          :x1="pad.l"
+          :x2="vb.w - pad.r"
+          :y1="vb.h - pad.b"
+          :y2="vb.h - pad.b"
+        />
+        <g v-for="(x, i) in xTicksMonth" :key="'mx' + i">
+          <line
+            :x1="x.x"
+            :x2="x.x"
+            :y1="vb.h - pad.b"
+            :y2="vb.h - pad.b + 5"
+          />
+          <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">
+            {{ x.label }}
+          </text>
+        </g>
+      </g>
 
-              <g fill="url(#monthGrad)" filter="url(#dropShadow)">
-                <defs>
-                  <linearGradient id="monthGrad" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stop-color="#ffb22e" stop-opacity="1" />
-                    <stop
-                      offset="100%"
-                      stop-color="#ffb22e"
-                      stop-opacity=".35"
-                    />
-                  </linearGradient>
-                </defs>
+      <g fill="url(#monthGrad)" filter="url(#dropShadow)">
+        <defs>
+          <linearGradient id="monthGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#ffb22e" stop-opacity="1" />
+            <stop
+              offset="100%"
+              stop-color="#ffb22e"
+              stop-opacity=".35"
+            />
+          </linearGradient>
+        </defs>
 
-                <rect
-                  v-for="(b, i) in barsGeomMonth"
-                  :key="'mb' + i"
-                  class="bar"
-                  :x="b.x"
-                  :y="b.y"
-                  :width="b.w"
-                  :height="b.h"
-                  rx="10"
-                  @mouseenter="onBarEnter('month', i, $event)"
-                  @mousemove="onBarMove('month', i, $event)"
-                  @mouseleave="onBarLeave"
-                >
-                  <title>
-                    {{ monthSeries[i].label }}:
-                    {{ fmt(valuesMonth[i], valuesMonth[i] >= 10 ? 0 : 1) }}
-                  </title>
-                </rect>
-              </g>
+        <rect
+          v-for="(b, i) in barsGeomMonth"
+          :key="'mb' + i"
+          class="bar"
+          :x="b.x"
+          :y="b.y"
+          :width="b.w"
+          :height="b.h"
+          rx="10"
+          @mouseenter="onBarEnter('month', i, $event)"
+          @mousemove="onBarMove('month', i, $event)"
+          @mouseleave="onBarLeave"
+        >
+          <title>
+            {{ monthSeries[i].label }}:
+            {{ energyField === '03' ? Math.round(valuesMonth[i] / 1000) : fmt(valuesMonth[i], 1) }} {{ unitEnergyTotal }}
+          </title>
+        </rect>
+      </g>
 
-              <g class="edb-bar-labels" v-if="showValueLabels">
-                <text
-                  v-for="(b, i) in barsGeomMonth"
-                  :key="'lblm' + i"
-                  class="edb-bar-label"
-                  :x="b.cx"
-                  :y="Math.max(8, b.y - 6)"
-                  text-anchor="middle"
-                >
-                  {{ fmt(valuesMonth[i], valuesMonth[i] >= 10 ? 0 : 1) }}
-                </text>
-              </g>
-            </svg>
+      <g class="edb-bar-labels" v-if="showValueLabels">
+        <text
+          v-for="(b, i) in barsGeomMonth"
+          :key="'lblm' + i"
+          class="edb-bar-label"
+          :x="b.cx"
+          :y="Math.max(8, b.y - 6)"
+          text-anchor="middle"
+        >
+          {{ energyField === '03' ? Math.round(valuesMonth[i] / 1000) : fmt(valuesMonth[i], valuesMonth[i] >= 10 ? 0 : 1) }}
+        </text>
+      </g>
+    </svg>
 
-            <div v-else class="edb-empty">
-              <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
-              <div v-else-if="loadingMonth" class="edb-loading">
-                <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
-              </div>
-              <div v-else class="edb-empty-msg">
-                데이터가 없습니다. IMEI 입력 후 <b>조회</b>를 눌러주세요.
-              </div>
-            </div>
+    <div v-else class="edb-empty">
+      <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
+      <div v-else-if="loadingMonth" class="edb-loading">
+        <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
+      </div>
+      <div v-else class="edb-empty-msg">
+        데이터가 없습니다.
+      </div>
+    </div>
 
-            <div
-              v-if="tip.show && tip.chart === 'month'"
-              class="edb-tip"
-              :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
-              role="tooltip"
-            >
-              <div class="edb-tip-title">{{ tip.label }}</div>
-              <div class="edb-tip-value">
-                {{ fmt(tip.value, tip.value >= 10 ? 0 : 1) }}
-              </div>
-            </div>
-          </div>
+    <div
+      v-if="tip.show && tip.chart === 'month'"
+      class="edb-tip"
+      :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
+      role="tooltip"
+    >
+      <div class="edb-tip-title">{{ tip.label }}</div>
+      <div class="edb-tip-value">
+        {{ energyField === '03' ? Math.round(tip.value / 1000) : fmt(tip.value, 1) }} {{ unitEnergyTotal }}
+      </div>
+    </div>
+  </div>
 
-          <p class="edb-range" v-if="monthRangeText">
-            집계기간: {{ monthRangeText }}
-          </p>
-        </article>
+  <p class="edb-range" v-if="monthRangeText">
+    집계기간: {{ monthRangeText }}
+  </p>
+</article>
 
-        <article class="edb-card edb-chart edb-week">
-          <div class="edb-card-hd">
-            <h3><span class="edb-dot edb-dot--cyan"></span>연간발전량</h3>
-            <span class="edb-chip">kWh</span>
-          </div>
+<article class="edb-card edb-chart edb-week">
+  <div class="edb-card-hd">
+    <h3><span class="edb-dot edb-dot--cyan"></span>연간발전량</h3>
+  </div>
 
-          <div class="edb-chart__body" ref="yearWrap">
-            <svg
-              v-if="yearSeries.length"
-              :viewBox="yearViewBox"
-              class="edb-svg-chart"
-              :style="axisStyle"
-              aria-hidden="true"
-            >
-              <g class="grid">
-                <line
-                  v-for="(t, i) in yTicksYear"
-                  :key="'gy' + i"
-                  :x1="pad.l"
-                  :x2="vb.w - pad.r"
-                  :y1="t.y"
-                  :y2="t.y"
-                />
-              </g>
+  <div class="edb-chart__body" ref="yearWrap">
+    <svg
+      v-if="yearSeries.length"
+      :viewBox="yearViewBox"
+      class="edb-svg-chart"
+      :style="axisStyle"
+      aria-hidden="true"
+    >
+      <g class="grid">
+        <line
+          v-for="(t, i) in yTicksYear"
+          :key="'gy' + i"
+          :x1="pad.l"
+          :x2="vb.w - pad.r"
+          :y1="t.y"
+          :y2="t.y"
+        />
+      </g>
 
-              <g class="axis axis-left">
-                <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h - pad.b" />
-                <g
-                  v-if="!isMobile"
-                  v-for="(t, i) in yTicksYear"
-                  :key="'yl' + i"
-                >
-                  <text :x="pad.l - 8" :y="t.y + 4" text-anchor="end">
-                    {{ t.label }}
-                  </text>
-                </g>
-              </g>
+      <g class="axis axis-left">
+        <line :x1="pad.l" :x2="pad.l" :y1="pad.t" :y2="vb.h - pad.b" />
+        <g v-if="!isMobile" v-for="(t, i) in yTicksYear" :key="'yl' + i">
+          <text :x="pad.l - 8" :y="t.y + 4" text-anchor="end">
+            {{ t.label }}
+          </text>
+        </g>
+      </g>
 
-              <g class="axis axis-bottom">
-                <line
-                  :x1="pad.l"
-                  :x2="vb.w - pad.r"
-                  :y1="vb.h - pad.b"
-                  :y2="vb.h - pad.b"
-                />
-                <g v-for="(x, i) in xTicksYear" :key="'xt' + i">
-                  <line
-                    :x1="x.x"
-                    :x2="x.x"
-                    :y1="vb.h - pad.b"
-                    :y2="vb.h - pad.b + 5"
-                  />
-                  <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">
-                    {{ x.label }}
-                  </text>
-                </g>
-              </g>
+      <g class="axis axis-bottom">
+        <line
+          :x1="pad.l"
+          :x2="vb.w - pad.r"
+          :y1="vb.h - pad.b"
+          :y2="vb.h - pad.b"
+        />
+        <g v-for="(x, i) in xTicksYear" :key="'xt' + i">
+          <line
+            :x1="x.x"
+            :x2="x.x"
+            :y1="vb.h - pad.b"
+            :y2="vb.h - pad.b + 5"
+          />
+          <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">
+            {{ x.label }}
+          </text>
+        </g>
+      </g>
 
-              <g fill="url(#yearGrad)" filter="url(#dropShadow)">
-                <defs>
-                  <linearGradient id="yearGrad" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stop-color="#22d3ee" stop-opacity="1" />
-                    <stop
-                      offset="100%"
-                      stop-color="#22d3ee"
-                      stop-opacity=".35"
-                    />
-                  </linearGradient>
-                </defs>
+      <g fill="url(#yearGrad)" filter="url(#dropShadow)">
+        <defs>
+          <linearGradient id="yearGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#22d3ee" stop-opacity="1" />
+            <stop
+              offset="100%"
+              stop-color="#22d3ee"
+              stop-opacity=".35"
+            />
+          </linearGradient>
+        </defs>
 
-                <rect
-                  v-for="(b, i) in barsGeomYear"
-                  :key="'yb' + i"
-                  class="bar"
-                  :x="b.x"
-                  :y="b.y"
-                  :width="b.w"
-                  :height="b.h"
-                  rx="10"
-                  @mouseenter="onBarEnter('year', i, $event)"
-                  @mousemove="onBarMove('year', i, $event)"
-                  @mouseleave="onBarLeave"
-                >
-                  <title>
-                    {{ bucketsYear[i] }}:
-                    {{ fmt(valuesYear[i], valuesYear[i] >= 10 ? 0 : 1) }}
-                  </title>
-                </rect>
-              </g>
+        <rect
+          v-for="(b, i) in barsGeomYear"
+          :key="'yb' + i"
+          class="bar"
+          :x="b.x"
+          :y="b.y"
+          :width="b.w"
+          :height="b.h"
+          rx="10"
+          @mouseenter="onBarEnter('year', i, $event)"
+          @mousemove="onBarMove('year', i, $event)"
+          @mouseleave="onBarLeave"
+        >
+          <title>
+            {{ bucketsYear[i] }}:
+            {{ energyField === '03' ? Math.round(valuesYear[i] / 1000) : fmt(valuesYear[i], 1) }} {{ unitEnergyTotal }}
+          </title>
+        </rect>
+      </g>
 
-              <g class="edb-bar-labels" v-if="showValueLabels">
-                <text
-                  v-for="(b, i) in barsGeomYear"
-                  :key="'lbly' + i"
-                  class="edb-bar-label"
-                  :x="b.cx"
-                  :y="Math.max(8, b.y - 6)"
-                  text-anchor="middle"
-                >
-                  {{ fmt(valuesYear[i], valuesYear[i] >= 10 ? 0 : 1) }}
-                </text>
-              </g>
-            </svg>
+      <g class="edb-bar-labels" v-if="showValueLabels">
+        <text
+          v-for="(b, i) in barsGeomYear"
+          :key="'lbly' + i"
+          class="edb-bar-label"
+          :x="b.cx"
+          :y="Math.max(8, b.y - 6)"
+          text-anchor="middle"
+        >
+          {{ energyField === '03' ? Math.round(valuesYear[i] / 1000) : fmt(valuesYear[i], valuesYear[i] >= 10 ? 0 : 1) }}
+        </text>
+      </g>
+    </svg>
 
-            <div v-else class="edb-empty">
-              <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
-              <div v-else-if="loadingYear" class="edb-loading">
-                <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
-              </div>
-              <div v-else class="edb-empty-msg">
-                데이터가 없습니다. IMEI 입력 후 <b>조회</b>를 눌러주세요.
-              </div>
-            </div>
+    <div v-else class="edb-empty">
+      <div v-if="errorMsg" class="edb-empty-msg">{{ errorMsg }}</div>
+      <div v-else-if="loadingYear" class="edb-loading">
+        <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
+      </div>
+      <div v-else class="edb-empty-msg">
+        데이터가 없습니다.
+      </div>
+    </div>
 
-            <div
-              v-if="tip.show && tip.chart === 'year'"
-              class="edb-tip"
-              :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
-              role="tooltip"
-            >
-              <div class="edb-tip-title">{{ tip.label }}</div>
-              <div class="edb-tip-value">
-                {{ fmt(tip.value, tip.value >= 10 ? 0 : 1) }}
-              </div>
-            </div>
-          </div>
+    <div
+      v-if="tip.show && tip.chart === 'year'"
+      class="edb-tip"
+      :style="{ left: tip.x + 'px', top: tip.y + 'px' }"
+      role="tooltip"
+    >
+      <div class="edb-tip-title">{{ tip.label }}</div>
+      <div class="edb-tip-value">
+        {{ energyField === '03' ? Math.round(tip.value / 1000) : fmt(tip.value, 1) }} {{ unitEnergyTotal }}
+      </div>
+    </div>
+  </div>
 
-          <p class="edb-range" v-if="yearRangeText">
-            집계기간: {{ yearRangeText }}
-          </p>
-        </article>
+  <p class="edb-range" v-if="yearRangeText">
+    집계기간: {{ yearRangeText }}
+  </p>
+</article>
       </section>
 
       <section class="edb-grid edb-bottom2">
@@ -488,44 +460,44 @@
           </div>
 
           <div class="edb-sum-grid">
-            <article class="edb-sum-block">
-              <div class="edb-detail-hd">
-                <h3 class="edb-detail__title">발전량</h3>
-              </div>
-              <div class="edb-table-wrap edb-thin-scroll">
-                <table class="edb-tbl edb-tbl--kpi">
-                  <thead>
-                    <tr>
-                      <th style="text-align: center">지표</th>
-                      <th class="ar">수치</th>
-                      <th class="ar">단위</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>일간</td>
-                      <td class="edb-num">{{ fmt(summary.today_kwh, 2) }}</td>
-                      <td class="edb-num">kWh</td>
-                    </tr>
-                    <tr>
-                      <td>주간</td>
-                      <td class="edb-num">{{ fmt(kpiWeek.kwh, 2) }}</td>
-                      <td class="edb-num">kWh</td>
-                    </tr>
-                    <tr>
-                      <td>월간</td>
-                      <td class="edb-num">{{ fmt(kpiMonth.kwh, 2) }}</td>
-                      <td class="edb-num">kWh</td>
-                    </tr>
-                    <tr>
-                      <td>연간</td>
-                      <td class="edb-num">{{ fmt(kpiYear.kwh, 2) }}</td>
-                      <td class="edb-num">kWh</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </article>
+     <article class="edb-sum-block">
+  <div class="edb-detail-hd">
+    <h3 class="edb-detail__title">발전량</h3>
+  </div>
+  <div class="edb-table-wrap edb-thin-scroll">
+    <table class="edb-tbl edb-tbl--kpi">
+      <thead>
+        <tr>
+          <th style="text-align: center">지표</th>
+          <th class="ar">수치</th>
+          <th class="ar">단위</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>일간</td>
+          <td class="edb-num">{{ energyField === '03' ? fmt(summary.today_kwh / 1000, 0) : fmt(summary.today_kwh, 2) }}</td>
+          <td class="edb-num">{{ unitEnergyTotal }}</td>
+        </tr>
+        <tr>
+          <td>주간</td>
+          <td class="edb-num">{{ energyField === '03' ? fmt(kpiWeek.kwh / 1000, 0) : fmt(kpiWeek.kwh, 2) }}</td>
+          <td class="edb-num">{{ unitEnergyTotal }}</td>
+        </tr>
+        <tr>
+          <td>월간</td>
+          <td class="edb-num">{{ energyField === '03' ? fmt(kpiMonth.kwh / 1000, 0) : fmt(kpiMonth.kwh, 2) }}</td>
+          <td class="edb-num">{{ unitEnergyTotal }}</td>
+        </tr>
+        <tr>
+          <td>연간</td>
+          <td class="edb-num">{{ energyField === '03' ? fmt(kpiYear.kwh / 1000, 0) : fmt(kpiYear.kwh, 2) }}</td>
+          <td class="edb-num">{{ unitEnergyTotal }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</article>
 
             <article class="edb-sum-block">
               <div class="edb-detail-hd">
@@ -578,72 +550,62 @@
           </div>
         </section>
 
-        <section class="edb-card edb-detail" aria-live="polite">
-          <div class="edb-detail-hd">
-            <div class="edb-detail-hgroup">
-              <h3 class="edb-detail__title">시간별 상세정보</h3>
-              <div class="edb-detail-meta" v-if="detailDay">
-                <span class="edb-meta"
-                  >기준 날짜: <b>{{ detailDay }}</b></span
-                >
-              </div>
-            </div>
+<section class="edb-card edb-detail" aria-live="polite">
+  <div class="edb-detail-hd">
+    <div class="edb-detail-hgroup">
+      <h3 class="edb-detail__title">시간별 상세정보</h3>
+      <div class="edb-detail-meta" v-if="detailDay">
+        <span class="edb-meta">기준 날짜: <b>{{ detailDay }}</b></span>
+      </div>
+    </div>
 
-            <div class="edb-detail-actions">
-              <button
-                class="edb-week-btn"
-                :disabled="!imeiField || wxLoading"
-                @click="openWxModal"
-                title="이번주(7일) 날씨 예보 보기"
-              >
-                <span v-if="!wxLoading" style="font-size: 12.5px"
-                  >주간예보</span
-                >
-                <span v-else class="edb-spinner"></span>
-              </button>
-            </div>
-          </div>
-          <div class="edb-detail-body">
-            <div
-              v-if="!detailRows.length && loadingHourly"
-              class="edb-detail-empty"
-            >
-              <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
-            </div>
+    <div class="edb-detail-actions">
+      <button
+        class="edb-week-btn"
+        :disabled="!imeiField || wxLoading"
+        @click="openWxModal"
+        title="이번주(7일) 날씨 예보 보기"
+      >
+        <span v-if="!wxLoading" style="font-size: 12.5px">주간예보</span>
+        <span v-else class="edb-spinner"></span>
+      </button>
+    </div>
+  </div>
+  <div class="edb-detail-body">
+    <div v-if="!detailRows.length && loadingHourly" class="edb-detail-empty">
+      <span class="edb-spinner edb-spinner--lg"></span> 불러오는 중…
+    </div>
 
-            <div v-else class="edb-table-wrap edb-thin-scroll">
-              <table class="edb-tbl">
-                <thead>
-                  <tr>
-                    <th style="width: 62px">시</th>
-                    <th>발전량(kWh)</th>
-                    <th>날씨/기온</th>
-                    <th>CO₂저감량(kg)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(r, i) in detailRowsVisible" :key="'hr' + i">
-                    <td>{{ r.hour.replace(":00", "시") }}</td>
-                    <td class="edb-num">{{ fmt(r.kwh, 1) }}</td>
-                    <td class="edb-num">{{ r.weather || "—" }}</td>
-                    <td class="edb-num">
-                      {{ r.co2_kg == null ? "—" : fmt(r.co2_kg, 2) }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+    <div v-else class="edb-table-wrap edb-thin-scroll">
+      <table class="edb-tbl">
+        <thead>
+          <tr>
+            <th style="width: 62px">시</th>
+            <th>발전량({{ unitEnergyTotal }})</th>
+            <th>날씨/기온</th>
+            <th>CO₂저감량(kg)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(r, i) in detailRowsVisible" :key="'hr' + i">
+            <td>{{ r.hour.replace(":00", "시") }}</td>
+            <td class="edb-num">
+              {{ energyField === '03' ? fmt(r.kwh / 1000, 0) : fmt(r.kwh, 1) }}
+            </td>
+            <td class="edb-num">{{ r.weather || "—" }}</td>
+            <td class="edb-num">
+              {{ r.co2_kg == null ? "—" : fmt(r.co2_kg, 2) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-              <p
-                v-if="isWind && !hasAnyGeneration(detailRows)"
-                class="edb-muted"
-                style="margin-top: 8px"
-              >
-                * 풍력 장비가 하트비트(상태 보고)만 보내는 경우 시간대 발전량이
-                0으로 표시될 수 있습니다.
-              </p>
-            </div>
-          </div>
-        </section>
+      <p v-if="isWind && !hasAnyGeneration(detailRows)" class="edb-muted" style="margin-top: 8px">
+        * 풍력 장비가 하트비트(상태 보고)만 보내는 경우 시간대 발전량이 0으로 표시될 수 있습니다.
+      </p>
+    </div>
+  </div>
+</section>
       </section>
     </div>
 
@@ -1002,6 +964,12 @@ export default {
     };
   },
   computed: {
+  unitEnergy() {
+    return this.energyField === '03' ? 'MW' : 'kW';
+  },
+  unitEnergyTotal() {
+    return this.energyField === '03' ? 'MWh' : 'kWh';
+  },
     currentKstHour() {
       const kst = new Date().toLocaleString("en-US", {
         timeZone: "Asia/Seoul",
@@ -1044,17 +1012,17 @@ export default {
     barW() {
       return Math.max(10, this.stepW * (this.isMobile ? 0.85 : 0.7));
     },
-    yTicks() {
-      const max = this.maxY,
-        step = max / 4,
-        arr = [];
-      for (let i = 0; i <= 4; i++) {
-        const v = step * i;
-        const y = this.pad.t + (1 - v / max) * this.inner.h;
-        arr.push({ y, label: this.fmt(v, v >= 10 ? 0 : 1) });
-      }
-      return arr;
-    },
+yTicks() {
+  const isGeothermal = this.energyField === '03';
+  const max = this.maxY, step = max / 4, arr = [];
+  for (let i = 0; i <= 4; i++) {
+    const v = step * i;
+    const y = this.pad.t + (1 - v / max) * this.inner.h;
+    const label = isGeothermal ? Math.round(v / 1000).toString() : this.fmt(v, v >= 10 ? 0 : 1);
+    arr.push({ y, label });
+  }
+  return arr;
+},
     xTicks() {
       const out = [],
         n = this.bars.length;
@@ -1095,17 +1063,17 @@ export default {
     barWMonth() {
       return Math.max(10, this.stepWMonth * 0.6);
     },
-    yTicksMonth() {
-      const max = this.maxMonth,
-        step = max / 4,
-        arr = [];
-      for (let i = 0; i <= 4; i++) {
-        const v = step * i;
-        const y = this.pad.t + (1 - v / max) * this.inner.h;
-        arr.push({ y, label: this.fmt(v, v >= 10 ? 0 : 1) });
-      }
-      return arr;
-    },
+yTicksMonth() {
+    const isGeo = this.energyField === '03';
+    const max = this.maxMonth, step = max / 4, arr = [];
+    for (let i = 0; i <= 4; i++) {
+      const v = step * i;
+      const y = this.pad.t + (1 - v / max) * this.inner.h;
+      const label = isGeo ? Math.round(v / 1000).toString() : this.fmt(v, v >= 10 ? 0 : 1);
+      arr.push({ y, label });
+    }
+    return arr;
+  },
     xTicksMonth() {
       const out = [],
         n = this.monthSeries.length;
@@ -1144,17 +1112,17 @@ export default {
     barWYear() {
       return Math.max(10, this.stepWYear * 0.6);
     },
-    yTicksYear() {
-      const max = this.maxYear,
-        step = max / 4,
-        arr = [];
-      for (let i = 0; i <= 4; i++) {
-        const v = step * i;
-        const y = this.pad.t + (1 - v / max) * this.inner.h;
-        arr.push({ y, label: this.fmt(v, v >= 10 ? 0 : 1) });
-      }
-      return arr;
-    },
+yTicksYear() {
+    const isGeo = this.energyField === '03';
+    const max = this.maxYear, step = max / 4, arr = [];
+    for (let i = 0; i <= 4; i++) {
+      const v = step * i;
+      const y = this.pad.t + (1 - v / max) * this.inner.h;
+      const label = isGeo ? Math.round(v / 1000).toString() : this.fmt(v, v >= 10 ? 0 : 1);
+      arr.push({ y, label });
+    }
+    return arr;
+  },
     xTicksYear() {
       const out = [];
       const n = this.yearSeries.length;

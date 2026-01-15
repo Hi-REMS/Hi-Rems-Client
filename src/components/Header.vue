@@ -271,16 +271,24 @@ export default {
       this.$router.push('/change-password')
     },
 
-    downloadManual() {
-      const fileUrl = '/hirems/manual.pdf' 
-      const link = document.createElement('a')
-      link.href = fileUrl
-      link.download = 'HiREMS-매뉴얼.pdf'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      this.closeMenu()
-    },
+downloadManual() {
+  const adminFileName = 'HI-REMS 에너지원 모니터링 시스템 V1.0 사용자취급설명서(관리자).pdf';
+  const userFileName = 'HI-REMS 에너지원 모니터링 시스템 V1.0 사용자취급설명서.pdf';
+
+  const folderPath = '/hirems/'; 
+  const targetFileName = this.isAdmin ? adminFileName : userFileName;
+
+  const fileUrl = folderPath + encodeURIComponent(targetFileName);
+
+  const link = document.createElement('a');
+  link.href = fileUrl;
+  link.download = targetFileName;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  this.closeMenu();
+},
 
     logout() {
       api.post('/auth/logout').finally(() => {
