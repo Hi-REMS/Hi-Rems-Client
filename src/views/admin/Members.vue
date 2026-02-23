@@ -83,7 +83,7 @@
                 v-model="u.phoneNumber"
                 class="input-edit"
                 @input="formatPhone(u)"
-                maxlength="15"
+                maxlength="13"
                 placeholder="010-0000-0000"
               />
               <span v-else>{{ u.phoneNumber }}</span>
@@ -195,10 +195,18 @@ export default {
       this.originalData = null;
     },
 
-    formatPhone(u) {
-      if (!u.phoneNumber) return;
-      u.phoneNumber = u.phoneNumber.replace(/[^0-9-]/g, "");
-    },
+formatPhone(u) {
+  if (!u.phoneNumber) return;
+  let val = u.phoneNumber.replace(/\D/g, "");
+
+  if (val.length <= 3) {
+    u.phoneNumber = val;
+  } else if (val.length <= 7) {
+    u.phoneNumber = val.slice(0, 3) + "-" + val.slice(3);
+  } else {
+    u.phoneNumber = val.slice(0, 3) + "-" + val.slice(3, 7) + "-" + val.slice(7, 11);
+  }
+},
 
     async saveUser(u) {
       const workerName = (u.worker || "").trim();
@@ -225,12 +233,15 @@ export default {
         this.showToast("이메일은 50자 이내로 입력하셔야 합니다.", true);
         return;
       }
-
-      if (u.phoneNumber && u.phoneNumber.length > 15) {
-        this.showToast("전화번호는 15자 이내로 입력해주세요.", true);
+      if (u.phoneNumber && u.phoneNumber.length > 13) {
+        this.showToast("전화번호는 13자 이내로 입력해주세요.", true);
         return;
       }
 
+      if (u.phoneNumber && u.phoneNumber.length < 12) {
+        this.showToast("전화번호 형식이 올바르지 않습니다.", true);
+        return;
+      }
       try {
         this.savingId = u.member_id;
         
