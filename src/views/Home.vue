@@ -1124,7 +1124,7 @@ async drawNormalPoints() {
 
   const normalImage = new kakao.maps.MarkerImage(
     `data:image/svg+xml;utf8,${normalSvg}`,
-    new kakao.maps.Size(24, 24),,
+    new kakao.maps.Size(24, 24),
     { offset: new kakao.maps.Point(12, 12) }
   );
 
