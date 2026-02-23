@@ -6,7 +6,7 @@
         <label class="lbl">IMEI</label>
         <input
           v-model.trim="imeiField"
-          @keyup.enter="onSearch"
+          @keyup.enter="onSearch({ manual: true })"
           class="input"
           type="text"
           placeholder="예) 01-01-01-01-01-01-01-01"
@@ -19,7 +19,7 @@
           <label class="lbl">이름</label>
           <input
             v-model.trim="nameField"
-            @keyup.enter="onSearch"
+            @keyup.enter="onSearch({ manual: true })"
             class="input"
             type="text"
             placeholder="예) 홍길동"
