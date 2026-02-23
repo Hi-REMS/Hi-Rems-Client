@@ -94,7 +94,7 @@
               :title="rawTip(energy.electric.today_kwh, 'kWh')"
             >
               <template v-if="energyLoading">—</template
-              ><template v-else>{{ dFmt(energy.electric.today_kwh) }}</template>
+              ><template v-else>{{ dFmt(energy.electric.today_kwh, 2) }}</template>
               <span class="rems-unit">{{ isAdmin ? 'GWh' : 'kWh' }}</span>
             </div>
           </div>
@@ -106,7 +106,7 @@
             >
               <template v-if="energyLoading">—</template
               ><template v-else>{{
-                dFmt(energy.electric.today_co2_ton)
+                dFmt(energy.electric.today_co2_ton, 2)
               }}</template>
               <span class="rems-unit">tCO₂</span>
             </div>
@@ -127,7 +127,7 @@
             >
               <template v-if="energyLoading">—</template
               ><template v-else>{{
-                dFmt(energy.electric.cumulative_kwh)
+                dFmt(energy.electric.cumulative_kwh, 2)
               }}</template>
               <span class="rems-unit">{{ isAdmin ? 'GWh' : 'kWh' }}</span>
             </div>
@@ -154,7 +154,7 @@
               :title="rawTip(energy.thermal.today_kwh, 'kWh')"
             >
               <template v-if="energyLoading">—</template
-              ><template v-else>{{ dFmt(energy.thermal.today_kwh) }}</template>
+              ><template v-else>{{ dFmt(energy.thermal.today_kwh), 2 }}</template>
               <span class="rems-unit">kWh</span>
             </div>
           </div>
@@ -166,7 +166,7 @@
             >
               <template v-if="energyLoading">—</template
               ><template v-else>{{
-                dFmt(energy.thermal.today_co2_ton)
+                dFmt(energy.thermal.today_co2_ton, 2)
               }}</template>
               <span class="rems-unit">tCO₂</span>
             </div>
@@ -176,7 +176,7 @@
       <div class="rems-t-caption">누적 발전량</div>
       <div class="rems-t-value" :title="rawTip(energy.thermal.cumulative_kwh, 'kWh')">
         <template v-if="energyLoading">—</template>
-        <template v-else>{{ dFmt(energy.thermal.cumulative_kwh) }}</template>
+        <template v-else>{{ dFmt(energy.thermal.cumulative_kwh, 2) }}</template>
         <span class="rems-unit">kWh</span>
       </div>
     </div>
@@ -1124,7 +1124,7 @@ async drawNormalPoints() {
 
   const normalImage = new kakao.maps.MarkerImage(
     `data:image/svg+xml;utf8,${normalSvg}`,
-    new kakao.maps.Size(24, 24),
+    new kakao.maps.Size(24, 24),,
     { offset: new kakao.maps.Point(12, 12) }
   );
 
@@ -1217,8 +1217,13 @@ async drawNormalPoints() {
         return String(n);
       }
     },
-    dFmt(n, digits = 3) {
+    dFmt(n, digits = 2) {
       if (n == null || Number.isNaN(Number(n))) return "—";
+
+      const options = {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+      };
       if (n > 1e9)
         return (n / 1e9).toLocaleString(undefined, {
           maximumFractionDigits: digits,
