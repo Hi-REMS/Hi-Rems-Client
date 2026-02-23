@@ -11,6 +11,7 @@
           type="text"
           placeholder="예) 01-01-01-01-01-01-01-01"
             :readonly="!isAdmin"
+            maxlength="30"
         />
         </template>
 
@@ -22,6 +23,7 @@
             class="input"
             type="text"
             placeholder="예) 홍길동"
+            maxlength="30"
           />
 
           <label class="lbl">에너지</label>
@@ -591,7 +593,7 @@
         </header>
         <div class="ats-modal__body">
           <label>모듈 용량</label>
-          <input v-model="facilityForm.module_capacity" />
+          <input v-model="facilityForm.module_capacity" maxlength="20" placeholder="용량을 입력하세요" />
           <label>설치일</label>
           <div class="date-field">
             <input type="date" v-model="facilityForm.install_date" ref="facInstall" />
@@ -604,11 +606,11 @@
             <button type="button" class="calendar-btn" @click="openDate('facMonitor')" aria-label="모니터링 시작일 선택">📅</button>
           </div>
           <label>사업명</label>
-          <input v-model="facilityForm.project_name" />
+          <input v-model="facilityForm.project_name" maxlength="255" placeholder="사업명을 입력하세요"/>
           <label>시공사</label>
-          <input v-model="facilityForm.contractor" />
+          <input v-model="facilityForm.contractor" maxlength="255" placeholder="사업명을 입력하세요" />
           <label>A/S 연락처</label>
-          <input v-model="facilityForm.as_contact" />
+          <input v-model="facilityForm.as_contact" maxlength="15" placeholder="연락처를 입력하세요" />
           <label v-if="isAdmin"><span>설비 이미지</span>  <input
     type="file"
     accept="image/*"
@@ -666,6 +668,7 @@
     type="text"
     ref="modalSearchInput"
     placeholder="새로운 이름 검색 또는 목록 필터"
+    maxlength="50"
     @keyup.enter.stop="searchAgainInModal" 
     @keydown.stop
   />
@@ -748,6 +751,7 @@
           rows="6"
           placeholder="점검/교체 내용, 고장 내역 등을 상세히 기록해 주세요."
           v-model="maintForm.asNotes"
+          maxlength="255"
         ></textarea>
       </div>
 
@@ -1735,26 +1739,41 @@ async onFacilityImageChange(e) {
   const file = e.target.files[0];
   if (!file) return;
 
+  const maxSize = 50 * 1024 * 1024; // 50MB
+  if (file.size > maxSize) {
+    alert("이미지 용량이 너무 큽니다. 50MB 이하의 파일만 업로드 가능합니다.");
+    e.target.value = "";
+    return;
+  }
+
   const blobUrl = URL.createObjectURL(file);
   this.previewImage = blobUrl;
-
-  this.facilityInfo.image_url = blobUrl;
 
   const imei = this.imeiUse;
   const form = new FormData();
   form.append("rtuImei", imei);
   form.append("file", file);
 
-  const res = await fetch("/api/facility/upload", {
-    method: "POST",
-    body: form,
-    credentials: "include",
-  }).then(r => r.json());
+  try {
+    const response = await fetch("/api/facility/upload", {
+      method: "POST",
+      body: form,
+      credentials: "include",
+    });
 
-  if (res.ok) {
-    this.facilityForm.image_url = res.url;
-  } else {
-    alert("이미지 업로드 실패");
+    const res = await response.json();
+
+    if (response.ok && res.ok) {
+      this.facilityForm.image_url = res.url;
+    } else {
+      alert(res.message || "이미지 업로드에 실패했습니다.");
+      this.previewImage = null; 
+      e.target.value = ""; 
+    }
+  } catch (err) {
+    alert("서버와 통신 중 오류가 발생했습니다.");
+    this.previewImage = null;
+    e.target.value = "";
   }
 },
 resolveImg(path) {
@@ -2144,6 +2163,11 @@ resetAll() {
     onLeave () { this.hoverIdx = null; },
 
 async onSearch() {
+if (!this.imeiField && !this.nameField) {
+  alert("조회할 IMEI 혹은 이름을 입력해주세요.");
+  return;
+}
+
   if (this.searching) return;
   this.searching = true;
   this.loading = true;
@@ -2677,6 +2701,11 @@ closeFacilityEditor () {
   }
 },
 async saveFacility() {
+if (!this.facilityForm.project_name || this.facilityForm.project_name.trim() === "") {
+  alert("사업명을 한 글자 이상 입력해주세요.");
+  return;
+}
+
 if (!this.isAdmin) {
     alert('권한이 없습니다.');
     return;
@@ -2777,6 +2806,11 @@ openMaintModal(mode = 'ADD', record = null) {
     },
 
     async saveMaintenance() {
+    if (!this.maintForm.asNotes || this.maintForm.asNotes.trim() === "") {
+  alert("기록 내용을 입력해주세요.");
+  return;
+}
+
       if (!this.imeiUse || this.maintModal.saving) return;
       if (!this.maintForm.lastInspection) {
         alert('점검일을 입력해 주세요.');
