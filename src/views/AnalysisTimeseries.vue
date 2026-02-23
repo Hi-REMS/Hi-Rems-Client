@@ -606,9 +606,9 @@
             <button type="button" class="calendar-btn" @click="openDate('facMonitor')" aria-label="모니터링 시작일 선택">📅</button>
           </div>
           <label>사업명</label>
-          <input v-model="facilityForm.project_name" maxlength="255" placeholder="사업명을 입력하세요"/>
+          <input v-model="facilityForm.project_name" maxlength="50" placeholder="사업명을 입력하세요"/>
           <label>시공사</label>
-          <input v-model="facilityForm.contractor" maxlength="255" placeholder="사업명을 입력하세요" />
+          <input v-model="facilityForm.contractor" maxlength="30" placeholder="사업명을 입력하세요" />
           <label>A/S 연락처</label>
           <input v-model="facilityForm.as_contact" maxlength="15" placeholder="연락처를 입력하세요" />
           <label v-if="isAdmin"><span>설비 이미지</span>  <input

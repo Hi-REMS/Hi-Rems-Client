@@ -11,7 +11,7 @@
           type="text"
           placeholder="이름 또는 이메일 검색"
           class="search-input"
-          maxlength="30"
+          maxlength="50"
         />
         <p v-if="searchQuery.length === 0" class="search-tip">이름 또는 이메일을 입력하여 필터링하세요.</p>
       </div>
@@ -71,7 +71,7 @@
                 v-if="editRow === u.member_id"
                 v-model="u.username"
                 class="input-edit"
-                maxlength="255"
+                maxlength="50"
                 placeholder="이메일 입력"
               />
               <span v-else>{{ u.username }}</span>
@@ -220,9 +220,9 @@ export default {
       if (!emailRegex.test(email)) {
         this.showToast("올바른 이메일 형식이 아닙니다.", true);
         return;
-      }
-      if (email.length > 255) {
-        this.showToast("이메일은 255자 이내로 입력하셔야 합니다.", true);
+      }255
+      if (email.length > 50 ) {
+        this.showToast("이메일은 50자 이내로 입력하셔야 합니다.", true);
         return;
       }
 
