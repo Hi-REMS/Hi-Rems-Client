@@ -593,7 +593,7 @@
         </header>
         <div class="ats-modal__body">
           <label>모듈 용량</label>
-          <input v-model="facilityForm.module_capacity" maxlength="20" placeholder="용량을 입력하세요" />
+          <input v-model="facilityForm.module_capacity" maxlength="30" placeholder="용량을 입력하세요" />
           <label>설치일</label>
           <div class="date-field">
             <input type="date" v-model="facilityForm.install_date" ref="facInstall" />

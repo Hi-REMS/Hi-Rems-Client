@@ -30,6 +30,7 @@
                   v-model="current"
                   placeholder="현재 비밀번호 입력"
                   required
+                  maxlength="255"
                   @blur="curTouched = true"
                   @keydown.space.prevent
                 />
@@ -55,6 +56,7 @@
                   v-model="newPw"
                   placeholder="새 비밀번호 입력 (9자 이상)"
                   required
+                  maxlength="255"
                   @blur="newTouched = true"
                   @keydown.space.prevent
                 />
@@ -83,6 +85,7 @@
                   v-model="confirmPw"
                   placeholder="새 비밀번호 재입력"
                   required
+                  maxlength="255"
                   @blur="confTouched = true"
                   @keydown.space.prevent
                 />
@@ -131,17 +134,23 @@ export default {
   },
   computed: {
     curValid() {
-      return !!this.current && this.current.length >= 9;
+      const val = this.current || "";
+      return val.trim().length >= 9;
     },
     newErrors() {
       const pw = this.newPw;
       const e = [];
-      if (pw.length < 9) e.push("9자 이상이어야 합니다.");
-      if (!/[A-Z]/.test(pw)) e.push("대문자를 포함해야 합니다.");
-      if (!/[a-z]/.test(pw)) e.push("소문자를 포함해야 합니다.");
-      if (!/[0-9]/.test(pw)) e.push("숫자를 포함해야 합니다.");
-      if (!/[^A-Za-z0-9]/.test(pw)) e.push("특수문자를 포함해야 합니다.");
+      if (pw.length === 0) {
+      e.push("새 비밀번호를 입력해주세요.");
       return e;
+    }
+if (pw.length < 9) e.push("9자 이상이어야 합니다.");
+    if (pw.length > 255) e.push("255자 이내로 입력하셔야 합니다.");
+    if (!/[A-Z]/.test(pw)) e.push("대문자를 포함해야 합니다.");
+    if (!/[a-z]/.test(pw)) e.push("소문자를 포함해야 합니다.");
+    if (!/[0-9]/.test(pw)) e.push("숫자를 포함해야 합니다.");
+    if (!/[^A-Za-z0-9]/.test(pw)) e.push("특수문자를 포함해야 합니다.");
+    return e;
     },
     newValid() {
       return this.newPw.length >= 9 && this.newErrors.length === 0;
@@ -166,7 +175,6 @@ export default {
           new_password: this.newPw,
         });
         alert("비밀번호가 성공적으로 변경되었습니다.");
-        // ... (이후 라우팅 로직 동일)
         this.$router.replace("/analysis/timeseries");
       } catch (err) {
         const msg = err?.response?.data?.message || err.message || "비밀번호 변경 실패";

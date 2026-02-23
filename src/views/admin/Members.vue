@@ -11,7 +11,9 @@
           type="text"
           placeholder="이름 또는 이메일 검색"
           class="search-input"
+          maxlength="30"
         />
+        <p v-if="searchQuery.length === 0" class="search-tip">이름 또는 이메일을 입력하여 필터링하세요.</p>
       </div>
     </header>
 
@@ -25,7 +27,8 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>권한</th> <th>이름</th>
+            <th>권한</th> 
+            <th>이름</th>
             <th>이메일</th>
             <th>전화번호</th>
             <th>가입일</th>
@@ -57,6 +60,8 @@
                 v-if="editRow === u.member_id"
                 v-model="u.worker"
                 class="input-edit"
+                maxlength="30"
+                placeholder="이름 입력 (2~30자)"
               />
               <span v-else>{{ u.worker }}</span>
             </td>
@@ -66,6 +71,8 @@
                 v-if="editRow === u.member_id"
                 v-model="u.username"
                 class="input-edit"
+                maxlength="255"
+                placeholder="이메일 입력"
               />
               <span v-else>{{ u.username }}</span>
             </td>
@@ -76,6 +83,8 @@
                 v-model="u.phoneNumber"
                 class="input-edit"
                 @input="formatPhone(u)"
+                maxlength="15"
+                placeholder="010-0000-0000"
               />
               <span v-else>{{ u.phoneNumber }}</span>
             </td>
@@ -107,6 +116,10 @@
           </tr>
         </tbody>
       </table>
+      
+      <div v-if="filteredMembers.length === 0" class="empty-results">
+        검색 결과가 없습니다.
+      </div>
     </div>
 
     <transition name="fade">
@@ -138,7 +151,9 @@ export default {
   },
   computed: {
     filteredMembers() {
-      const q = this.searchQuery.toLowerCase();
+      const q = this.searchQuery.toLowerCase().trim();
+      if (!q) return this.members;
+      
       return this.members.filter(
         (m) =>
           m.username.toLowerCase().includes(q) ||
@@ -157,8 +172,7 @@ export default {
         const { data } = await api.get("/members");
         this.members = data;
       } catch (err) {
-        const msg = err?.response?.data?.message || "회원 목록을 불러오지 못했습니다.";
-        this.showToast(msg, true);
+        this.showToast("회원 목록을 불러오지 못했습니다.", true);
       } finally {
         this.loading = false;
       }
@@ -187,13 +201,33 @@ export default {
     },
 
     async saveUser(u) {
-      if (!u.worker || u.worker.trim().length < 2) {
-        this.showToast("이름은 2자 이상이어야 합니다.", true);
+      const workerName = (u.worker || "").trim();
+      if (workerName.length < 2) {
+        this.showToast("이름은 최소 2자 이상 입력하셔야 합니다.", true);
+        return;
+      }
+      if (workerName.length > 30) {
+        this.showToast("이름은 30자 이내로 입력하셔야 합니다.", true);
+        return;
+      }
+
+      const email = (u.username || "").trim();
+      if (email.length === 0) {
+        this.showToast("이메일(아이디)을 입력해주세요.", true);
         return;
       }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!u.username || !emailRegex.test(u.username)) {
+      if (!emailRegex.test(email)) {
         this.showToast("올바른 이메일 형식이 아닙니다.", true);
+        return;
+      }
+      if (email.length > 255) {
+        this.showToast("이메일은 255자 이내로 입력하셔야 합니다.", true);
+        return;
+      }
+
+      if (u.phoneNumber && u.phoneNumber.length > 15) {
+        this.showToast("전화번호는 15자 이내로 입력해주세요.", true);
         return;
       }
 
@@ -201,8 +235,8 @@ export default {
         this.savingId = u.member_id;
         
         const res = await api.put(`/members/${u.member_id}`, {
-          worker: u.worker,
-          username: u.username,
+          worker: workerName,
+          username: email,
           phoneNumber: u.phoneNumber,
           is_admin: !!u.is_admin
         });
@@ -241,6 +275,17 @@ export default {
 </script>
 
 <style scoped>
+/* 안내 문구 스타일 추가 */
+.search-tip {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+}
+.empty-results {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+}
 .role-badge {
   padding: 4px 10px;
   border-radius: 20px;
