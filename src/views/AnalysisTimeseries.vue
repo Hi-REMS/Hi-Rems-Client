@@ -2162,11 +2162,15 @@ resetAll() {
     },
     onLeave () { this.hoverIdx = null; },
 
-async onSearch() {
-if (!this.imeiField && !this.nameField) {
-  alert("조회할 IMEI 혹은 이름을 입력해주세요.");
-  return;
-}
+async onSearch(options = {}) {
+const isManual = options.manual === true;
+
+  if (!this.imeiField && !this.nameField) {
+    if (isManual) {
+      alert("조회할 IMEI 혹은 이름을 입력해주세요.");
+    }
+    return;
+  }
 
   if (this.searching) return;
   this.searching = true;
