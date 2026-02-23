@@ -177,7 +177,7 @@
     :y="Math.max(8, b.y-6)"
     text-anchor="middle"
   >
-    {{ (b.kw > 0) ? (energyField === '03' ? (b.kw / 1000).toFixed(2) : formatBigNumber(b.kw)) : '' }}
+    {{ (b.kw > 0) ? (energyField === '03' ? (b.kw / 1000).toFixed(0) : formatBigNumber(b.kw)) : '' }}
   </text>
 </g>
 
@@ -401,7 +401,7 @@
       <li>
         <span>총 {{ labelEnergy }}</span>
         <strong>
-          {{ energyField === '03' ? fmt(kpi.total_kwh / 1000, 2) : fmt(kpi.total_kwh, 2) }} 
+          {{ energyField === '03' ? fmt(kpi.total_kwh / 1000, 0) : fmt(kpi.total_kwh, 2) }} 
           {{ unitEnergy }}
         </strong>
       </li>
@@ -3006,22 +3006,22 @@ valueFor(key) {
     case 'now': {
       const v = this.kpi.now_kw;
       if (v == null) return '—';
-      return isGeothermal ? this.fmt(v / 1000, 2) : this.fmt(v, 2);
+      return isGeothermal ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
     }
     case 'today': {
       const v = this.kpi.today_kwh;
       if (v == null) return '—';
-      return isGeothermal ? this.number(v / 1000, 2) : this.formatKwh1(v);
+      return isGeothermal ? this.number(v / 1000, 0) : this.formatKwh1(v);
     }
     case 'avg': {
       const v = this.kpi.last_month_avg_kw;
       if (v == null) return '—';
-      return isGeothermal ? this.fmt(v / 1000, 2) : this.fmt(v, 2);
+      return isGeothermal ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
     }
     case 'total': {
       const v = this.kpi.total_kwh;
       if (v == null) return '—';
-      return isGeothermal ? this.fmt(v / 1000, 2) : this.fmt(v, 2);
+      return isGeothermal ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
     }
     case 'status':
       return this.overallStatusText;
