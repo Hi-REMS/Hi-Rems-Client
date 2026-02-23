@@ -399,7 +399,7 @@
       <li>
         <span>총 {{ labelEnergy }}</span>
         <strong>
-          {{ energyField === '03' ? fmt(kpi.total_kwh / 1000, 0) : fmt(kpi.total_kwh, 2) }} 
+          {{ energyField === '03' ? fmt(kpi.total_kwh / 1000, 2) : fmt(kpi.total_kwh, 2) }} 
           {{ unitEnergy }}
         </strong>
       </li>
@@ -1303,7 +1303,6 @@ yTicks() {
   const val = this.series[this.hoverIdx]?.rawNull ? null : (this.bars[this.hoverIdx].kw || 0);
   
   if (val === null) return null;
-  // 지열이면 툴팁 숫자도 MW로 변환
   return isGeothermal ? (val / 1000) : val;
 },
     hoverLineY () { if (this.hoverIdx === null || !this.bars.length) return 0; return this.bars[this.hoverIdx].y; },
@@ -1328,7 +1327,6 @@ yTicks() {
     return [
       { key:'gridV',      label:'계통전압(V)',              num:true, digits:0 },
       { key:'gridA',      label:'계통전류(A)',              num:true, digits:1 },
-      // W 단위를 kW로 변경하고 정수표시
       { key:'nowW',       label:'소비전력(kW)',             num:true, digits:0 }, 
       { key:'heatW',      label:'열생산량(kW)',             num:true, digits:0 },
       { key:'pf',         label:'역률(%)',                 num:true, digits:1 },
@@ -1338,7 +1336,6 @@ yTicks() {
       { key:'loadInC',    label:'로드 입구(°C)',            num:true, digits:1 },
       { key:'loadOutC',   label:'로드 출구(°C)',            num:true, digits:1 },
       { key:'flowLpm',    label:'유량(LPM)',               num:true, digits:1 },
-      // kWh 단위를 MWh로 변경하고 정수표시 (digits: 0)
       { key:'elecKwh',    label:'누적전력(MWh)',            num:true, digits:0 },
       { key:'totalKwh',   label:'누적열량(MWh)',            num:true, digits:0 },
     ];
@@ -1383,7 +1380,6 @@ yTicks() {
     },
 
 driverRows() {
-  // 1. 목록 데이터(driverUnits)가 있을 경우 처리
   if (Array.isArray(this.driverUnits) && this.driverUnits.length) {
     return this.driverUnits
       .filter(u => u && (u.ts || u.time || u.collectedAt))
@@ -1391,7 +1387,6 @@ driverRows() {
       .map(u => {
         const collectedAt = new Date(u.ts || u.time || u.collectedAt).toLocaleString('ko-KR');
 
-        // --- 일반 전기 장비 (태양광 등) ---
         if (!this.isHeat) {
           return {
             imei: this.imeiUse || '—',
@@ -1412,9 +1407,7 @@ driverRows() {
           };
         }
 
-        // --- 지열 장비 ('03') ---
         if (this.energyField === '03') {
-          // 누적 데이터 추출 및 kWh 변환
           const elecKwhRaw = (typeof u.cumulative_wh === 'string' || typeof u.cumulative_wh === 'number')
             ? Number(u.cumulative_wh) / 1000
             : (u.cumulative_kwh ?? u.energy_used_kwh ?? null);
@@ -1429,8 +1422,7 @@ driverRows() {
               : (typeof u.state === 'string' ? u.state : (u.state_raw === 0 ? '미작동' : '운전중')),
             gridV: u.system_voltage_v ?? u.grid_voltage_v ?? null,
             gridA: u.system_current_a ?? u.grid_current_a ?? null,
-            
-            // [수정] 출력 데이터: W -> kW 환산 후 정수화
+
             nowW: u.current_output_w ? Math.round(u.current_output_w / 1000) : null,
             heatW: (typeof u.heat_kw === 'number' ? Math.round(u.heat_kw) 
                   : (u.heat_output_w ? Math.round(u.heat_output_w / 1000) : null)),
@@ -1443,13 +1435,11 @@ driverRows() {
             loadOutC:this.pickFirstNum([u.load_out_temp_c, u.loadOutTempC]),
             flowLpm: this.pickFirstNum([u.load_flow_lpm, u.flow_lpm, u.flow_rate_lpm]),
 
-            // [수정] 누적 데이터: kWh -> MWh 환산 후 정수화
             elecKwh: elecKwhRaw ? Math.round(elecKwhRaw / 1000) : null,
             totalKwh: totalKwhRaw ? Math.round(totalKwhRaw / 1000) : null
           };
         }
 
-        // --- 태양열 등 기타 열 장비 ---
         return {
           imei: this.imeiUse || '—',
           multiId: u.multi || null,
@@ -1464,8 +1454,6 @@ driverRows() {
       });
   }
 
-  // 2. 단일 데이터(mets)만 있을 경우 처리
-  // --- 지열 장비 ('03') ---
   if (this.energyField === '03') {
     const t = this.mets || {};
     const collectedAt = this.latestCollectedAt ? new Date(this.latestCollectedAt).toLocaleString('ko-KR') : null;
@@ -1480,8 +1468,7 @@ driverRows() {
       state: (typeof t.isOperating === 'boolean' ? (t.isOperating ? '운전중' : '미작동') : '—'),
       gridV: this.gridVoltageRaw,
       gridA: this.pickFirstNum([t.systemCurrent, t.systemR_I]),
-      
-      // [수정] kW 정수화
+
       nowW: (typeof this.kpi?.now_kw === 'number') ? Math.round(this.kpi.now_kw) : null,
       heatW: (typeof t.heat_kw === 'number' ? Math.round(t.heat_kw) : null),
       
@@ -1492,14 +1479,12 @@ driverRows() {
       loadInC: this.pickFirstNum([t.load_in_temp_c, t.loadInTempC]),
       loadOutC:this.pickFirstNum([t.load_out_temp_c, t.loadOutTempC]),
       flowLpm: this.pickFirstNum([t.flowLpm, t.load_flow_lpm]),
-      
-      // [수정] MWh 정수화
+
       elecKwh: elecKwhRaw ? Math.round(elecKwhRaw / 1000) : null,
       totalKwh: this.kpi?.total_kwh ? Math.round(this.kpi.total_kwh / 1000) : null
     }];
   }
 
-  // --- 일반 장비 렌더링 (mets) ---
   const m = this.mets || {};
   const collectedAt = this.latestCollectedAt ? new Date(this.latestCollectedAt).toLocaleString('ko-KR') : null;
   
@@ -1669,10 +1654,10 @@ async searchAgainInModal() {
   formatBigNumber(num) {
       if (num == null || Number.isNaN(num)) return '0';
       const abs = Math.abs(num);
-      if (abs >= 1e9) return (num / 1e9).toFixed(1) + 'G';
-      if (abs >= 1e6) return (num / 1e6).toFixed(1) + 'M';
-      if (abs >= 1e3) return (num / 1e3).toFixed(1) + 'k';
-      return this.number(num, num >= 10 ? 0 : 1);
+      if (abs >= 1e9) return (num / 1e9).toFixed(2) + 'G';
+      if (abs >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+      if (abs >= 1e3) return (num / 1e3).toFixed(2) + 'k';
+      return this.number(num, 2);
     },
 updateChartDimensions() {
   const width = window.innerWidth;
@@ -2044,8 +2029,8 @@ onSearchModalKeydown(e) {
 
     formatKwh1(v) {
       if (v == null || Number.isNaN(Number(v))) return '—';
-      if (Number(v) === 0) return '0';
-      return Number(v).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      if (Number(v) === 0) return '0.00';
+      return Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     },
 _abortStamp: 0,
 
@@ -2969,22 +2954,22 @@ valueFor(key) {
     case 'now': {
       const v = this.kpi.now_kw;
       if (v == null) return '—';
-      return isGeothermal ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
+      return isGeothermal ? this.fmt(v / 1000, 2) : this.fmt(v, 2);
     }
     case 'today': {
       const v = this.kpi.today_kwh;
       if (v == null) return '—';
-      return isGeothermal ? this.number(v / 1000, 0) : this.formatKwh1(v);
+      return isGeothermal ? this.number(v / 1000, 2) : this.formatKwh1(v);
     }
     case 'avg': {
       const v = this.kpi.last_month_avg_kw;
       if (v == null) return '—';
-      return isGeothermal ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
+      return isGeothermal ? this.fmt(v / 1000, 2) : this.fmt(v, 2);
     }
     case 'total': {
       const v = this.kpi.total_kwh;
       if (v == null) return '—';
-      return isGeothermal ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
+      return isGeothermal ? this.fmt(v / 1000, 2) : this.fmt(v, 2);
     }
     case 'status':
       return this.overallStatusText;

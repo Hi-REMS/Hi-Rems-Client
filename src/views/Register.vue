@@ -106,7 +106,7 @@
                   :type="showPassword ? 'text' : 'password'"
                   v-model="password"
                   autocomplete="new-password"
-                  placeholder="********"
+                  placeholder="*********"
                   required
                   @keyup="checkCaps"
                   @blur="passwordTouched = true"
@@ -257,7 +257,7 @@ workerValid() {
     },
     strengthPercent() {
       let s = 0;
-      if (this.password.length >= 8) s += 25;
+      if (this.password.length >= 9) s += 25;
       if (/[A-Z]/.test(this.password)) s += 25;
       if (/[0-9]/.test(this.password)) s += 25;
       if (/[^A-Za-z0-9]/.test(this.password)) s += 25;
@@ -266,7 +266,7 @@ workerValid() {
     passwordErrors() {
       const e = [];
       const pw = this.password;
-      if (!pw || pw.length < 8) e.push("8자 이상이어야 합니다.");
+      if (!pw || pw.length < 9) e.push("9자 이상이어야 합니다.");
       if (!/[A-Z]/.test(pw)) e.push("대문자(A-Z)를 포함하세요.");
       if (!/[a-z]/.test(pw)) e.push("소문자(a-z)를 포함하세요.");
       if (!/[0-9]/.test(pw)) e.push("숫자(0-9)를 포함하세요.");

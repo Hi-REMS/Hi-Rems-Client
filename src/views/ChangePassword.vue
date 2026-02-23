@@ -42,7 +42,7 @@
                 </button>
               </div>
               <p v-if="curTouched && !curValid" class="pw-error-text">
-                현재 비밀번호를 입력하세요 (8자 이상).
+                현재 비밀번호를 입력하세요 (9자 이상).
               </p>
             </div>
 
@@ -53,7 +53,7 @@
                   id="newPw"
                   :type="showNew ? 'text' : 'password'"
                   v-model="newPw"
-                  placeholder="새 비밀번호 입력 (8자 이상)"
+                  placeholder="새 비밀번호 입력 (9자 이상)"
                   required
                   @blur="newTouched = true"
                   @keydown.space.prevent
@@ -131,12 +131,12 @@ export default {
   },
   computed: {
     curValid() {
-      return !!this.current && this.current.length >= 4;
+      return !!this.current && this.current.length >= 9;
     },
     newErrors() {
       const pw = this.newPw;
       const e = [];
-      if (pw.length < 8) e.push("8자 이상이어야 합니다.");
+      if (pw.length < 9) e.push("9자 이상이어야 합니다.");
       if (!/[A-Z]/.test(pw)) e.push("대문자를 포함해야 합니다.");
       if (!/[a-z]/.test(pw)) e.push("소문자를 포함해야 합니다.");
       if (!/[0-9]/.test(pw)) e.push("숫자를 포함해야 합니다.");
@@ -144,7 +144,7 @@ export default {
       return e;
     },
     newValid() {
-      return this.newPw.length >= 8 && this.newErrors.length === 0;
+      return this.newPw.length >= 9 && this.newErrors.length === 0;
     },
     confValid() {
       return this.newPw && this.newPw === this.confirmPw;

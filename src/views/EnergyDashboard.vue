@@ -15,18 +15,28 @@
     </div>
   </article>
 
-  <article class="edb-stat edb-card">
-    <div class="edb-stat-main">
-      <div class="edb-stat-title">월간발전량</div>
-      <div class="edb-stat-value">
-        <b>{{ energyField === '03' ? fmt(kpiMonth.kwh / 1000, 0) : fmt(kpiMonth.kwh, 2) }}</b>
-        <span>{{ unitEnergyTotal }}</span>
-      </div>
-      <div class="edb-stat-sub edb-ok">
-        CO₂ {{ fmt(kpiMonth.co2, 2) }} kg · 식수 {{ fmt(kpiMonth.trees, 0) }} 그루
-      </div>
-    </div>
-  </article>
+<article class="edb-stat edb-card">
+          <div class="edb-stat-main">
+            <div class="edb-stat-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="edb-stat-title">월간발전량</div>
+              <button
+                class="edb-btn edb-btn--primary edb-btn--sm"
+                :disabled="downloading || !canDownload"
+                @click="openDownloadModal"
+                style="padding: 2px 8px; font-size: 11px; height: auto;"
+              >
+                다운로드
+              </button>
+            </div>
+            <div class="edb-stat-value">
+              <b>{{ energyField === '03' ? fmt(kpiMonth.kwh / 1000, 0) : fmt(kpiMonth.kwh, 2) }}</b>
+              <span>{{ unitEnergyTotal }}</span>
+            </div>
+            <div class="edb-stat-sub edb-ok">
+              CO₂ {{ fmt(kpiMonth.co2, 2) }} kg · 식수 {{ fmt(kpiMonth.trees, 0) }} 그루
+            </div>
+          </div>
+        </article>
 
   <article class="edb-stat edb-card">
     <div class="edb-stat-main">
@@ -138,7 +148,7 @@
                 >
                   <title>
                     {{ formatDay(bucketsWeek[i]) }}:
-                    {{ fmt(valuesWeek[i], valuesWeek[i] >= 10 ? 0 : 1) }}
+                    {{ energyField === '03' ? fmt(valuesWeek[i] / 1000, 0) : fmt(valuesWeek[i], 2) }}
                   </title>
                 </rect>
               </g>
@@ -152,7 +162,7 @@
     :y="Math.max(8, b.y - 6)"
     text-anchor="middle"
   >
-    {{ energyField === '03' ? Math.round(valuesWeek[i] / 1000) : fmt(valuesWeek[i], valuesWeek[i] >= 10 ? 0 : 1) }}
+    {{ energyField === '03' ? fmt(valuesWeek[i] / 1000, 0) : fmt(valuesWeek[i], 2) }}
   </text>
 </g>
             </svg>
@@ -175,7 +185,7 @@
             >
               <div class="edb-tip-title">{{ tip.label }}</div>
               <div class="edb-tip-value">
-                {{ fmt(tip.value, tip.value >= 10 ? 0 : 1) }}
+                {{ energyField === '03' ? fmt(tip.value / 1000, 0) : fmt(tip.value, 2) }}
               </div>
             </div>
           </div>
@@ -190,16 +200,6 @@
     <h3>
       <span class="edb-dot edb-dot--amber"></span>주간 발전량(최근 4주)
     </h3>
-    <div class="edb-card-actions">
-      <button
-        class="edb-btn edb-btn--primary edb-btn--sm"
-        :disabled="downloading || !canDownload"
-        @click="openDownloadModal"
-        :title="canDownload ? '월별 CSV 다운로드' : '조회 후 활성화됩니다'"
-      >
-        다운로드
-      </button>
-    </div>
   </div>
 
   <div class="edb-chart__body" ref="monthWrap">
@@ -278,7 +278,7 @@
         >
           <title>
             {{ monthSeries[i].label }}:
-            {{ energyField === '03' ? Math.round(valuesMonth[i] / 1000) : fmt(valuesMonth[i], 1) }} {{ unitEnergyTotal }}
+            {{ energyField === '03' ? fmt(valuesMonth[i] / 1000, 0) : fmt(valuesMonth[i], 2) }} {{ unitEnergyTotal }}
           </title>
         </rect>
       </g>
@@ -292,7 +292,7 @@
           :y="Math.max(8, b.y - 6)"
           text-anchor="middle"
         >
-          {{ energyField === '03' ? Math.round(valuesMonth[i] / 1000) : fmt(valuesMonth[i], valuesMonth[i] >= 10 ? 0 : 1) }}
+          {{ energyField === '03' ? fmt(valuesMonth[i] / 1000, 0) : fmt(valuesMonth[i], 2) }}
         </text>
       </g>
     </svg>
@@ -405,7 +405,7 @@
         >
           <title>
             {{ bucketsYear[i] }}:
-            {{ energyField === '03' ? Math.round(valuesYear[i] / 1000) : fmt(valuesYear[i], 1) }} {{ unitEnergyTotal }}
+            {{ energyField === '03' ? fmt(valuesYear[i] / 1000, 0) : fmt(valuesYear[i], 2) }} {{ unitEnergyTotal }}
           </title>
         </rect>
       </g>
@@ -419,7 +419,7 @@
           :y="Math.max(8, b.y - 6)"
           text-anchor="middle"
         >
-          {{ energyField === '03' ? Math.round(valuesYear[i] / 1000) : fmt(valuesYear[i], valuesYear[i] >= 10 ? 0 : 1) }}
+          {{ energyField === '03' ? fmt(valuesYear[i] / 1000, 0) : fmt(valuesYear[i], 2) }}
         </text>
       </g>
     </svg>
@@ -442,7 +442,7 @@
     >
       <div class="edb-tip-title">{{ tip.label }}</div>
       <div class="edb-tip-value">
-        {{ energyField === '03' ? Math.round(tip.value / 1000) : fmt(tip.value, 1) }} {{ unitEnergyTotal }}
+        {{ energyField === '03' ? fmt(tip.value / 1000, 0) : fmt(tip.value, 2) }} {{ unitEnergyTotal }}
       </div>
     </div>
   </div>
@@ -590,7 +590,7 @@
           <tr v-for="(r, i) in detailRowsVisible" :key="'hr' + i">
             <td>{{ r.hour.replace(":00", "시") }}</td>
             <td class="edb-num">
-              {{ energyField === '03' ? fmt(r.kwh / 1000, 0) : fmt(r.kwh, 1) }}
+              {{ energyField === '03' ? fmt(r.kwh / 1000, 0) : fmt(r.kwh, 2) }}
             </td>
             <td class="edb-num">{{ r.weather || "—" }}</td>
             <td class="edb-num">
@@ -1779,7 +1779,7 @@ yTicksYear() {
 
             if (this.bars.length > 0) {
               const lastBar = this.bars[this.bars.length - 1];
-              const todayYmd = this.todayKstYmd(); // "2025-12-03"
+              const todayYmd = this.todayKstYmd();
               if (lastBar.x === todayYmd) {
                 lastBar.y = this.summary.today_kwh;
                 this.totalKwh = round2(
@@ -1819,7 +1819,6 @@ yTicksYear() {
               label: `${idx + 1}주`,
             }));
 
-            // 최근 4주만 사용
             this.monthSeries = this.monthSeries.slice(-4);
             this.monthSeries = this.monthSeries.filter(
               (item) => (item.y || 0) >= 0.01

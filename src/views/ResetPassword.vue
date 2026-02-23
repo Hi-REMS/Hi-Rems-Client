@@ -54,7 +54,7 @@
                     :type="showPassword ? 'text' : 'password'"
                     v-model="password"
                     autocomplete="new-password"
-                    placeholder="영문/숫자/특수문자 조합 8자 이상"
+                    placeholder="영문/숫자/특수문자 조합 9자 이상"
                     required
                     @blur="passwordTouched = true"
                     @keydown.space.prevent
@@ -151,7 +151,7 @@ export default {
   computed: {
     strengthPercent() {
       let s = 0;
-      if (this.password.length >= 8) s += 25;
+      if (this.password.length >= 9) s += 25;
       if (/[A-Z]/.test(this.password)) s += 25;
       if (/[0-9]/.test(this.password)) s += 25;
       if (/[^A-Za-z0-9]/.test(this.password)) s += 25;
@@ -162,7 +162,7 @@ export default {
       const e = [];
       const pw = this.password;
 
-      if (!pw || pw.length < 8) e.push("8자 이상 입력해 주세요.");
+      if (!pw || pw.length < 9) e.push("9자 이상 입력해 주세요.");
       if (!/[A-Z]/.test(pw)) e.push("대문자를 포함해야 합니다.");
       if (!/[a-z]/.test(pw)) e.push("소문자를 포함해야 합니다.");
       if (!/[0-9]/.test(pw)) e.push("숫자를 포함해야 합니다.");
