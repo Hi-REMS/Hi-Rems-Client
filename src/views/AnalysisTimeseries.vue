@@ -25,7 +25,7 @@
           />
 
           <label class="lbl">에너지</label>
-          <select v-model="energyField" class="input sel">
+          <select v-model="energyField" class="input sel" @change="handleEnergyManualChange">
             <option value="01">태양광(0x01)</option>
             <option value="02">태양열(0x02)</option>
             <option value="03">지열(0x03)</option>
@@ -1590,6 +1590,12 @@ async created () {
   },
 
   methods: {
+  handleEnergyManualChange() {
+    this.isSearched = false;
+    this.imeiUse = '';
+    this.clearForLoading();
+    this.syncQuery();
+  },
 
 async searchAgainInModal() {
   const q = (this.searchModal.keyword || "").trim();
