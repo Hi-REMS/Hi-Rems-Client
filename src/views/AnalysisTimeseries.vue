@@ -11,7 +11,7 @@
           type="text"
           placeholder="예) 01-01-01-01-01-01-01-01"
             :readonly="!isAdmin"
-            maxlength="30"
+            maxlength="23"
         />
         </template>
 
@@ -2207,10 +2207,18 @@ if (!this.imeiField && !this.nameField) {
     }
 
     if (imeiInput) {
+      if (imeiInput.length !== 23) {
+          this.loading = false;
+          alert("IMEI 형식이 올바르지 않습니다. (하이픈"-"을 포함한 23자리 입력)");
+          this.isSearched = false;
+          return;
+      }
+      
       if (imeiInput.replace(/[^0-9A-Fa-f\-]/g, '').length < 8) {
           this.loading = false;
-          alert("IMEI 형식이 올바르지 않습니다. (최소 8자리 이상 입력)");
           this.isSearched = false;
+          this.searching = false;
+          alert("IMEI 형식이 올바르지 않습니다.");
           return;
       }
 
