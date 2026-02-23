@@ -2213,7 +2213,7 @@ const isManual = options.manual === true;
     if (imeiInput) {
       if (imeiInput.length !== 23) {
           this.loading = false;
-          alert("IMEI 형식이 올바르지 않습니다. (하이픈"-"을 포함한 23자리 입력)");
+          alert("IMEI 형식이 올바르지 않습니다. (하이픈 '-'을 포함한 23자리 입력)");
           this.isSearched = false;
           return;
       }
