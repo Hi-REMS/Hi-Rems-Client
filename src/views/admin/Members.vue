@@ -228,7 +228,7 @@ formatPhone(u) {
       if (!emailRegex.test(email)) {
         this.showToast("올바른 이메일 형식이 아닙니다.", true);
         return;
-      }255
+      }
       if (email.length > 50 ) {
         this.showToast("이메일은 50자 이내로 입력하셔야 합니다.", true);
         return;
