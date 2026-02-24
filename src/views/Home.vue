@@ -94,7 +94,7 @@
               :title="rawTip(energy.electric.today_kwh, 'kWh')"
             >
               <template v-if="energyLoading">—</template
-              ><template v-else>{{ dFmt(energy.electric.today_kwh, 2) }}</template>
+              ><template v-else>{{ isAdmin ? dFmt(energy.electric.today_kwh / 1e6, 2) : dFmt(energy.electric.today_kwh, 2) }}</template>
               <span class="rems-unit">{{ isAdmin ? 'GWh' : 'kWh' }}</span>
             </div>
           </div>
