@@ -55,7 +55,7 @@
       <section class="edb-charts3">
         <article class="edb-card edb-chart edb-week">
           <div class="edb-card-hd">
-            <h3><span class="edb-dot edb-dot--cyan"></span>주간발전량</h3>
+            <h3><span class="edb-dot edb-dot--cyan"></span>주간발전량 ({{ unitEnergyTotal }})</h3>
           </div>
 
           <div class="edb-chart__body" ref="weekWrap">
@@ -198,7 +198,7 @@
  <article class="edb-card edb-chart edb-week">
   <div class="edb-card-hd">
     <h3>
-      <span class="edb-dot edb-dot--amber"></span>주간 발전량(최근 4주)
+      <span class="edb-dot edb-dot--amber"></span>주간 발전량(최근 4주) ({{ unitEnergyTotal }})
     </h3>
   </div>
 
@@ -327,7 +327,7 @@
 
 <article class="edb-card edb-chart edb-week">
   <div class="edb-card-hd">
-    <h3><span class="edb-dot edb-dot--cyan"></span>연간발전량</h3>
+    <h3><span class="edb-dot edb-dot--cyan"></span>연간발전량 ({{ unitEnergyTotal }})</h3>
   </div>
 
   <div class="edb-chart__body" ref="yearWrap">
@@ -965,7 +965,7 @@ export default {
   },
   computed: {
   unitEnergy() {
-    return this.energyField === '03' ? 'MW' : 'kW';
+    return this.energyField === '03' ? 'MWh' : 'kWh';
   },
   unitEnergyTotal() {
     return this.energyField === '03' ? 'MWh' : 'kWh';

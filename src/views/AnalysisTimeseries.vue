@@ -959,7 +959,7 @@ loadingWeather: false,
   },
   computed: {
     unitEnergy() {
-  return this.energyField === '03' ? 'MW' : 'kW';
+  return this.energyField === '03' ? 'MWh' : 'kWh';
 },
 
 unitEnergyTotal() {
