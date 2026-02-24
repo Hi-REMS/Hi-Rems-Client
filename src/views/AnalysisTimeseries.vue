@@ -1805,7 +1805,7 @@ enforceUserImei() {
 
         const baseQuery = {
           imei: userImei,
-          energy: urlQ.energy || '01',
+          energy: urlQ.energy || '',
           type: urlQ.type || '',
           multi: urlQ.multi || ''
         };
@@ -3151,7 +3151,7 @@ mounted() {
     this._initializing = true;
 
     const q = this.$route?.query || {};
-    const initEnergy = (typeof q.energy === 'string') ? q.energy : '01';
+    const initEnergy = (typeof q.energy === 'string') ? q.energy : '';
     const initType   = (typeof q.type   === 'string') ? q.type   : '';
     const initMulti  = (typeof q.multi  === 'string') ? q.multi  : '';
     const initName   = (typeof q.name   === 'string') ? q.name   : '';
