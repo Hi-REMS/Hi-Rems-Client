@@ -42,25 +42,25 @@
 
           <form v-else class="cardc-form" @submit.prevent="onSubmit" novalidate>
             <template v-if="!done">
-              <div class="field">
-                <label for="password">새 비밀번호</label>
-                <div
-                  class="pill"
-                  :class="{ error: passwordTouched && !passwordValid }"
-                >
-                  <input
-                    style="font-size: 14px"
-                    id="password"
-                    :type="showPassword ? 'text' : 'password'"
-                    v-model="password"
-                    autocomplete="new-password"
-                    placeholder="영문/숫자/특수문자 조합 9자 이상"
-                    required
-                    @blur="passwordTouched = true"
-                    @keydown.space.prevent
-                  />
-                </div>
-              </div>
+<div class="field">
+  <label for="password">새 비밀번호</label>
+  <div class="pill" :class="{ error: passwordTouched && !passwordValid }">
+    <input
+      id="password"
+      :type="showPassword ? 'text' : 'password'"
+      v-model="password"
+      placeholder="영문/숫자/특수문자 조합 9자 이상"
+      @blur="passwordTouched = true"
+      ... 
+    />
+  </div>
+
+  <ul v-if="password.length > 0 && passwordErrors.length > 0" class="pw-error-list">
+    <li v-for="(err, idx) in passwordErrors" :key="idx" class="pw-error-msg">
+      {{ err }}
+    </li>
+  </ul>
+</div>
 
               <div class="field">
                 <label for="confirm">비밀번호 확인</label>
@@ -135,7 +135,7 @@ export default {
     return {
       token: "",
       tokenMissing: false,
-
+      username: "",
       password: "",
       confirm: "",
       showPassword: false,
@@ -158,19 +158,25 @@ export default {
       return s;
     },
 
-    passwordErrors() {
-      const e = [];
-      const pw = this.password;
+passwordErrors() {
+  const e = [];
+  const pw = this.password;
+  
+  if (!pw) return e;
 
-      if (!pw || pw.length < 9) e.push("9자 이상 입력해 주세요.");
-      if (!/[A-Z]/.test(pw)) e.push("대문자를 포함해야 합니다.");
-      if (!/[a-z]/.test(pw)) e.push("소문자를 포함해야 합니다.");
-      if (!/[0-9]/.test(pw)) e.push("숫자를 포함해야 합니다.");
-      if (!/[^A-Za-z0-9]/.test(pw)) e.push("특수문자를 포함해야 합니다.");
-      if (/\s/.test(pw)) e.push("공백 문자는 사용할 수 없습니다.");
-
-      return e;
-    },
+  if (pw.length < 9) e.push("9자 이상이어야 합니다.");
+  if (!/[A-Z]/.test(pw)) e.push("대문자(A-Z)를 포함하세요.");
+  if (!/[a-z]/.test(pw)) e.push("소문자(a-z)를 포함하세요.");
+  if (!/[0-9]/.test(pw)) e.push("숫자(0-9)를 포함하세요.");
+  if (!/[^A-Za-z0-9]/.test(pw)) e.push("특수문자를 포함하세요.");
+  if (/\s/.test(pw)) e.push("공백 문자는 사용할 수 없습니다.");
+  
+  if (this.username && pw.toLowerCase().includes(this.username.toLowerCase())) {
+    e.push("비밀번호에 아이디(이메일)를 포함할 수 없습니다.");
+  }
+  
+  return e;
+},
 
     passwordValid() {
       return this.passwordErrors.length === 0;
