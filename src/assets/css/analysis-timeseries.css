@@ -1016,11 +1016,6 @@ html[data-theme="dark"] .weather-card .wx-inspect{
   margin-bottom: 14px;
 }
 
-.img-upload-box:hover {
-  border-color: #21e2cf;
-  background: rgba(33,226,207,0.07);
-}
-
 .img-empty {
   text-align: center;
   color: var(--p-muted);

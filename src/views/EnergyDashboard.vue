@@ -16,27 +16,32 @@
   </article>
 
 <article class="edb-stat edb-card">
-          <div class="edb-stat-main">
-            <div class="edb-stat-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div class="edb-stat-title">월간발전량</div>
-            </div>
-            <div class="edb-stat-value">
-              <b>{{ energyField === '03' ? fmt(kpiMonth.kwh / 1000, 0) : fmt(kpiMonth.kwh, 2) }}</b>
-              <span>{{ unitEnergyTotal }}</span>
-            </div>
-            <div class="edb-stat-sub edb-ok">
-              CO₂ {{ fmt(kpiMonth.co2, 2) }} kg · 식수 {{ fmt(kpiMonth.trees, 0) }} 그루
-            </div>
-            <button
-  class="edb-btn edb-btn--primary" 
-  :disabled="downloading || !canDownload"
-  @click="openDownloadModal"
-  style="padding: 6px 14px; font-size: 13px; height: 32px; font-weight: 600;"
->
-  다운로드
-</button>
-          </div>
-        </article>
+  <div class="edb-stat-main">
+    <div class="edb-stat-title">월간발전량</div>
+
+    <div style="display: flex; justify-content: space-between; align-items: stretch; margin-top: 8px; gap: 12px;">
+      
+      <div style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="edb-stat-value" style="margin: 0; padding: 0; line-height: 1;">
+          <b style="line-height: 1;">{{ energyField === '03' ? fmt(kpiMonth.kwh / 1000, 0) : fmt(kpiMonth.kwh, 2) }}</b>
+          <span style="margin-left: 4px;">{{ unitEnergyTotal }}</span>
+        </div>
+        <div class="edb-stat-sub edb-ok" style="margin: 4px 0 0 0; padding: 0; white-space: nowrap;">
+          CO₂ {{ fmt(kpiMonth.co2, 2) }} kg · 식수 {{ fmt(kpiMonth.trees, 0) }} 그루
+        </div>
+      </div>
+
+      <button
+        class="edb-btn edb-btn--primary" 
+        :disabled="downloading || !canDownload"
+        @click="openDownloadModal"
+        style="padding: 0 20px; font-size: 14px; font-weight: 700; border-radius: 8px; flex-shrink: 0;"
+      >
+        다운로드
+      </button>
+    </div>
+  </div>
+</article>
 
   <article class="edb-stat edb-card">
     <div class="edb-stat-main">

@@ -608,7 +608,7 @@
           <label>시공사</label>
           <input v-model="facilityForm.contractor" maxlength="30" placeholder="시공사를 입력하세요" />
           <label>A/S 연락처</label>
-          <input v-model="facilityForm.as_contact" maxlength="15" placeholder="연락처를 입력하세요" />
+          <input v-model="facilityForm.as_contact" maxlength="15" placeholder="연락처를 입력하세요" @input="handleContactInput"/>
           <label v-if="isAdmin"><span>설비 이미지</span>  <input
     type="file"
     accept="image/*"
@@ -625,8 +625,8 @@
 
   <div v-else class="img-empty">
     <p class="img-empty-title">이미지를 업로드하세요</p>
-    <p class="img-empty-desc">권장 크기: 380 × 260 px</p>
-    <p class="img-empty-sub">JPG / PNG 지원</p>
+    <p class="img-empty-desc">파일 크기 제한 : 50MB</p>
+    <p class="img-empty-sub">이미지 파일(jpg, jpeg, png, gif, webp)만 업로드 가능합니다.</p>
   </div>
 </div>
 </div>
@@ -1203,7 +1203,7 @@ overallStatusText() {
       return [
         { key: 'now',     title: this.isHeat ? '현재 열출력' : '현재 출력',     unit: u  },
         { key: 'today',   title: this.isHeat ? '금일 열량'   : '금일 발전량',   unit: u },
-        { key: 'co2',     title: 'CO₂ 저감',                                   unit: 'tCO₂' },
+        { key: 'co2',     title: '누적 CO₂ 저감',                                   unit: 'tCO₂' },
         { key: 'avg',     title: this.isHeat ? '지난 달 평균 열출력' : '지난 달 평균 출력', unit: u  },
         { key: 'status',  title: '시스템 상태',                                 unit: ''    },
         { key: 'total',   title: this.isHeat ? '누적 열량' : '누적 발전량',  unit: u },
@@ -1592,6 +1592,35 @@ async created () {
   },
 
   methods: {
+  handleContactInput() {
+    let val = this.facilityForm.as_contact.replace(/\D/g, "");
+    let len = val.length;
+    let res = "";
+
+    if (val.startsWith("02")) {
+      if (len <= 2) {
+        res = val;
+      } else if (len <= 5) {
+        res = val.slice(0, 2) + "-" + val.slice(2);
+      } else if (len <= 9) {
+        res = val.slice(0, 2) + "-" + val.slice(2, 5) + "-" + val.slice(5);
+      } else {
+        res = val.slice(0, 2) + "-" + val.slice(2, 6) + "-" + val.slice(6, 10);
+      }
+    } else {
+      if (len <= 3) {
+        res = val;
+      } else if (len <= 6) {
+        res = val.slice(0, 3) + "-" + val.slice(3);
+      } else if (len <= 10) {
+        res = val.slice(0, 3) + "-" + val.slice(3, 6) + "-" + val.slice(6);
+      } else {
+        res = val.slice(0, 3) + "-" + val.slice(3, 7) + "-" + val.slice(7, 11);
+      }
+    }
+    this.facilityForm.as_contact = res;
+  },
+
   handleEnergyManualChange() {
     this.isSearched = false;
     this.imeiUse = '';
