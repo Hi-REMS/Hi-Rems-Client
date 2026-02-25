@@ -143,13 +143,15 @@ export default {
       e.push("새 비밀번호를 입력해주세요.");
       return e;
     }
-if (pw.length < 9) e.push("9자 이상이어야 합니다.");
-    if (pw.length > 255) e.push("255자 이내로 입력하셔야 합니다.");
-    if (!/[A-Z]/.test(pw)) e.push("대문자를 포함해야 합니다.");
-    if (!/[a-z]/.test(pw)) e.push("소문자를 포함해야 합니다.");
-    if (!/[0-9]/.test(pw)) e.push("숫자를 포함해야 합니다.");
-    if (!/[^A-Za-z0-9]/.test(pw)) e.push("특수문자를 포함해야 합니다.");
-    return e;
+      if (!pw || pw.length < 9) e.push("9자 이상이어야 합니다.");
+      if (!/[A-Z]/.test(pw)) e.push("대문자(A-Z)를 포함하세요.");
+      if (!/[a-z]/.test(pw)) e.push("소문자(a-z)를 포함하세요.");
+      if (!/[0-9]/.test(pw)) e.push("숫자(0-9)를 포함하세요.");
+      if (!/[^A-Za-z0-9]/.test(pw)) e.push("특수문자를 포함하세요.");
+      if (/\s/.test(pw)) e.push("공백 문자는 사용할 수 없습니다.");
+      if (this.username && pw.toLowerCase().includes(this.username.toLowerCase()))
+        e.push("비밀번호에 아이디(이메일)를 포함할 수 없습니다.");
+      return e;
     },
     newValid() {
       return this.newPw.length >= 9 && this.newErrors.length === 0;

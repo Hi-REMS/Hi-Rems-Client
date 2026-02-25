@@ -1,21 +1,29 @@
 <template>
   <div class="admin-modern">
-    <header class="admin-header">
-      <div>
-        <h1>사용자 관리</h1>
-        <p>사용자 계정 권한 및 정보를 관리하는 화면입니다.</p>
-      </div>
-      <div class="search-area">
-        <input
-          v-model.trim="searchQuery"
-          type="text"
-          placeholder="이름 또는 이메일 검색"
-          class="search-input"
-          maxlength="50"
-        />
-        <p v-if="searchQuery.length === 0" class="search-tip">이름 또는 이메일을 입력하여 필터링하세요.</p>
-      </div>
-    </header>
+<header class="admin-header">
+  <div>
+    <h1>사용자 관리</h1>
+    <p>사용자 계정 권한 및 정보를 관리하는 화면입니다.</p>
+  </div>
+  <div class="search-area">
+    <div class="search-box">
+      <input
+        v-model.trim="searchQuery"
+        type="text"
+        placeholder="이름 또는 이메일 검색"
+        class="search-input"
+        maxlength="50"
+        @keyup.enter="handleSearch"
+      />
+      <button class="btn-search" @click="handleSearch">
+        검색
+      </button>
+    </div>
+    <p v-if="activeSearchQuery.length === 0" class="search-tip">
+      이름 또는 이메일을 입력하여 검색하세요.
+    </p>
+  </div>
+</header>
 
     <div v-if="loading" class="loading-state">
       <div class="spinner"></div>
@@ -141,6 +149,8 @@ export default {
       savingId: null,
       editRow: null,
       searchQuery: "",
+      activeSearchQuery: "",
+      searchQuery: "",
       originalData: null,
       toast: { visible: false, message: "" },
       currentAdminEmail: localStorage.getItem('email') || '',
@@ -149,9 +159,9 @@ export default {
   async mounted() {
     await this.fetchMembers();
   },
-  computed: {
+computed: {
     filteredMembers() {
-      const q = this.searchQuery.toLowerCase().trim();
+      const q = this.activeSearchQuery.toLowerCase().trim();
       if (!q) return this.members;
       
       return this.members.filter(
@@ -162,6 +172,9 @@ export default {
     },
   },
   methods: {
+  handleSearch() {
+      this.activeSearchQuery = this.searchQuery;
+    },
     isMe(u) {
       return u.username.toLowerCase() === this.currentAdminEmail.toLowerCase();
     },
