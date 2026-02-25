@@ -62,7 +62,6 @@
     <div v-for="n in 6" :key="'sk-'+n" class="kpi kpi-skeleton">
       <div class="kpi-hd">
         <span class="kpi-title skeleton-line"></span>
-        <span class="kpi-ico skeleton-ico"></span>
       </div>
       <div class="kpi-main">
         <span class="skeleton-value"></span>
