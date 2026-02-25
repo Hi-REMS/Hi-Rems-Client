@@ -75,7 +75,6 @@
     <div v-for="k in kpisShown" :key="k.key" class="kpi">
       <div class="kpi-hd">
         <span class="kpi-title">{{ k.title }}</span>
-        <span class="kpi-ico">⋯</span>
       </div>
       <div class="kpi-main">
         <span class="kpi-value">{{ valueFor(k.key) }}</span>
