@@ -443,7 +443,7 @@
             <div class="rems-qa-icon">📈</div>
             <div class="rems-qa-text">
               <div class="rems-qa-title">상세 모니터링</div>
-              <div class="rems-qa-desc">실시간·상세 데이터</div>
+              <div class="rems-qa-desc">개별 장비 상세 데이터</div>
             </div>
           </router-link>
         </div>
