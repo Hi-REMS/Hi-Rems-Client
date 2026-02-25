@@ -121,16 +121,13 @@
           </div>
           <div class="rems-tile">
             <div class="rems-t-caption">누적발전량</div>
-            <div
-              class="rems-t-value"
-              :title="rawTip(energy.electric.cumulative_kwh, 'kWh')"
-            >
-              <template v-if="energyLoading">—</template
-              ><template v-else>{{
-                dFmt(energy.electric.cumulative_kwh, 2)
-              }}</template>
-              <span class="rems-unit">{{ isAdmin ? 'GWh' : 'kWh' }}</span>
-            </div>
+<div class="rems-t-value" :title="rawTip(energy.electric.cumulative_kwh, 'kWh')">
+  <template v-if="energyLoading">—</template>
+  <template v-else>
+    {{ isAdmin ? dFmt(energy.electric.cumulative_kwh / 1e6, 2) : dFmt(energy.electric.cumulative_kwh, 2) }}
+  </template>
+  <span class="rems-unit">{{ isAdmin ? 'GWh' : 'kWh' }}</span>
+</div>
           </div>
         </div>
         <div
