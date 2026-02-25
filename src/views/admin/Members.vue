@@ -160,23 +160,23 @@ export default {
     await this.fetchMembers();
   },
 computed: {
-  filteredMembers() {
+filteredMembers() {
     const q = this.activeSearchQuery.toLowerCase().trim();
     
     if (!q) return this.members;
-    
+
     return this.members.filter((m) => {
-      if (this.editRow === m.member_id) {
-        return true;
-      }
-      
+    if (this.editRow === m.member_id) {
+      return true;
+        }
+
       return (
-        m.username.toLowerCase().includes(q) ||
+      m.username.toLowerCase().includes(q) ||
         (m.worker && m.worker.toLowerCase().includes(q))
-      );
-    });
+        );
+      });
+    },
   },
-},
   methods: {
   handleSearch() {
       this.activeSearchQuery = this.searchQuery;

@@ -3027,33 +3027,34 @@ async syncQuery() {
         : `${this.number(v, digits)}${suffix ? suffix : ''}`;
     },
 valueFor(key) {
-  const isGeothermal = this.energyField === '03';
-  
+  const isGeo = this.energyField === '03';
+  const k = this.kpi;
+
   switch (key) {
     case 'now': {
-      const v = this.kpi.now_kw;
+      const v = k.now_kw;
       if (v == null) return '—';
-      return isGeothermal ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
-    }
-    case 'today': {
-      const v = this.kpi.today_kwh;
-      if (v == null) return '—';
-      return isGeothermal ? this.number(v / 1000, 0) : this.formatKwh1(v);
+      return this.fmt(v, 0); 
     }
     case 'avg': {
-      const v = this.kpi.last_month_avg_kw;
+      const v = k.last_month_avg_kw;
       if (v == null) return '—';
-      return isGeothermal ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
+      return this.fmt(v, 0);
+    }
+    case 'today': {
+      const v = k.today_kwh;
+      if (v == null) return '—';
+      return isGeo ? this.number(v / 1000, 0) : this.formatKwh1(v);
     }
     case 'total': {
-      const v = this.kpi.total_kwh;
+      const v = k.total_kwh;
       if (v == null) return '—';
-      return isGeothermal ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
+      return isGeo ? this.fmt(v / 1000, 0) : this.fmt(v, 2);
     }
     case 'status':
       return this.overallStatusText;
     case 'co2':
-      return this.fmt(this.kpi.co2_ton, 2);
+      return this.fmt(k.co2_ton, 2);
     default:
       return '—';
   }
