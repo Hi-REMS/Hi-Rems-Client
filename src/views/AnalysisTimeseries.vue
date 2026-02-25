@@ -1203,9 +1203,9 @@ overallStatusText() {
       return [
         { key: 'now',     title: this.isHeat ? '현재 열출력' : '현재 출력',     unit: u  },
         { key: 'today',   title: this.isHeat ? '금일 열량'   : '금일 발전량',   unit: u },
-        { key: 'co2',     title: '누적 CO₂ 저감',                                   unit: 'tCO₂' },
         { key: 'avg',     title: this.isHeat ? '지난 달 평균 열출력' : '지난 달 평균 출력', unit: u  },
         { key: 'status',  title: '시스템 상태',                                 unit: ''    },
+        { key: 'co2',     title: '누적 CO₂ 저감',                                   unit: 'tCO₂' },
         { key: 'total',   title: this.isHeat ? '누적 열량' : '누적 발전량',  unit: u },
       ];
     },
