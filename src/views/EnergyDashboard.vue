@@ -19,14 +19,6 @@
           <div class="edb-stat-main">
             <div class="edb-stat-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
               <div class="edb-stat-title">월간발전량</div>
-              <button
-                class="edb-btn edb-btn--primary edb-btn--sm"
-                :disabled="downloading || !canDownload"
-                @click="openDownloadModal"
-                style="padding: 2px 8px; font-size: 11px; height: auto;"
-              >
-                다운로드
-              </button>
             </div>
             <div class="edb-stat-value">
               <b>{{ energyField === '03' ? fmt(kpiMonth.kwh / 1000, 0) : fmt(kpiMonth.kwh, 2) }}</b>
@@ -35,6 +27,14 @@
             <div class="edb-stat-sub edb-ok">
               CO₂ {{ fmt(kpiMonth.co2, 2) }} kg · 식수 {{ fmt(kpiMonth.trees, 0) }} 그루
             </div>
+            <button
+  class="edb-btn edb-btn--primary" 
+  :disabled="downloading || !canDownload"
+  @click="openDownloadModal"
+  style="padding: 6px 14px; font-size: 13px; height: 32px; font-weight: 600;"
+>
+  다운로드
+</button>
           </div>
         </article>
 
