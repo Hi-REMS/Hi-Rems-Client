@@ -1739,7 +1739,7 @@ async onFacilityImageChange(e) {
   const file = e.target.files[0];
   if (!file) return;
 
-  const maxSize = 50 * 1024 * 1024; // 50MB
+  const maxSize = 50 * 1024 * 1024;
   if (file.size > maxSize) {
     alert("이미지 용량이 너무 큽니다. 50MB 이하의 파일만 업로드 가능합니다.");
     e.target.value = "";

@@ -113,7 +113,6 @@
 
 <script>
 import { api } from "@/api";
-// 기존 register.css의 스타일을 재사용하고, 추가적인 것만 전용 CSS에 작성합니다.
 import "@/assets/css/register.css"; 
 import "@/assets/css/change-password.css";
 
