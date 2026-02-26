@@ -3029,17 +3029,18 @@ async syncQuery() {
 valueFor(key) {
   const isGeo = this.energyField === '03';
   const k = this.kpi;
+  if (!k) return '—';
 
   switch (key) {
     case 'now': {
       const v = k.now_kw;
       if (v == null) return '—';
-      return this.fmt(v, 0); 
+      return isGeo ? this.number(v, 0) : this.fmt(v, 2);
     }
     case 'avg': {
       const v = k.last_month_avg_kw;
       if (v == null) return '—';
-      return this.fmt(v, 0);
+      return isGeo ? this.number(v,0) : this.fmt(v, 2);
     }
     case 'today': {
       const v = k.today_kwh;
