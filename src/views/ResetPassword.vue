@@ -51,7 +51,6 @@
       v-model="password"
       placeholder="영문/숫자/특수문자 조합 9자 이상"
       @blur="passwordTouched = true"
-      ... 
     />
   </div>
 
