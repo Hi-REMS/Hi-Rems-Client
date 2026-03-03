@@ -145,7 +145,7 @@
         </div>
         <div class="rems-stat-tiles">
           <div class="rems-tile">
-            <div class="rems-t-caption">금일 사용량</div>
+            <div class="rems-t-caption">금일 발전량</div>
             <div
               class="rems-t-value"
               :title="rawTip(energy.thermal.today_kwh, 'kWh')"
