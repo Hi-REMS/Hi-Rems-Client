@@ -353,7 +353,7 @@
 
         <div v-if="isSearched && mets" class="status-body">
           <div class="status-main">
-            <div class="status-ring-wrapper" :class="statusClass">
+            <div class="status-ring-wrapper">
               <svg class="status-ring-svg" viewBox="0 0 100 100">
                 <circle class="ring-bg" cx="50" cy="50" r="45"></circle>
                 <circle class="ring-progress" cx="50" cy="50" r="45"></circle>
@@ -1808,8 +1808,8 @@ resolveImg(path) {
 
   if (path.startsWith("http")) return path;
 
-  if (location.hostname === "127.0.0.1" || location.hostname === "localhost") {
-    return `http://127.0.0.1:8080${path}`;
+  if (location.hostname === "192.168.45.137" || location.hostname === "localhost") {
+    return `http://192.168.45.137:8080${path}`;
   }
 
   return `https://kocome.com${path}`;
