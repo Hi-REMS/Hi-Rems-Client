@@ -31,9 +31,6 @@
             <option value="01">태양광(0x01)</option>
             <option value="02">태양열(0x02)</option>
             <option value="03">지열(0x03)</option>
-            <option value="04">풍력(0x04)</option>
-            <option value="06">연료전지(0x06)</option>
-            <option value="07">ESS(0x07)</option>
             <option value="">전체</option>
           </select>
 
