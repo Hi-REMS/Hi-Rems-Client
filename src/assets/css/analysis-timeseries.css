@@ -203,11 +203,10 @@ html[data-theme="dark"] .ts-page{ --ghost-fg: #eaf6ff; }
   stroke-width:3px;
   pointer-events:none;
 }
-
 .ts-page .kv{ list-style:none; margin:0; padding:10px 14px 14px; display:grid; gap:10px; }
-.ts-page .kv li{ display:flex; align-items:center; justify-content:space-between; font-size:13px; color:var(--muted-1); gap:8px; }
-.ts-page .kv span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ts-page .kv strong{ color:var(--text-1); }
+.ts-page .kv li {display: flex;align-items: flex-start; justify-content: space-between; font-size: 13px; color: var(--muted-1); gap: 12px; padding: 6px 0;}
+.ts-page .kv span { flex-shrink: 0; width: 85px; white-space: normal; overflow: visible; text-overflow: clip; }
+.ts-page .kv strong { color: var(--text-1); flex: 1; white-space: normal; word-break: break-all; text-align: right; line-height: 1.4; }
 .ts-page .table-wrap { overflow:auto; }
 .ts-page .tbl { width:100%; border-collapse: separate; border-spacing:0; }
 .ts-page .tbl thead th {

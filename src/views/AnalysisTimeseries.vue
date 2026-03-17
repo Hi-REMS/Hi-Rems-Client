@@ -2685,13 +2685,10 @@ async loadFacility (reqId) {
         image: null,
       };
     },
-    toDateStr (v) {
-      try {
-        const d = new Date(v);
-        if (isNaN(d.getTime())) return null;
-        return d.toISOString().slice(0,10);
-      } catch { return null; }
-    },
+toDateStr(v) {
+  if (!v) return null;
+  return new Date(v).toLocaleDateString('sv-SE'); 
+}
 
 openFacilityEditor(isEdit) {
   this.editingFacility = !!isEdit;
