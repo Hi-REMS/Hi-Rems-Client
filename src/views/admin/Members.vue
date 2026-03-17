@@ -45,7 +45,7 @@
         </thead>
         <tbody>
           <tr v-for="u in filteredMembers" :key="u.member_id">
-            <td>{{ u.member_id }}</td>
+            <td>{{ i+1 }}</td>
 
             <td>
               <div v-if="editRow === u.member_id">

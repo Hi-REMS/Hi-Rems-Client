@@ -156,10 +156,6 @@ export default {
         return;
       }
 
-      if (!emailRegex.test(this.username)) {
-        alert("아이디는 이메일 형식이여야 합니다.");
-      }
-
       if (this.loading) return;
 
       try {

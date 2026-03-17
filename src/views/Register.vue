@@ -181,7 +181,7 @@ workerValid() {
       const trimmedWorker = this.worker.trim();
       
       return (
-        !!trimmedWorker && d
+        !!trimmedWorker &&
         trimmedWorker.length >= 2 && 
         nameRegex.test(trimmedWorker)
       );
