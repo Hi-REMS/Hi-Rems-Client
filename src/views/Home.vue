@@ -1367,49 +1367,33 @@ toKst(iso) {
       } catch (e) {}
     },
 
-    async loadRegions() {
-      const isNational = !this.selectedSido;
-      if (isNational && window.__CACHE_REGIONS) {
-        this.regions = window.__CACHE_REGIONS;
-        this.sideList = this.regions.map((r) => r.name);
-        this.loadingRegions = false;
-      } else {
-        this.loadingRegions = true;
-      }
+async loadRegions() {
+      this.loadingRegions = true;
       try {
-        if (!this.selectedSido) {
-          const { data } = await api.get("/rems/agg/sido");
-          this.regions = (data || []).map((r) => ({
-            name: r.name,
+        const params = {
+            level: this.selectedSido ? 'sigungu' : 'sido',
+        };
+        if (this.selectedSido) params.sido = this.selectedSido;
+
+        // 통합된 새 API 호출
+        const { data } = await api.get("/dashboard/region/summary", { params });
+        
+        // 프론트 데이터 형식에 맞게 매핑
+        this.regions = (data?.items || []).map((r) => {
+          const abnormal = (r.FAULT_BIT || 0) + (r.OFFLINE || 0) + (r.OPMODE_ABNORMAL || 0);
+          const rate = r.count > 0 ? 100 * (1 - abnormal / r.count) : null;
+          return { 
+            name: r.name, 
             count: r.count,
-          }));
-          this.sideList = this.regions.map((r) => r.name);
-        } else {
-          const { data } = await api.get("/rems/agg/sigungu", {
-            params: { sido: this.selectedSido },
-          });
-          this.regions = (data || []).map((r) => ({
-            name: r.name,
-            count: r.count,
-          }));
-          this.sideList = this.regions.map((r) => r.name);
-        }
-        await this.loadAbnormalByRegion();
+            abnormal,
+            rate
+          };
+        });
+
         if (!this.selectedSido) {
-          this.regions = this.regions.map((r) => {
-            const abnormal = this.abnByRegion[r.name] || 0;
-            const rate = r.count > 0 ? 100 * (1 - abnormal / r.count) : null;
-            return { ...r, abnormal, rate };
-          });
-          window.__CACHE_REGIONS = this.regions;
-        } else {
-          this.regions = this.regions.map((r) => {
-            const key = `${this.selectedSido}/${r.name}`;
-            const abnormal = this.abnByRegion[key] || 0;
-            const rate = r.count > 0 ? 100 * (1 - abnormal / r.count) : null;
-            return { ...r, abnormal, rate };
-          });
+            this.sideList = this.regions.map(r => r.name);
         }
+        
         this.renderMap();
       } catch (e) {
         if (!this.regions.length) this.regions = [];
@@ -1417,6 +1401,7 @@ toKst(iso) {
         this.loadingRegions = false;
       }
     },
+    
     async loadKakaoFromServerKey() {
       if (window.kakao && window.kakao.maps) return;
       const { data } = await api.get("/rems/kakao-jskey");

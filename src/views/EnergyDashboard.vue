@@ -17,7 +17,7 @@
 
 <article class="edb-stat edb-card">
   <div class="edb-stat-main">
-    <div class="edb-stat-title">월간발전량</div>
+    <div class="edb-stat-title">최근 4주 발전량</div>
 
     <div style="display: flex; justify-content: space-between; align-items: stretch; margin-top: 8px; gap: 12px;">
       
@@ -250,7 +250,7 @@
             :y1="vb.h - pad.b"
             :y2="vb.h - pad.b + 5"
           />
-          <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle">
+          <text :x="x.x" :y="vb.h - pad.b + 40" text-anchor="middle" style="font-size: 15px;">
             {{ x.label }}
           </text>
         </g>
@@ -490,7 +490,7 @@
           <td class="edb-num">{{ unitEnergyTotal }}</td>
         </tr>
         <tr>
-          <td>월간</td>
+          <td>최근 4주</td>
           <td class="edb-num">{{ energyField === '03' ? fmt(kpiMonth.kwh / 1000, 0) : fmt(kpiMonth.kwh, 2) }}</td>
           <td class="edb-num">{{ unitEnergyTotal }}</td>
         </tr>
@@ -524,7 +524,7 @@
                       <td class="edb-num">kg</td>
                     </tr>
                     <tr>
-                      <td>CO₂ 절감량 - 월간</td>
+                      <td>CO₂ 절감량 - 최근 4주</td>
                       <td class="edb-num">{{ fmt(kpiMonth.co2, 2) }}</td>
                       <td class="edb-num">kg</td>
                     </tr>
@@ -539,7 +539,7 @@
                       <td class="edb-num">그루</td>
                     </tr>
                     <tr>
-                      <td>식수 효과 - 월간</td>
+                      <td>식수 효과 - 최근 4주</td>
                       <td class="edb-num">{{ fmt(kpiMonth.trees, 0) }}</td>
                       <td class="edb-num">그루</td>
                     </tr>
@@ -1407,70 +1407,6 @@ yTicksYear() {
       );
     },
 
-    aggregateWeeksFromDaily(dailySeries) {
-      let yearStr = null,
-        monthStr = null;
-      if (Array.isArray(dailySeries) && dailySeries.length) {
-        const b = String(dailySeries.find((r) => r?.bucket)?.bucket || "");
-        const m = b.match(/^(\d{4})-(\d{2})-\d{2}$/);
-        if (m) {
-          yearStr = m[1];
-          monthStr = m[2];
-        }
-      }
-      if (!yearStr || !monthStr) {
-        const now = new Date();
-        yearStr = String(now.getFullYear());
-        monthStr = String(now.getMonth() + 1).padStart(2, "0");
-      }
-
-      const y = parseInt(yearStr, 10);
-      const mo = parseInt(monthStr, 10);
-      const lastDay = new Date(y, mo, 0).getDate();
-
-      const weeks = [1, 2, 3, 4, 5];
-      const empty = new Map(
-        weeks.map((wn) => {
-          const startDay = (wn - 1) * 7 + 1;
-          const endDay = Math.min(wn * 7, lastDay);
-          return [wn, { y: 0, co2: 0, trees: 0, startDay, endDay }];
-        })
-      );
-
-      if (Array.isArray(dailySeries)) {
-        for (const row of dailySeries) {
-          const b = String(row.bucket || "");
-          const m = b.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-          if (!m) continue;
-          const dd = parseInt(m[3], 10);
-          const wn = Math.floor((dd - 1) / 7) + 1;
-          const g = empty.get(wn);
-          if (!g) continue;
-          const kwh = Number(row.kwh || 0);
-          g.y += kwh;
-          g.co2 += this.co2(kwh);
-          g.trees += this.treesFromKwh(kwh);
-        }
-      }
-
-      const series = weeks.map((wn) => {
-        const g = empty.get(wn);
-        return {
-          x: `W${wn}`,
-          label: `${wn}주`,
-          y: round2(g.y),
-          co2: round2(g.co2),
-          trees: Math.round(g.trees),
-          rangeText: `${yearStr}-${monthStr}-${String(g.startDay).padStart(
-            2,
-            "0"
-          )} ~ ${yearStr}-${monthStr}-${String(g.endDay).padStart(2, "0")}`,
-        };
-      });
-
-      return { series };
-    },
-
     _seriesEndpoint() {
       return "/api/energy/series";
     },
@@ -1804,33 +1740,50 @@ yTicksYear() {
             const monthly = await this.fetchRange("last4weeks", false, imei);
             if (myReq !== this.currentReqId) return;
 
-            const mSeries = Array.isArray(monthly?.series)
-              ? monthly.series
-              : [];
+            const mSeries = Array.isArray(monthly?.series) ? monthly.series : [];
             this.monthRangeUtc = monthly?.range_utc || monthly?.range || null;
 
-            const monthAgg = this.aggregateWeeksFromDaily(
-              mSeries.map((r) => ({
-                bucket: r.bucket || r.date || r.x,
-                kwh: Number(r.kwh ?? r.y ?? 0),
-              }))
-            );
+            const endTs = this.monthRangeUtc?.end ? new Date(this.monthRangeUtc.end).getTime() : new Date().getTime(); 
+            const endDate = new Date(endTs - 1000); 
+            endDate.setHours(0,0,0,0);
+            const refTs = endDate.getTime();
 
-            this.monthSeries = monthAgg.series;
+            const weeks = [
+              { y: 0, co2: 0, trees: 0 },
+              { y: 0, co2: 0, trees: 0 },
+              { y: 0, co2: 0, trees: 0 },
+              { y: 0, co2: 0, trees: 0 },
+            ];
 
-            this.monthSeries = this.monthSeries.map((item, idx) => ({
-              ...item,
-              x: `W${idx + 1}`,
-              label: `${idx + 1}주`,
+            for (const r of mSeries) {
+              const d = new Date(r.bucket || r.date || r.x).getTime();
+              const diffDays = Math.floor((refTs - d) / 86400000); 
+              if (diffDays >= 0 && diffDays <= 27) {
+                const weekIdx = 3 - Math.floor(diffDays / 7); 
+                const kwh = Number(r.kwh ?? r.y ?? 0);
+                if (kwh > 0 && weekIdx >= 0 && weekIdx <= 3) {
+                  weeks[weekIdx].y += kwh;
+                  weeks[weekIdx].co2 += this.co2(kwh);
+                  weeks[weekIdx].trees += this.treesFromKwh(kwh);
+                }
+              }
+            }
+
+            for (let i = 0; i < 4; i++) {
+               const wStart = new Date(refTs - (27 - i * 7) * 86400000);
+               const wEnd = new Date(refTs - (21 - i * 7) * 86400000);
+               const f = d => `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+               weeks[i].label = `${f(wStart)}~${f(wEnd)}`;
+            }
+
+            this.monthSeries = weeks.map(w => ({
+              label: w.label,
+              y: round2(w.y),
+              co2: round2(w.co2),
+              trees: Math.round(w.trees)
             }));
 
-            this.monthSeries = this.monthSeries.slice(-4);
-            this.monthSeries = this.monthSeries.filter(
-              (item) => (item.y || 0) >= 0.01
-            );
-            this.summary.month_kwh = round2(
-              mSeries.reduce((s, r) => s + Number(r.kwh ?? r.y ?? 0), 0)
-            );
+            this.summary.month_kwh = round2(this.monthSeries.reduce((s, w) => s + w.y, 0));
 
             this.loadingMonth = false;
           } catch (e) {
@@ -2044,7 +1997,6 @@ yTicksYear() {
             const j = await resp.json();
             if (j && j.error) msg = j.error;
           } catch (_) {
-            /* non-JSON 응답일 수 있음 */
           }
           throw new Error(msg);
         }
