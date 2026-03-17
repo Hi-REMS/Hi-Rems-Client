@@ -11,7 +11,7 @@ module.exports = {
     config.cache = { type: 'filesystem' };
   },
   devServer: {
-    host: '192.168.45.215',
+    host: '0.0.0.0',
     port: 8080,
     compress: true,
     client: { overlay: false },
