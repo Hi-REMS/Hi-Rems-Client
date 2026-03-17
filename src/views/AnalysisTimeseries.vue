@@ -2688,7 +2688,7 @@ async loadFacility (reqId) {
 toDateStr(v) {
   if (!v) return null;
   return new Date(v).toLocaleDateString('sv-SE'); 
-}
+},
 
 openFacilityEditor(isEdit) {
   this.editingFacility = !!isEdit;

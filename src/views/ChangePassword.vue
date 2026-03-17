@@ -30,7 +30,7 @@
                   v-model="current"
                   placeholder="현재 비밀번호 입력"
                   required
-                  maxlength="255"
+                  maxlength="100"
                   @blur="curTouched = true"
                   @keydown.space.prevent
                 />
@@ -56,7 +56,7 @@
                   v-model="newPw"
                   placeholder="새 비밀번호 입력 (9자 이상)"
                   required
-                  maxlength="255"
+                  maxlength="100"
                   @blur="newTouched = true"
                   @keydown.space.prevent
                 />
@@ -85,7 +85,7 @@
                   v-model="confirmPw"
                   placeholder="새 비밀번호 재입력"
                   required
-                  maxlength="255"
+                  maxlength="100"
                   @blur="confTouched = true"
                   @keydown.space.prevent
                 />

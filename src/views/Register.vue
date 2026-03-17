@@ -42,6 +42,7 @@
                   placeholder="이메일을 입력하세요."
                   required
                   @blur="usernameTouched = true"
+                  maxlength="50"
                   @keydown.space.prevent
                 />
               </div>
@@ -67,6 +68,7 @@
       autocomplete="name"
       placeholder="성함 또는 법인명 입력"
       required
+      maxlength="30"
       @blur="workerTouched = true"
     />
   </div>
@@ -109,6 +111,7 @@
                   placeholder="*********"
                   required
                   @keyup="checkCaps"
+                  maxlength="30"
                   @blur="passwordTouched = true"
                 />
                 <button
@@ -148,6 +151,7 @@
                   autocomplete="new-password"
                   placeholder="비밀번호 재입력"
                   required
+                  maxlength="30"
                   @blur="confirmTouched = true"
                 />
               </div>

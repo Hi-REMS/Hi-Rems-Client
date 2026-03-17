@@ -76,6 +76,7 @@
                     placeholder="*******"
                     required
                     @blur="confirmTouched = true"
+                    maxlength="100"
                     @keydown.space.prevent
                   />
                 </div>
