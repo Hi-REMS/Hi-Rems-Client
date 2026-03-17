@@ -197,6 +197,12 @@ export default {
         } catch (e) {
         }
 
+        if (loginRes.mustChangePassword) {
+        alert("비밀번호를 변경한 지 180일이 지났습니다.\n보안을 위해 비밀번호를 변경해 주세요.");
+        this.$router.replace("/change-password"); 
+        return;
+        }
+
         const raw = this.$route.query.redirect;
         let to = raw ? decodeURIComponent(String(raw)) : "";
 

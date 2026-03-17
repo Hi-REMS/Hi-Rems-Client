@@ -44,7 +44,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="u in filteredMembers" :key="u.member_id">
+          <tr v-for="(u,i) in filteredMembers" :key="u.member_id">
             <td>{{ i+1 }}</td>
 
             <td>
