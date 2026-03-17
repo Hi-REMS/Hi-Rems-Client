@@ -36,6 +36,7 @@
                   type="text"
                   autocomplete="username"
                   placeholder="email@example.com"
+                  maxlength="50"
                 />
               </div>
             </div>
@@ -51,6 +52,7 @@
                   placeholder="********"
                   @keyup="checkCaps"
                   @keydown.space.prevent
+                  maxlength="100"
                 />
                 <button
                   type="button"
@@ -152,6 +154,10 @@ export default {
       if (!this.password) {
         alert("비밀번호를 입력해 주세요.");
         return;
+      }
+
+      if (!emailRegex.test(this.username)) {
+        alert("아이디는 이메일 형식이여야 합니다.");
       }
 
       if (this.loading) return;

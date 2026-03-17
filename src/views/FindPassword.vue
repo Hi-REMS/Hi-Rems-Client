@@ -50,6 +50,7 @@
                   required
                   @blur="touched = true"
                   @keydown.space.prevent
+                  maxlength="50"
                 />
               </div>
               <p v-if="touched && !usernameValid" class="pw-error-text">

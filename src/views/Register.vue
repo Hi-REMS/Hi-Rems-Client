@@ -26,116 +26,48 @@
           </header>
 
           <form class="cardc-form" @submit.prevent="onSubmit" novalidate>
-            <div class="field">
-              <label for="username">아이디(이메일)</label>
-              <div
-                class="pill"
-                :class="{ error: usernameTouched && !usernameValid }"
-              >
-                <input
-                  style="font-size: 14px"
-                  id="username"
-                  v-model.trim="username"
-                  type="email"
-                  inputmode="email"
-                  autocomplete="username"
-                  placeholder="이메일을 입력하세요."
-                  required
-                  @blur="usernameTouched = true"
-                  maxlength="50"
-                  @keydown.space.prevent
-                />
-              </div>
-              <ul
-                v-if="usernameTouched && usernameErrors.length"
-                class="pw-errors compact"
-              >
-                <li v-for="(err, i) in usernameErrors" :key="i">{{ err }}</li>
-              </ul>
-            </div>
+<div class="field">
+  <label for="username">아이디(이메일)</label>
+  <div class="pill" :class="{ error: usernameTouched && !usernameValid }">
+    <input id="username" v-model.trim="username" type="email" maxlength="50" placeholder="이메일을 입력하세요." @blur="usernameTouched = true" />
+  </div>
+  <p class="field-guide">수신 가능한 이메일 주소를 입력해 주세요. (최대 50자)</p>
+  <ul v-if="usernameTouched && usernameErrors.length" class="pw-errors compact">
+    <li v-for="(err, i) in usernameErrors" :key="i">{{ err }}</li>
+  </ul>
+</div>
 
 <div class="field">
   <label for="worker">담당자(이름)</label>
-  <div
-    class="pill"
-    :class="{ error: workerTouched && !workerValid }"
-  >
-    <input
-      style="font-size: 14px"
-      id="worker"
-      v-model.trim="worker"
-      type="text"
-      autocomplete="name"
-      placeholder="성함 또는 법인명 입력"
-      required
-      maxlength="30"
-      @blur="workerTouched = true"
-    />
+  <div class="pill" :class="{ error: workerTouched && !workerValid }">
+    <input id="worker" v-model.trim="worker" type="text" maxlength="30" placeholder="성함 또는 법인명 입력" @blur="workerTouched = true" />
   </div>
+  <p class="field-guide">한글, 영문, 숫자 조합 2자 이상 30자 이내로 입력해 주세요.</p>
   <p v-if="workerTouched && !workerValid" class="pw-error-text">
-    담당자 성함 또는 법인명을 정확히 입력해 주세요. (2자 이상)
+    형식에 맞춰 2자 이상 입력해 주세요.
   </p>
 </div>
 
-            <div class="field">
-              <label for="phoneNumber">전화번호</label>
-              <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
-                <input
-                  style="font-size: 14px"
-                  id="phoneNumber"
-                  v-model.trim="phoneNumber"
-                  type="tel"
-                  autocomplete="tel"
-                  placeholder="010-1234-5678"
-                  maxlength="13" 
-                  required
-                  @blur="phoneTouched = true"
-                />
-              </div>
-              <p v-if="phoneTouched && !phoneValid" class="pw-error-text">
-                올바른 전화번호 형식이 아닙니다.
-              </p>
-            </div>
+<div class="field">
+  <label for="phoneNumber">전화번호</label>
+  <div class="pill" :class="{ error: phoneTouched && !phoneValid }">
+    <input id="phoneNumber" v-model.trim="phoneNumber" type="tel" maxlength="13" placeholder="010-1234-5678" @blur="phoneTouched = true" />
+  </div>
+  <p class="field-guide">숫자만 입력하면 하이픈(-)이 자동으로 삽입됩니다.</p>
+  <p v-if="phoneTouched && !phoneValid" class="pw-error-text">올바른 형식이 아닙니다.</p>
+</div>
 
-            <div class="field">
-              <label for="password">비밀번호</label>
-              <div
-                class="pill"
-                :class="{ error: passwordTouched && !passwordValid }"
-              >
-                <input
-                  id="password"
-                  :type="showPassword ? 'text' : 'password'"
-                  v-model="password"
-                  autocomplete="new-password"
-                  placeholder="*********"
-                  required
-                  @keyup="checkCaps"
-                  maxlength="30"
-                  @blur="passwordTouched = true"
-                />
-                <button
-                  type="button"
-                  class="pill-action"
-                  @click="showPassword = !showPassword"
-                >
-                  {{ showPassword ? "숨김" : "표시" }}
-                </button>
-              </div>
-
-              <div class="pw-strength slim" aria-hidden="true">
-                <div
-                  class="bar"
-                  :style="{ width: strengthPercent + '%' }"
-                ></div>
-              </div>
-              <ul
-                v-if="passwordTouched && passwordErrors.length"
-                class="pw-errors compact"
-              >
-                <li v-for="(err, i) in passwordErrors" :key="i">{{ err }}</li>
-              </ul>
-            </div>
+<div class="field">
+  <label for="password">비밀번호</label>
+  <div class="pill" :class="{ error: passwordTouched && !passwordValid }">
+    <input id="password" :type="showPassword ? 'text' : 'password'" v-model="password" maxlength="30" placeholder="*********" @blur="passwordTouched = true" />
+    <button type="button" class="pill-action" @click="showPassword = !showPassword">{{ showPassword ? "숨김" : "표시" }}</button>
+  </div>
+  <p class="field-guide">영문 대/소문자, 숫자, 특수문자를 포함하여 9자 이상 입력해 주세요.</p>
+  <ul v-if="passwordTouched && passwordErrors.length" class="pw-errors compact">
+    <li v-for="(err, i) in passwordErrors" :key="i">{{ err }}</li>
+  </ul>
+</div>
 
             <div class="field">
               <label for="confirm">비밀번호 확인</label>
@@ -241,7 +173,7 @@ export default {
     usernameErrors() {
       const e = [];
       if (!this.username) e.push("이메일을 입력해 주세요.");
-      else if (!this.usernameValid) e.push("올바른 이메일 형식이 아닙니다.");
+      else if (!this.usernameValid) e.push("올바른 이메일 형식이 아닙니다.((최대 50자)");
       return e;
     },
 workerValid() {
@@ -249,7 +181,7 @@ workerValid() {
       const trimmedWorker = this.worker.trim();
       
       return (
-        !!trimmedWorker && 
+        !!trimmedWorker && d
         trimmedWorker.length >= 2 && 
         nameRegex.test(trimmedWorker)
       );

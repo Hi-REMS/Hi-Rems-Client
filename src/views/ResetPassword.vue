@@ -51,6 +51,7 @@
       v-model="password"
       placeholder="영문/숫자/특수문자 조합 9자 이상"
       @blur="passwordTouched = true"
+      maxlength="30"
     />
   </div>
 
@@ -76,7 +77,7 @@
                     placeholder="*******"
                     required
                     @blur="confirmTouched = true"
-                    maxlength="100"
+                    maxlength="30"
                     @keydown.space.prevent
                   />
                 </div>
