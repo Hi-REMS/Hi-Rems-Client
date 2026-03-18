@@ -1748,10 +1748,7 @@ clearFocus() {
     this.focusCircle = null;
   }
 },
-
-
-
-    async renderMap() {
+async renderMap() {
       if (!this.map) return;
       if (this.selectedSigungu) {
         const key = `${this.selectedSido}/${this.selectedSigungu}`;
@@ -1766,22 +1763,27 @@ clearFocus() {
           );
       } else if (this.selectedSido) {
         const c = PROVINCE_CENTERS[this.selectedSido];
-        if (c)
+        if (c) {
+          const isProvince = this.selectedSido.endsWith('도');
+          const focusRadius = isProvince ? 40000 : 15000;
+          
           this.showFocus(
             new window.kakao.maps.LatLng(c.lat, c.lng),
-            15000,
+            focusRadius,
             this.selectedSido
           );
+        }
       } else {
         this.clearFocus();
       }
     },
-    async focusSigungu(sigunguName) {
+async focusSigungu(sigunguName) {
       if (!this.selectedSido) return;
       const key = `${this.selectedSido}/${sigunguName}`;
       let coord =
         this.geoCache[key] ||
         JSON.parse(localStorage.getItem(`geo:${key}`) || "null");
+        
       if (!coord) {
         try {
           const q = `대한민국 ${this.selectedSido} ${sigunguName}`;
@@ -1795,11 +1797,14 @@ clearFocus() {
         this.geoCache[key] = coord;
         localStorage.setItem(`geo:${key}`, JSON.stringify(coord));
       }
+      
       const kakao = window.kakao;
       this.selectedSigungu = sigunguName;
       const latlng = new kakao.maps.LatLng(coord.lat, coord.lng);
-      this.map.setLevel(FOCUS_LEVEL, { animate: true });
-      this.map.panTo(latlng);
+
+      this.map.setLevel(FOCUS_LEVEL); 
+      this.map.setCenter(latlng);
+      
       this.renderMap();
       await this.refreshMapPoints();
     },
@@ -1812,18 +1817,22 @@ clearFocus() {
         await this.focusSigungu(name);
       }
     },
-    async onSelectSido() {
+async onSelectSido() {
       this.selectedSigungu = "";
       this.selectedPoint = null;
+      
       if (!this.selectedSido) {
         this.loadRegions();
-        this.map.setLevel(12, { animate: true });
-        this.map.panTo(new window.kakao.maps.LatLng(36.5, 127.8));
+        this.map.setLevel(12); 
+        this.map.setCenter(new window.kakao.maps.LatLng(36.5, 127.8));
       } else {
         const c = PROVINCE_CENTERS[this.selectedSido];
         if (c) {
-          this.map.setLevel(SIGUN_LEVEL, { animate: true });
-          this.map.panTo(new window.kakao.maps.LatLng(c.lat, c.lng));
+          const isProvince = this.selectedSido.endsWith('도');
+          const targetLevel = isProvince ? 10 : SIGUN_LEVEL;
+
+          this.map.setLevel(targetLevel); 
+          this.map.setCenter(new window.kakao.maps.LatLng(c.lat, c.lng));
         }
         this.loadRegions();
       }

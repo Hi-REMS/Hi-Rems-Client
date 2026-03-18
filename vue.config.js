@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 module.exports = {
   publicPath: '/hirems/',
   lintOnSave: false,
@@ -13,6 +16,15 @@ module.exports = {
   devServer: {
     host: '192.168.45.215',
     port: 8080,
+    server: {
+      type: 'https',
+      options: {
+        key: fs.readFileSync(path.join(__dirname, '../Hi-Rems-Server/localhost-key.pem')),
+        cert: fs.readFileSync(path.join(__dirname, '../Hi-Rems-Server/localhost.pem')),
+      },
+    },
+    hot: false,
+    webSocketServer: false,
     compress: true,
     client: { overlay: false },
     historyApiFallback: true,
@@ -20,12 +32,12 @@ module.exports = {
 
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:3000',
+        target: 'https://192.168.45.215:3000', 
         changeOrigin: true,
         secure: false,
       },
       '/uploads': {
-        target: 'http://127.0.0.1:3000',
+        target: 'https://192.168.45.215:3000',
         changeOrigin: true,
         secure: false,
       },
