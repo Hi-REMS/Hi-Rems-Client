@@ -14,8 +14,11 @@ api.interceptors.response.use(
     return response;
   },
   function (error) {
+    if (error.config && error.config.url && error.config.url.includes('/auth/login')) {
+      return Promise.reject(error);
+    }
+
     if (error.response && error.response.status === 401) {
-      
       if (!isAlerting) {
         isAlerting = true;
 
