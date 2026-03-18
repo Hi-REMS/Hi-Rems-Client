@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <AppHeader v-if="!$route.meta.hideHeader" />
+    <AppHeader v-if="!$route.meta?.hideHeader" />
     <router-view />
   </div>
 </template>
@@ -17,6 +17,7 @@ export default {
     return {
       idleTimer: null,
       IDLE_TIMEOUT_MS: 10 * 60 * 1000,
+      sessionCheckTimer: null, 
     }
   },
 
@@ -30,7 +31,6 @@ export default {
         '/reset',
         '/change-password'
       ]
-
       if (hideList.includes(path)) return false
       return true
     }
@@ -38,11 +38,10 @@ export default {
 
   watch: {
     $route(to) {
-      if (to.meta.requiresAuth) {
+      if (to.meta && to.meta.requiresAuth) {
         this.setupIdleListeners();
         this.resetIdleTimer();
       } else {
-        // 로그인 화면 등 퍼블릭 화면에서는 타이머 해제
         this.removeIdleListeners();
         if (this.idleTimer) clearTimeout(this.idleTimer);
       }
@@ -54,14 +53,33 @@ export default {
       this.setupIdleListeners();
       this.resetIdleTimer();
     }
+
+    this.sessionCheckTimer = setInterval(async () => {
+      const token = localStorage.getItem('token') || localStorage.getItem('access_token'); 
+      if (token) {
+        try {
+          await api.get('/auth/me'); 
+        } catch (error) {
+          clearInterval(this.sessionCheckTimer);
+        }
+      }
+    }, 10000);
   },
 
-  beforeDestroy() {
-    this.removeIdleListeners();
-    if (this.idleTimer) clearTimeout(this.idleTimer);
+  beforeUnmount() { 
+    this.cleanupTimers();
+  },
+  beforeDestroy() { 
+    this.cleanupTimers();
   },
 
   methods: {
+    cleanupTimers() {
+      this.removeIdleListeners();
+      if (this.idleTimer) clearTimeout(this.idleTimer);
+      if (this.sessionCheckTimer) clearInterval(this.sessionCheckTimer);
+    },
+
     setupIdleListeners() {
       const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
       events.forEach(event => {
@@ -90,7 +108,7 @@ export default {
       
       api.post('/auth/logout').finally(() => {
         const keysToRemove = [
-          'token', 'isAdmin', 'username', 'email', 
+          'token', 'access_token', 'isAdmin', 'username', 'email', 
           'worker', 'phoneNumber', 'defaultImei'
         ];
         keysToRemove.forEach(k => localStorage.removeItem(k));
@@ -104,9 +122,11 @@ export default {
           }
         });
 
-        delete api.defaults.headers.common['Authorization'];
+        if (api.defaults && api.defaults.headers && api.defaults.headers.common) {
+          delete api.defaults.headers.common['Authorization'];
+        }
+        
         sessionStorage.clear();
-
         this.removeIdleListeners();
         
         if (this.$route.path !== '/login') {

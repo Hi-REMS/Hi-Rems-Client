@@ -1,24 +1,38 @@
 import axios from 'axios'
+import router from '@/router';
 
 export const api = axios.create({
   baseURL: '/api',
-  timeout: 10000,
+  timeout: 100000,
   withCredentials: true,
 })
 
-api.interceptors.response.use(
-  r => r,
-  err => {
-    if (err?.response?.status === 401) {
-      const hash = location.hash || '' 
-      const isOnLogin = /^#\/login(?:\?|$)/.test(hash)
+let isAlerting = false;
 
-      if (!isOnLogin) {
-        const current = hash.slice(1) || '/'   
-        const redirect = encodeURIComponent(current)
-        location.hash = `#/login?redirect=${redirect}`
+api.interceptors.response.use(
+  function (response) {
+    return response;
+  },
+  function (error) {
+    if (error.response && error.response.status === 401) {
+      
+      if (!isAlerting) {
+        isAlerting = true;
+
+        const errorMessage = error.response.data?.message;
+        if (errorMessage) {
+          alert(errorMessage); 
+        } else {
+          alert('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+        }
+        router.push('/login');
+
+        setTimeout(() => {
+          isAlerting = false;
+        }, 3000);
       }
     }
-    return Promise.reject(err)
+    
+    return Promise.reject(error);
   }
-)
+);

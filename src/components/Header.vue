@@ -271,8 +271,8 @@ export default {
       this.$router.push('/change-password')
     },
     downloadManual() {
-      const adminFileName = 'HI-REMS 에너지원 모니터링 시스템 V1.0 사용자취급설명서(관리자).pdf';
-      const userFileName = 'HI-REMS 에너지원 모니터링 시스템 V1.0 사용자취급설명서.pdf';
+      const adminFileName = '하이램스 Ver 1.0 사용자취급설명서 - 관리자용.pdf';
+      const userFileName = '하이램스_Ver_1_0_사용자취급설명서_일반_사용자용.pdf';
       
       const targetFileName = this.isAdmin ? adminFileName : userFileName;
       

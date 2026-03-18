@@ -1805,8 +1805,8 @@ resolveImg(path) {
 
   if (path.startsWith("http")) return path;
 
-  if (location.hostname === "192.168.45.215" || location.hostname === "localhost") {
-    return `https://192.168.45.215:8080${path}`;
+  if (location.hostname === "localhost" || location.hostname === "localhost") {
+    return `https://localhost:8080${path}`;
   }
 
   return `https://kocome.com${path}`;

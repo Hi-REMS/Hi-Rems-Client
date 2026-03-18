@@ -14,7 +14,7 @@ module.exports = {
     config.cache = { type: 'filesystem' };
   },
   devServer: {
-    host: '192.168.45.215',
+    host: '0.0.0.0',
     port: 8080,
     server: {
       type: 'https',
@@ -32,12 +32,12 @@ module.exports = {
 
     proxy: {
       '/api': {
-        target: 'https://192.168.45.215:3000', 
+        target: 'https://localhost:3000', 
         changeOrigin: true,
         secure: false,
       },
       '/uploads': {
-        target: 'https://192.168.45.215:3000',
+        target: 'https://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
