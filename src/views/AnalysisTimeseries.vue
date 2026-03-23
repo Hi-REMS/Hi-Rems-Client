@@ -963,10 +963,21 @@ unitEnergyTotal() {
   isOffline() {
     if (!this.latestCollectedAt) return true;
     
-    const last = new Date(this.latestCollectedAt).getTime();
+    const last = new Date(this.latestCollectedAt);
+	
+	const tonight = new Date();
+	tonight.setHours(16,0,0,0);
+	console.log(tonight);
+	if( last > tonight )
+	{
+		return false;
+	}
+	
     const now = Date.now();
-    const diffMin = (now - last) / (1000 * 60);
-    
+    const diffMin = (now - last.getTime()) / (1000 * 60);
+    console.log(now/(60000));
+    console.log(diffMin);
+	
     return diffMin >= 90;
   },
 inverterStatusList() {
@@ -1805,8 +1816,8 @@ resolveImg(path) {
 
   if (path.startsWith("http")) return path;
 
-  if (location.hostname === "localhost" || location.hostname === "localhost") {
-    return `https://localhost:8080${path}`;
+  if (location.hostname === "192.168.45.215" || location.hostname === "localhost") {
+    return `https://192.168.45.215:8080${path}`;
   }
 
   return `https://kocome.com${path}`;
